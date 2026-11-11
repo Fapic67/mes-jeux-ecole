@@ -5,10 +5,10 @@ Dépôt : https://github.com/Fapic67/mes-jeux-ecole · site : https://fapic67.gi
 Le but est d'en faire une **appli Android installable (APK)** et partageable à des amis.
 
 ## Structure actuelle
-- `index.html` = accueil par matière. Chaque jeu est un fichier de `jeux/` (`calcul.html`, `telephone.html`, `deutsch.html`), récupéré par `fetch` puis chargé dans une iframe `srcdoc` (même origine que l'accueil, donc même localStorage).
+- `index.html` = accueil par matière (Français, Mathématiques, Allemand). Chaque jeu est un fichier de `jeux/` (`francais.html`, `calcul.html`, `telephone.html`, `deutsch.html`), récupéré par `fetch` puis chargé dans une iframe `srcdoc` (même origine que l'accueil, donc même localStorage).
   Avant le chargement, l'accueil injecte `window.START` (mode du jeu) et `window.PRENOM` (prénom saisi sur l'accueil).
 - `manifest.webmanifest`, `sw.js` (hors-ligne, **changer `VERSION` à chaque mise à jour**), `icons/`.
-- Navigation par hash : `#maths`, `#allemand`, `#calcul`, `#telephone`, `#article`, `#mot`.
+- Navigation par hash : `#francais`, `#lire`, `#syllabe`, `#maths`, `#allemand`, `#calcul`, `#telephone`, `#article`, `#mot`.
 - Les jeux enregistrent leurs données en localStorage (clés `calcul`, `tel_*`, `hub_prenom`).
 
 ## Récompenses globales (dans `index.html`)
@@ -20,6 +20,10 @@ Le but est d'en faire une **appli Android installable (APK)** et partageable à 
 
 ## Design system tactile
 Cibles >= 56px, bordures 3px, textes secondaires >= 16px, menus centrés verticalement (`.mid`).
+
+### Français (liste dans `RAW` de `francais.html`, format `mot|syl-la-bes|emoji`)
+0. **Lis et trouve** : une image, 3 mots écrits (si possible même première lettre) ; le mot trouvé est lu en français.
+0. **La première syllabe** : le mot est dit à voix haute ; l'enfant choisit sa première syllabe parmi 3. Partie de 15, note sur 10, +1 ⭐ par réponse juste du premier coup.
 
 ### Mathématiques
 1. **Calcul malin** : additions, soustractions et compléments, avec un résultat maximum réglable. Fin de partie au choix : sans fin, objectif d'étoiles ou minuteur (au minuteur, l'enfant termine la dernière opération).
