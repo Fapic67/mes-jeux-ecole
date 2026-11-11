@@ -73,8 +73,10 @@ button:disabled{opacity:.4}
 (function(){
 var $=function(i){return document.getElementById(i)};
 var DIR={L:[-1,0],R:[1,0],U:[0,-1],D:[0,1]},ARW={L:"←",R:"→",U:"↑",D:"↓"},MAXP=24;
+// progression propre à chaque profil (identifiant fourni par l'accueil)
+var PK=window.PROFILE?"@"+window.PROFILE:"";
 function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
-var level=Math.max(1,parseInt(ls("robot_lvl"))||1),best=Math.max(level,parseInt(ls("robot_best"))||1);
+var level=Math.max(1,parseInt(ls("robot_lvl"+PK))||1),best=Math.max(level,parseInt(ls("robot_best"+PK))||1);
 var N,rocks,start,goal,prog=[],running=false,fails=0,done=false;
 
 /* sons et voix */
@@ -132,7 +134,7 @@ function run(){
 function finish(ok,extra){
  if(ok){done=true;running=false;var b=$("bot");b.classList.add("win");[523,659,784,1047].forEach(function(f,k){tone(f,k*.1,.25,.22)});
   star(fails===0?2:1);msg(fails===0?"🎉 Bravo ! Du premier coup !":"🎉 Bravo, tu as réussi !");say("Bravo !");
-  level++;best=Math.max(best,level);ls("robot_lvl",level);ls("robot_best",best);
+  level++;best=Math.max(best,level);ls("robot_lvl"+PK,level);ls("robot_best"+PK,best);
   $("edit").hidden=true;$("after").hidden=false;refresh();keepVisible()}
  else{tone(260,0,.3,.18);msg("Le robot n'est pas arrivé sur l'étoile. Essaie encore !");setTimeout(reset,1300)}}
 function reset(){fails++;running=false;var b=$("bot");b.classList.remove("bump");b.style.transition="none";placeBot(start[0],start[1]);void b.offsetWidth;b.style.transition="";
@@ -148,7 +150,7 @@ window.addEventListener("resize",function(){if(!running)placeBot(start[0],start[
 /* choix du niveau (parmi ceux déjà atteints) */
 function lvls(){var h="";for(var i=1;i<=best;i++)h+='<button data-l="'+i+'" class="'+(i===level?"on":"")+'">'+i+"</button>";$("lvls").innerHTML=h}
 $("lvlb").onclick=function(){if(running)return;lvls();$("sheet").hidden=false};
-$("lvls").addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;level=+b.dataset.l;ls("robot_lvl",level);$("sheet").hidden=true;newLevel()});
+$("lvls").addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;level=+b.dataset.l;ls("robot_lvl"+PK,level);$("sheet").hidden=true;newLevel()});
 $("close").onclick=function(){$("sheet").hidden=true};
 newLevel();
 })();

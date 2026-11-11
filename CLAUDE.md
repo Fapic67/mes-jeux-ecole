@@ -13,12 +13,14 @@ Le but est d'en faire une **appli Android installable (APK)** et partageable à 
 - Navigation par hash : `#francais`, `#quique`, `#phrase`, `#maths`, `#allemand`, `#calcul`, `#telephone`, `#article`, `#mot`, `#logique`, `#code`, `#robot`, `#musique`, `#note`, `#jeux`, `#morpion`.
 - Les jeux enregistrent leurs données en localStorage (clés `calcul`, `tel_*`, `hub_prenom`). Le prénom se règle dans les Paramètres globaux (carte « Enfant »).
 
-## Récompenses globales (dans `index.html`)
-- Les jeux envoient `parent.postMessage({type:"stars",n}, "*")` ; l'accueil cumule les étoiles (clé `rw` = `{stars, money}`).
+## Profils et récompenses (dans `index.html`)
+- Clé `profiles` = `{active, list:[{id, name, reward, unit, per, gain, stars, money}]}`. Chaque profil a son prénom (injecté dans les jeux en `window.PRENOM`), son système de récompense (`reward` on/off, unité, taux « per ⭐ = gain »), ses étoiles et sa récompense. `window.PROFILE` = id du profil actif.
+- Les jeux envoient `parent.postMessage({type:"stars",n}, "*")` → étoiles du profil actif. Seul le compteur commun (barre du haut) affiche les étoiles : pas de compteur propre dans les jeux.
   Gains : Calcul malin +1 ⭐ par bonne réponse, Téléphone +3 ⭐ par appel réussi, Der·Die·Das / Finde das Wort +1 ⭐ par mot trouvé du premier coup.
-- Paramètres globaux (⚙️ de l'accueil, clé `rw_cfg` = `{money, unit, per, gain, pin}`) : interrupteur `money` (false = étoiles seules, tout élément `.mon` masqué via `body.nomoney`), unité de monnaie, taux « per ⭐ = gain unité », conversion, ajout/retrait d'argent, définition du nombre d'étoiles et remise à 0 (toujours visibles, même sans monnaie), code parent.
-- Code parent : 4 chiffres, haché en SHA-256 (préfixe `tm:`). **Code par défaut : 0000** (`CFG.pin` vide = `DEF_PIN`) ; les paramètres sont toujours protégés, « Remettre 0000 » rétablit le défaut. `window.hubGate(ok)` est exposé aux jeux ; le Téléphone l'utilise pour ses réglages.
-- Migration unique (`rw_mig`) : l'ancienne cagnotte du Téléphone (`tel_cash` + 100 par ticket) est versée dans la monnaie, et son PIN devient le code parent.
+- Accueil : bouton « 👤 Prénom » (si ≥ 2 profils) pour changer de profil sans code.
+- Paramètres (protégés par le code) = menu thématique avec pages (pile `PG`, chaque page est une entrée d'historique) : 👤 Profils et récompenses (liste → fiche profil : prénom, utiliser, supprimer, système de récompense, étoiles définir/remettre à 0, récompense convertir/définir/remettre à 0/ajouter/retirer) · 🔄 Progression (par profil, tableau `PROGRESS` : pour l'instant le petit robot, clés `robot_lvl@<id>`, `robot_best@<id>`) · 🔒 Code parent · 📱 Application.
+- Code parent global (`rw_cfg.pin`) : 4 chiffres, SHA-256 (préfixe `tm:`), **par défaut 0000**. `window.hubGate(ok)` est exposé aux jeux.
+- Migrations : ancienne cagnotte `rw`/`rw_cfg`/`hub_prenom` → premier profil `p1` ; ancienne cagnotte du Téléphone (`rw_mig`) ; `robot_lvl` → `robot_lvl@p1`.
 
 ## Navigation et bouton retour
 Historique géré dans `index.html` (`go` = pushState, `back` = history.back si possible, sinon parent). Le bouton retour du téléphone (popstate) = bouton « ← » de l'appli : ferme d'abord une fenêtre du hub (pile `OV` : `settings`, `pin`), puis demande au jeu via `window.hubBack()` (renvoie true s'il a fermé sa propre fenêtre : réglages Calcul/Téléphone, choix du niveau code/robot), sinon remonte d'un niveau. Lien profond : la pile Accueil → Matière → Jeu est reconstruite au lancement.
@@ -27,14 +29,14 @@ Historique géré dans `index.html` (`go` = pushState, `back` = history.back si 
 Paramètres → carte « Application » : affiche la version en cache (`jeux-ecole-vXX`) et un bouton « Mettre à jour maintenant » qui vérifie la connexion (fetch `sw.js` no-store), supprime les caches, désinscrit le service worker puis recharge. Le localStorage (étoiles, réglages) est conservé.
 
 ## Design system tactile
-Cibles >= 56px, bordures 3px, textes secondaires >= 16px, menus centrés verticalement (`.mid`).
+Cibles >= 56px, bordures 3px, textes secondaires >= 16px, menus centrés verticalement (`.mid`). En-tête des matières et des jeux : flèche ← à gauche puis le titre (`.ttl`).
 
 ### Français (`francais.html`)
 - **Complète la phrase** (qui / que) : 32 phrases (`QQ`, mot manquant entre `{}`), 15 par partie. L'enfant tape « qui » ou « que » avec le clavier virtuel maison (`jeux/clavier.js` : AZERTY minuscules + ligne é è ê à ç, ⌫ et ✓, clic sonore, pas de voix ; clavier physique accepté ; le clavier Android ne s'ouvre jamais) ; la voix lit la phrase entière (mot compris) à l'affichage et après la bonne réponse. Le titre affiche « Complète la phrase : qui ou que ? » (barre du jeu : « Qui ou que ? »), à la demande de l'utilisateur ; sinon aucun indice : pas de placeholder, pas de réponse donnée après une erreur. Après 2 erreurs, la phrase est relue. Hash `#quique` (START=3).
 - **Complète la phrase** (mots simples) : même mécanique, 50 phrases (`MOTS`) portant chacune sur un mot différent qui s'écrit comme il se prononce (pas de lettre finale muette, pas de « eau/ph », pas de double consonne). 15 par partie. Hash `#phrase` (START=4).
 
 ### Mathématiques
-1. **Calcul malin** : additions, soustractions et compléments, avec un résultat maximum réglable. Fin de partie au choix : sans fin, objectif d'étoiles ou minuteur (au minuteur, l'enfant termine la dernière opération).
+1. **Calcul malin** : additions, soustractions et compléments, avec un résultat maximum réglable. Partie sans fin (plus de condition de fin ni de compteur propre).
    L'opération est **énoncée en allemand** ; quand la réponse est juste, l'opération complète est relue avec le résultat. Bonne réponse : le check se secoue, devient vert et un son de victoire part. Mauvaise réponse : croix rouge.
    Toutes les 6 à 8 étoiles, un personnage traverse l'écran en riant (15 personnages SVG, trajets variés).
 2. **Le téléphone magique** : une voix française dicte un numéro de 5 nombres de 10 à 99, un nombre à la fois. L'enfant compose chaque nombre ; le nombre suivant n'est dicté que quand elle a juste. En cas d'erreur, l'appli dit « Recommence ».
@@ -54,7 +56,7 @@ Cibles >= 56px, bordures 3px, textes secondaires >= 16px, menus centrés vertica
   8 essais max. Retour par essai, un point aligné sous chaque chiffre (positionnel) : vert = bonne place, jaune = présent ailleurs, vide = absent ; les répétitions sont comptées correctement. Victoire : +5 ⭐ en 3 essais ou moins, sinon +3 ⭐.
 
 - **Le petit robot** (`robot.html`) : grille avec 🤖, ⭐ et rochers 🪨 ; l'enfant aligne des flèches absolues (← ↑ ↓ →, 24 max) puis ▶ ; le robot exécute pas à pas (flèche en cours surlignée, trace). Cogne un rocher / sort de la grille / n'arrive pas sur l'étoile → retour au départ, programme conservé. Arriver sur l'étoile = réussi (même s'il reste des flèches).
-  Niveaux générés au hasard mais toujours faisables (BFS) : 4×4 sans rocher (niv. 1-2), 5×5 (niv. 4-8), 6×6 ensuite ; longueur du plus court chemin croissante. Clés `robot_lvl`, `robot_best` ; choix parmi les niveaux déjà atteints. +2 ⭐ du premier coup, sinon +1 ⭐.
+  Niveaux générés au hasard mais toujours faisables (BFS) : 4×4 sans rocher (niv. 1-2), 5×5 (niv. 4-8), 6×6 ensuite ; longueur du plus court chemin croissante. Clés `robot_lvl@<profil>`, `robot_best@<profil>` ; choix parmi les niveaux déjà atteints. +2 ⭐ du premier coup, sinon +1 ⭐.
 
 ### Musique (`musique.html`)
 - **Trouve la note** : portée en clé de sol (SVG dessiné à la main), une note à la fois (fenêtre de 6 notes, notes trouvées en vert avec leur nom). L'enfant choisit parmi 7 pastilles do ré mi fa sol la si ; bonne réponse → la note est jouée (synthé façon piano WebAudio) ; mauvaise → pastille barrée.

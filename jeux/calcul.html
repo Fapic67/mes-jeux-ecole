@@ -47,13 +47,12 @@ input[type=range]::-moz-range-thumb{width:30px;height:30px;border-radius:50%;bac
 .run svg{width:100%;height:auto;display:block;animation:hop .28s ease-in-out infinite alternate}
 .run b{position:absolute;left:50%;top:-34px;transform:translateX(-50%);white-space:nowrap;background:var(--card);color:var(--ink);padding:4px 12px;border-radius:14px;font:700 18px "Fredoka",sans-serif}
 @keyframes hop{from{transform:translateY(0) rotate(-6deg)}to{transform:translateY(-22px) rotate(6deg)}}
-#ends{grid-template-columns:repeat(3,1fr)}#ends .t{font-size:18px;padding:12px 2px}
 .score{display:flex;gap:12px;align-items:center}#timer{color:var(--blue)}
 @media (prefers-reduced-motion:reduce){.k.go.ok{animation:none}}
 </style>
 </head>
 <body>
-<header><div class="score"><span id="score">⭐ 0</span><span id="timer"></span></div><button class="gear" id="gear" aria-label="Réglages">⚙️</button></header>
+<header style="justify-content:flex-end"><button class="gear" id="gear" aria-label="Réglages">⚙️</button></header>
 <main><div class="op" id="op"></div></main>
 <div class="pad" id="pad"></div>
 
@@ -63,15 +62,11 @@ input[type=range]::-moz-range-thumb{width:30px;height:30px;border-radius:50%;bac
 <div class="types" id="types"></div>
 <label>Résultat maximum : <b id="mxv"></b></label>
 <input type="range" id="mx" min="5" max="100" step="1">
-<label>Fin de la partie</label>
-<div class="types" id="ends"></div>
-<div id="endopt"><label id="endl"></label><input type="range" id="ev" step="1"></div>
 <label>Voix allemande : <b id="vs"></b></label>
 <button class="t" id="vt" style="width:100%">🔊 Tester la voix</button>
 <button class="done" id="done">Jouer</button>
 </div></div>
 
-<div class="sheet" id="end"><div class="panel" style="text-align:center"><h2 id="endt"></h2><div class="mx" id="endsc"></div><button class="done" id="again">Rejouer</button></div></div>
 
 <script>
 (function(){
@@ -92,11 +87,9 @@ function win(){[523,659,784,1047].forEach(function(f,i){tone(f,i*.1,.25,"triangl
 function lose(){tone(300,0,.22,"sawtooth",.18);tone(220,.2,.4,"sawtooth",.18)}
 
 function fmt(s){return Math.floor(s/60)+":"+("0"+s%60).slice(-2)}
-function renderScore(){$("score").textContent="⭐ "+score+(S.end==="stars"?" / "+S.stars:"");$("timer").textContent=S.end==="time"?"⏱ "+fmt(tLeft):""}
-function startTimer(){if(S.end!=="time"||tick||timeUp)return;tick=setInterval(function(){tLeft--;if(tLeft<=0){tLeft=0;clearInterval(tick);timeUp=true}renderScore()},1000)}
-function endGame(){clearInterval(tick);tick=null;$("endt").textContent="Bravo ! 🎉";$("endsc").textContent="⭐ "+score;$("end").classList.add("open")}
-function restart(){clearInterval(tick);tick=null;score=0;nextRun=rnd(6,8);lastCh=-1;timeUp=false;tLeft=S.mins*60;$("end").classList.remove("open");renderScore();show()}
-function endLabel(){$("endl").innerHTML=S.end==="stars"?"Étoiles à gagner : <b>"+S.stars+"</b>":"Durée : <b>"+S.mins+" min</b>"}
+function renderScore(){}
+function startTimer(){}
+function restart(){score=0;nextRun=rnd(6,8);lastCh=-1;show()}
 var CH=['<svg viewBox="0 0 100 100"><ellipse cx="35" cy="92" rx="12" ry="6" fill="#d9601a"/><ellipse cx="65" cy="92" rx="12" ry="6" fill="#d9601a"/><circle cx="50" cy="52" r="38" fill="#ff8a3d"/><path d="M26 20l-4-14 14 8zM74 20l4-14-14 8z" fill="#ff8a3d"/><path d="M33 46q6-9 12 0M55 46q6-9 12 0" stroke="#3b1d0b" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M32 58q18 30 36 0z" fill="#3b1d0b"/><path d="M40 68q10 8 20 0q-10-5-20 0z" fill="#ff6b6b"/></svg>',
 '<svg viewBox="0 0 100 100"><path d="M50 10v14" stroke="#2b5fbf" stroke-width="4"/><circle cx="50" cy="9" r="6" fill="#ffc93c"/><rect x="14" y="24" width="72" height="56" rx="16" fill="#5aa9ff"/><rect x="26" y="80" width="14" height="14" rx="4" fill="#2b5fbf"/><rect x="60" y="80" width="14" height="14" rx="4" fill="#2b5fbf"/><rect x="6" y="44" width="10" height="18" rx="5" fill="#2b5fbf"/><rect x="84" y="44" width="10" height="18" rx="5" fill="#2b5fbf"/><path d="M28 48q7-10 14 0M58 48q7-10 14 0" stroke="#0f2a5c" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M32 60h36q-4 16-18 16t-18-16z" fill="#0f2a5c"/></svg>',
 '<svg viewBox="0 0 100 100"><path d="M16 38L20 8l24 18zM84 38L80 8 56 26z" fill="#b48cff"/><path d="M22 30l2-12 10 8zM78 30l-2-12-10 8z" fill="#ffb3d1"/><circle cx="50" cy="56" r="36" fill="#b48cff"/><ellipse cx="34" cy="92" rx="11" ry="6" fill="#8c63e0"/><ellipse cx="66" cy="92" rx="11" ry="6" fill="#8c63e0"/><path d="M28 50q7-10 14 0M58 50q7-10 14 0" stroke="#2d1459" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M46 58h8l-4 5z" fill="#ff6b9a"/><path d="M36 66q14 22 28 0z" fill="#2d1459"/><path d="M12 56h16M12 64l15-3M88 56H72M88 64l-15-3" stroke="#2d1459" stroke-width="2.5" stroke-linecap="round"/></svg>',
@@ -167,22 +160,15 @@ else if(b.id==="go")check()})}
 
 function check(){
 if(ans==="")return;locked=true;var g=$("go");
-if(+ans===cur.ans){g.className="k go ok";win();score++;try{if(parent!==window)parent.postMessage({type:"stars",n:1},"*")}catch(e){};renderScore();if(score>=nextRun){runner();nextRun=score+rnd(6,8)};var over=(S.end==="stars"&&score>=S.stars)||timeUp,nx=gen();say(textOp(true),function(){if(over||timeUp)endGame();else show(nx)});if(!over)say(textOp(false,nx),null,nx,true)}
+if(+ans===cur.ans){g.className="k go ok";win();score++;try{if(parent!==window)parent.postMessage({type:"stars",n:1},"*")}catch(e){};renderScore();if(score>=nextRun){runner();nextRun=score+rnd(6,8)};var nx=gen();say(textOp(true),function(){show(nx)});say(textOp(false,nx),null,nx,true)}
 else{g.className="k go ko";g.innerHTML=CROSS;lose();setTimeout(function(){ans="";paint();resetGo();locked=false},1000)}}
 
 function settings(){
 var t=$("types"),h="";
 TYPES.forEach(function(x){h+='<button class="t'+(S.type===x[0]?" on":"")+'" data-t="'+x[0]+'">'+x[1]+'</button>'});
 t.innerHTML=h;$("mx").value=S.max;$("mxv").textContent=S.max;
-var E=[["none","Sans fin"],["stars","Étoiles"],["time","Minuteur"]],e="";
-E.forEach(function(x){e+='<button class="t'+(S.end===x[0]?" on":"")+'" data-e="'+x[0]+'">'+x[1]+'</button>'});
-$("ends").innerHTML=e;$("endopt").style.display=S.end==="none"?"none":"block";
-var r=$("ev");if(S.end==="stars"){r.min=1;r.max=50;r.value=S.stars}else{r.min=1;r.max=15;r.value=S.mins}
-endLabel();pickVoice();$("vs").textContent=window.speechSynthesis?(VOICE?VOICE.name+" ("+VOICE.lang+")":"aucune trouvée"):"non disponible"}
+pickVoice();$("vs").textContent=window.speechSynthesis?(VOICE?VOICE.name+" ("+VOICE.lang+")":"aucune trouvée"):"non disponible"}
 $("types").addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;S.type=b.dataset.t;settings()});
-$("ends").addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;S.end=b.dataset.e;settings()});
-$("ev").addEventListener("input",function(){if(S.end==="stars")S.stars=+this.value;else S.mins=+this.value;endLabel()});
-$("again").addEventListener("click",restart);
 $("mx").addEventListener("input",function(){S.max=+this.value;$("mxv").textContent=S.max});
 $("gear").addEventListener("click",function(){settings();$("sheet").classList.add("open")});
 $("done").addEventListener("click",function(){$("sheet").classList.remove("open");save();restart()});
