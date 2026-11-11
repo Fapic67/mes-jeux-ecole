@@ -26,8 +26,9 @@ header{display:flex;align-items:center;gap:10px}
 .row .sl{display:flex;gap:6px;flex:1}
 .cell{width:46px;height:46px;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:700;line-height:1}
 .col{display:flex;flex-direction:column;gap:6px;flex:1}
-.fb{display:flex;gap:8px;padding-left:2px}
-.fb .dot{width:20px;height:20px}
+.fb{display:flex;gap:6px}
+.fb .ds{width:46px;display:flex;justify-content:center}
+.fb .dot{width:22px;height:22px}
 .cur{border-color:var(--lo);box-shadow:0 0 0 3px rgba(155,107,255,.18)}
 .cur .cell{width:56px;height:56px;font-size:36px;font-weight:700;border:3px dashed var(--bd)}
 .cur .cell.f{border-style:solid;border-color:var(--lo)}
@@ -58,7 +59,7 @@ header{display:flex;align-items:center;gap:10px}
 <body>
 <div id="wrap"><div id="inner">
 <header>
-  <div class="legend"><span><i class="dot g"></i>bonne place</span><span><i class="dot y"></i>mauvaise place</span></div>
+  <div class="legend"><span><i class="dot g"></i>bonne place</span><span><i class="dot y"></i>mauvaise place</span><span><i class="dot e"></i>pas dans le code</span></div>
   <button class="lvl" id="lvlb">Niveau</button>
 </header>
 <div id="rows"></div>
@@ -110,10 +111,12 @@ function newGame(){
  p.innerHTML=L.sym.map(function(f){return '<button data-f="'+f+'">'+f+'</button>'}).join("");
  $("play").hidden=false;$("after").hidden=true;
  msg("Trouve le code secret !");render()}
-function score(g){var good=0,mis=0,a=[],b=[];for(var i=0;i<g.length;i++){if(g[i]===secret[i])good++;else{a.push(g[i]);b.push(secret[i])}}
- a.forEach(function(x){var j=b.indexOf(x);if(j>=0){mis++;b.splice(j,1)}});return{g:good,y:mis}}
+// Résultat par position : g = bonne place, y = ailleurs dans le code, e = absent (gère les répétitions)
+function score(g){var p=[],rest=[],i,j;for(i=0;i<g.length;i++){if(g[i]===secret[i])p[i]="g";else rest.push(secret[i])}
+ for(i=0;i<g.length;i++){if(p[i])continue;j=rest.indexOf(g[i]);if(j>=0){p[i]="y";rest.splice(j,1)}else p[i]="e"}
+ return{p:p,g:p.filter(function(x){return x==="g"}).length,y:p.filter(function(x){return x==="y"}).length}}
 function cells(arr,cur){var h="";for(var i=0;i<L.len;i++)h+='<div class="cell'+(cur&&arr[i]?" f":"")+'">'+(arr[i]||"")+"</div>";return h}
-function dots(r){var h="";for(var i=0;i<L.len;i++)h+='<i class="dot '+(i<r.g?"g":i<r.g+r.y?"y":"e")+'"></i>';return h}
+function dots(r){return r.p.map(function(x){return '<span class="ds"><i class="dot '+x+'"></i></span>'}).join("")}
 function render(){
  var h="";tries.forEach(function(t,i){h+='<div class="row"><span class="n">'+(i+1)+'</span><div class="col"><div class="sl">'+cells(t.g)+'</div><div class="fb">'+dots(t.r)+"</div></div></div>"});
  if(!over)h+='<div class="row cur"><span class="n">'+(tries.length+1)+'</span><div class="sl">'+cells(guess,true)+"</div></div>";
@@ -123,7 +126,7 @@ function render(){
  document.querySelectorAll("#pal button").forEach(function(b){b.disabled=guess.length>=L.len||(!L.rep&&guess.indexOf(b.dataset.f)>=0)})}
 function msg(t){$("msg").textContent=t;$("msg2").textContent=t}
 // garde la ligne en cours et les boutons visibles (le reste défile au doigt)
-function keepVisible(){requestAnimationFrame(function(){var el=over?$("after"):$("play");var w=$("wrap"),r=el.getBoundingClientRect();if(r.bottom>w.clientHeight||r.top<0)w.scrollBy({top:r.bottom-w.clientHeight+12,behavior:"smooth"})})}
+function keepVisible(){setTimeout(function(){var w0=$("wrap");if(over){w0.scrollTo({top:w0.scrollHeight,behavior:"smooth"});return}var el=over?$("after"):$("play");var w=$("wrap"),r=el.getBoundingClientRect();if(r.bottom>w.clientHeight||r.top<0)w.scrollBy({top:r.bottom-w.clientHeight+12,behavior:"smooth"})},60)}
 $("pal").addEventListener("click",function(e){var b=e.target.closest("button");if(!b||over||guess.length>=L.len)return;tap();guess.push(b.dataset.f);render()});
 $("del").onclick=function(){if(over||!guess.length)return;tap();guess.pop();render()};
 $("ok").onclick=function(){
