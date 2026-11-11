@@ -295,7 +295,13 @@ window.addEventListener("hashchange",route);
 $("prenom").value=ls("hub_prenom");
 $("prenom").addEventListener("input",function(){ls("hub_prenom",this.value.trim());var p=this.value.trim();$("hello").textContent=p?"Bonjour "+p+" ! 👋":"Bonjour ! 👋"});
 route();
-if("serviceWorker" in navigator)window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){})});
+if("serviceWorker" in navigator){
+ // Nouvelle version installée : on recharge une fois, sauf pendant une partie
+ var hadSW=!!navigator.serviceWorker.controller,reloaded=false;
+ navigator.serviceWorker.addEventListener("controllerchange",function(){if(!hadSW||reloaded)return;reloaded=true;
+  if(GAMES[location.hash.replace("#","")])window.addEventListener("hashchange",function(){location.reload()},{once:true});else location.reload()});
+ window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").then(function(r){r.update()}).catch(function(){})});
+ document.addEventListener("visibilitychange",function(){if(!document.hidden)navigator.serviceWorker.getRegistration().then(function(r){r&&r.update()})})}
 </script>
 </body>
 </html>
