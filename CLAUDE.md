@@ -1,5 +1,7 @@
 # Mes jeux d'école — passation depuis claude.ai
 
+**Règle : ne créer que les jeux explicitement demandés par l'utilisateur.**
+
 Appli web pour enfant (6 ans), à l'origine un artifact claude.ai en un seul fichier, désormais découpée en PWA.
 Dépôt : https://github.com/Fapic67/mes-jeux-ecole · site : https://fapic67.github.io/mes-jeux-ecole/
 Le but est d'en faire une **appli Android installable (APK)** et partageable à des amis.
@@ -8,7 +10,7 @@ Le but est d'en faire une **appli Android installable (APK)** et partageable à 
 - `index.html` = accueil par matière (Français, Mathématiques, Allemand). Chaque jeu est un fichier de `jeux/` (`francais.html`, `calcul.html`, `telephone.html`, `deutsch.html`), récupéré par `fetch` puis chargé dans une iframe `srcdoc` (même origine que l'accueil, donc même localStorage).
   Avant le chargement, l'accueil injecte `window.START` (mode du jeu) et `window.PRENOM` (prénom saisi sur l'accueil).
 - `manifest.webmanifest`, `sw.js` (hors-ligne, **changer `VERSION` à chaque mise à jour**), `icons/`.
-- Navigation par hash : `#francais`, `#lire`, `#syllabe`, `#maths`, `#allemand`, `#calcul`, `#telephone`, `#article`, `#mot`.
+- Navigation par hash : `#francais`, `#quique`, `#maths`, `#allemand`, `#calcul`, `#telephone`, `#article`, `#mot`.
 - Les jeux enregistrent leurs données en localStorage (clés `calcul`, `tel_*`, `hub_prenom`).
 
 ## Récompenses globales (dans `index.html`)
@@ -21,10 +23,8 @@ Le but est d'en faire une **appli Android installable (APK)** et partageable à 
 ## Design system tactile
 Cibles >= 56px, bordures 3px, textes secondaires >= 16px, menus centrés verticalement (`.mid`).
 
-### Français (liste dans `RAW` de `francais.html`, format `mot|syl-la-bes|emoji`)
-0. **Lis et trouve** : une image, 3 mots écrits (si possible même première lettre) ; le mot trouvé est lu en français.
-0. **Complète la phrase** (qui / que) : 32 phrases (`QQ`, mot manquant entre `{}`), 15 par partie. L'enfant tape « qui » ou « que » au clavier ; la voix lit la phrase entière (mot compris) à l'affichage et après la bonne réponse. Aucun affichage de « qui »/« que » avant la bonne réponse (pas d'indice, pas de placeholder, titre neutre) : l'enfant doit l'orthographier de mémoire. Après 2 erreurs, la phrase est relue. Hash `#quique`.
-0. **La première syllabe** : le mot est dit à voix haute ; l'enfant choisit sa première syllabe parmi 3. Partie de 15, note sur 10, +1 ⭐ par réponse juste du premier coup.
+### Français (`francais.html`)
+- **Complète la phrase** (qui / que) : 32 phrases (`QQ`, mot manquant entre `{}`), 15 par partie. L'enfant tape « qui » ou « que » au clavier ; la voix lit la phrase entière (mot compris) à l'affichage et après la bonne réponse. Aucun affichage de « qui »/« que » avant la bonne réponse (pas d'indice, pas de placeholder, titre neutre) : l'enfant doit l'orthographier de mémoire. Après 2 erreurs, la phrase est relue. Hash `#quique`.
 
 ### Mathématiques
 1. **Calcul malin** : additions, soustractions et compléments, avec un résultat maximum réglable. Fin de partie au choix : sans fin, objectif d'étoiles ou minuteur (au minuteur, l'enfant termine la dernière opération).

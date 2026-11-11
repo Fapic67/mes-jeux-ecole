@@ -15,20 +15,8 @@ body{background:var(--bg);color:var(--fg);font-family:"Fredoka",system-ui,sans-s
 .bar{width:100%;height:14px;background:var(--bd);border-radius:7px;overflow:hidden}
 .bar i{display:block;height:100%;width:0;background:var(--fr);transition:width .3s}
 .cnt{color:var(--mut);font-size:19px;font-weight:600}
-.pic{font-size:110px;line-height:1.1;min-height:140px;display:flex;align-items:center;justify-content:center}
-.pills{display:flex;gap:12px;width:100%}
-.pills.col{flex-direction:column}
-.pill{flex:1;font:600 30px "Fredoka",sans-serif;min-height:70px;padding:12px 8px;border-radius:999px;border:4px solid var(--bd);background:var(--card);color:var(--fg);cursor:pointer;box-shadow:0 4px 0 var(--bd)}
-.pill:active{transform:translateY(3px);box-shadow:0 1px 0 var(--bd)}
-.col .pill{flex:none}
-.syl .pill{border-color:var(--syl);font-size:34px}
-.pill.ok{color:#fff;background:var(--ok);border-color:var(--ok);box-shadow:none}
-.pill.no{opacity:.4;border-color:var(--bad);text-decoration:line-through;box-shadow:none}
-.pill:disabled{cursor:default}
 .shake{animation:sh .25s}
 @keyframes sh{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
-.word{font-size:40px;font-weight:700;min-height:52px}
-.word b{color:var(--syl)}
 .btn{font:700 22px "Fredoka",sans-serif;min-height:64px;padding:16px 36px;border-radius:999px;border:0;background:var(--fr);color:#fff;cursor:pointer}
 .btn2{background:var(--card);color:var(--fg);border:3px solid var(--bd)}
 .menu .btn{width:100%}
@@ -50,11 +38,8 @@ h1{margin:0;font-size:34px}
 <body>
 <div id="app"></div>
 <script>
-// mot|syllabes (séparées par -)|image
-var RAW="lapin|la-pin|🐰;tomate|to-ma-te|🍅;bateau|ba-teau|⛵;gâteau|gâ-teau|🎂;cadeau|ca-deau|🎁;mouton|mou-ton|🐑;lune|lu-ne|🌙;robot|ro-bot|🤖;banane|ba-na-ne|🍌;carotte|ca-ro-tte|🥕;maison|mai-son|🏠;soleil|so-leil|☀️;papillon|pa-pi-llon|🦋;tigre|ti-gre|🐯;cheval|che-val|🐴;camion|ca-mion|🚚;vélo|vé-lo|🚲;pomme|pom-me|🍎;poire|poi-re|🍐;citron|ci-tron|🍋;livre|li-vre|📖;fusée|fu-sée|🚀;tortue|tor-tue|🐢;poule|pou-le|🐔;souris|sou-ris|🐭;salade|sa-la-de|🥗;cerise|ce-ri-se|🍒;canard|ca-nard|🦆;sapin|sa-pin|🌲;moto|mo-to|🏍️;tulipe|tu-li-pe|🌷;chapeau|cha-peau|🎩;melon|me-lon|🍈;ananas|a-na-nas|🍍;avion|a-vion|✈️;école|é-co-le|🏫;dragon|dra-gon|🐉;renard|re-nard|🦊;girafe|gi-ra-fe|🦒;fourmi|four-mi|🐜";
 // Phrases « qui / que » : le mot manquant est entre accolades
 var QQ=["Le chat {qui} dort est tout noir.","Le gâteau {que} je mange est au chocolat.","La fille {qui} chante est ma sœur.","Le livre {que} tu lis est très drôle.","J'ai un chien {qui} aboie fort.","La pomme {que} maman achète est rouge.","Le garçon {qui} court vite s'appelle Tom.","Le dessin {que} je fais est pour papa.","C'est la maîtresse {qui} lit une histoire.","La robe {que} Léa porte est bleue.","Je vois un oiseau {qui} vole dans le ciel.","Le jeu {que} nous aimons est caché.","Le bébé {qui} pleure a faim.","La chanson {que} tu chantes est jolie.","Il y a une souris {qui} mange du fromage.","Le vélo {que} papa répare est rouge.","Le lapin {qui} saute est tout blanc.","La glace {que} je préfère est à la fraise.","Mon ami {qui} habite ici a un chat.","Le ballon {que} Paul lance va très loin.","La poule {qui} picore est dans le jardin.","Le film {que} nous regardons fait peur.","Le bus {qui} arrive est jaune.","La lettre {que} je donne est pour mamie.","J'aime le soleil {qui} brille.","Le cadeau {que} tu ouvres est très grand.","La tortue {qui} marche est très lente.","Le pain {que} le boulanger fait est chaud.","Les enfants {qui} jouent rient fort.","La fleur {que} je cueille sent bon.","Le chat {que} je caresse ronronne.","Le chien {qui} mord est méchant."].map(function(t){var m=t.match(/^(.*)\{(qui|que)\}(.*)$/);return{a:m[1],w:m[2],b:m[3],full:m[1]+m[2]+m[3]}});
-var ALL=RAW.split(";").map(function(s){var p=s.split("|");return{w:p[0],s:p[1].split("-"),e:p[2]}});
 var TOTAL=15,app=document.getElementById("app"),voice=null;
 var bk=document.createElement("button");bk.className="back";bk.textContent="← Menu";bk.style.display="none";bk.onclick=function(){home()};if(!window.START)document.body.appendChild(bk);
 function pickVoice(){var v=(window.speechSynthesis&&speechSynthesis.getVoices())||[];voice=v.find(function(x){return x.lang&&/^fr/i.test(x.lang)})||null}
@@ -63,36 +48,10 @@ function say(t,cb){var done=false,fin=function(){if(!done){done=true;cb&&cb()}};
 function star(){try{if(parent!==window)parent.postMessage({type:"stars",n:1},"*")}catch(e){}}
 function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
 function bar(){return '<div class="cnt">'+(i+1)+' / '+deck.length+'</div><div class="bar"><i style="width:'+(i/deck.length*100)+'%"></i></div>'}
-var deck,i,good,missed,mode=0;
-function home(){if(window.START){parent.postMessage("hub-back","*");return}mode=0;bk.style.display="none";app.innerHTML='<h1>Français</h1><div class="pills col menu"><button class="btn" id="m1">Lis et trouve</button><button class="btn" id="m2">La première syllabe</button><button class="btn" id="m3">Complète la phrase</button></div>';document.getElementById("m1").onclick=start1;document.getElementById("m2").onclick=start2;document.getElementById("m3").onclick=start3}
-function answer(p,ok,w,next){
-  if(ok){if(!missed){good++;star()}app.querySelectorAll(".pill").forEach(function(x){x.disabled=true});p.classList.add("ok");say(w.w);
-    if(mode===2)document.getElementById("wd").innerHTML="<b>"+w.s[0]+"</b>"+w.s.slice(1).join("");
-    setTimeout(function(){i++;i<deck.length?next():end()},1600)}
-  else{missed=true;p.classList.add("no","shake");p.disabled=true}}
-
-// Jeu 1 : lis et trouve le mot qui correspond à l'image
-function start1(){mode=1;bk.style.display="block";deck=shuffle(ALL).slice(0,TOTAL);i=0;good=0;show1()}
-function show1(){
-  var w=deck[i];missed=false;
-  var same=shuffle(ALL.filter(function(x){return x.w!==w.w&&x.w[0]===w.w[0]})),rest=shuffle(ALL.filter(function(x){return x.w!==w.w&&x.w[0]!==w.w[0]}));
-  var ch=shuffle([w].concat(same.concat(rest).slice(0,2)));
-  app.innerHTML=bar()+'<div class="pic">'+w.e+'</div><div class="pills col">'+ch.map(function(c){return '<button class="pill" data-w="'+c.w+'">'+c.w+'</button>'}).join("")+'</div>';
-  app.querySelectorAll(".pill").forEach(function(p){p.onclick=function(){answer(p,p.dataset.w===w.w,w,show1)}});
-}
-// Jeu 2 : choisis la première syllabe du mot entendu
-function start2(){mode=2;bk.style.display="block";deck=shuffle(ALL).slice(0,TOTAL);i=0;good=0;show2()}
-function show2(){
-  var w=deck[i],first=w.s[0];missed=false;
-  var others=[];shuffle(ALL).forEach(function(x){var f=x.s[0];if(f!==first&&others.indexOf(f)<0&&others.length<2)others.push(f)});
-  var ch=shuffle([first].concat(others));
-  app.innerHTML=bar()+'<div class="pic">'+w.e+'</div><button class="ear" id="ear" aria-label="Réécouter">🔊</button><div class="word" id="wd">?'+'</div><div class="pills syl">'+ch.map(function(c){return '<button class="pill" data-s="'+c+'">'+c+'</button>'}).join("")+'</div>';
-  document.getElementById("ear").onclick=function(){say(w.w)};
-  say(w.w);
-  app.querySelectorAll(".pill").forEach(function(p){p.onclick=function(){answer(p,p.dataset.s===first,w,show2)}});
-}
-// Jeu 3 : qui ou que ? (à taper au clavier)
-function start3(){mode=3;bk.style.display="block";deck=shuffle(QQ).slice(0,TOTAL);i=0;good=0;show3()}
+var deck,i,good,missed;
+function home(){if(window.START){parent.postMessage("hub-back","*");return}bk.style.display="none";app.innerHTML='<h1>Français</h1><div class="menu" style="width:100%"><button class="btn" id="m3">Complète la phrase</button></div>';document.getElementById("m3").onclick=start3}
+// Complète la phrase : écrire qui / que au clavier, de mémoire
+function start3(){bk.style.display="block";deck=shuffle(QQ).slice(0,TOTAL);i=0;good=0;show3()}
 function esc(t){return t.replace(/&/g,"&amp;").replace(/</g,"&lt;")}
 function show3(){
   var q=deck[i],tries=0,lock=false;missed=false;
@@ -113,11 +72,11 @@ function show3(){
 function end(){
   var n=Math.round(good/deck.length*10*2)/2,s=String(n).replace(".",",");
   app.innerHTML='<h1>Bravo !</h1><div class="big">'+s+' / 10</div><div class="cnt">'+good+' / '+deck.length+' du premier coup</div><button class="btn" id="re">Rejouer</button><button class="btn btn2" id="mn">Menu</button>';
-  document.getElementById("re").onclick=function(){mode==3?start3():mode==2?start2():start1()};
+  document.getElementById("re").onclick=function(){start3()};
   document.getElementById("mn").onclick=home;
   say("Bravo ! "+s+" sur dix");
 }
-window.START==3?start3():window.START==2?start2():window.START==1?start1():home();
+window.START?start3():home();
 </script>
 </body>
 </html>
