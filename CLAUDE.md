@@ -7,10 +7,10 @@ Dépôt : https://github.com/Fapic67/mes-jeux-ecole · site : https://fapic67.gi
 Le but est d'en faire une **appli Android installable (APK)** et partageable à des amis.
 
 ## Structure actuelle
-- `index.html` = accueil par matière (Français, Mathématiques, Allemand). Chaque jeu est un fichier de `jeux/` (`francais.html`, `calcul.html`, `telephone.html`, `deutsch.html`), récupéré par `fetch` puis chargé dans une iframe `srcdoc` (même origine que l'accueil, donc même localStorage).
+- `index.html` = accueil par matière (Français, Mathématiques, Allemand, Logique). Chaque jeu est un fichier de `jeux/` (`francais.html`, `calcul.html`, `telephone.html`, `deutsch.html`), récupéré par `fetch` puis chargé dans une iframe `srcdoc` (même origine que l'accueil, donc même localStorage).
   Avant le chargement, l'accueil injecte `window.START` (mode du jeu) et `window.PRENOM` (prénom saisi sur l'accueil).
 - `manifest.webmanifest`, `sw.js` (hors-ligne, **changer `VERSION` à chaque mise à jour**), `icons/`.
-- Navigation par hash : `#francais`, `#quique`, `#phrase`, `#maths`, `#allemand`, `#calcul`, `#telephone`, `#article`, `#mot`.
+- Navigation par hash : `#francais`, `#quique`, `#phrase`, `#maths`, `#allemand`, `#calcul`, `#telephone`, `#article`, `#mot`, `#logique`, `#code`.
 - Les jeux enregistrent leurs données en localStorage (clés `calcul`, `tel_*`, `hub_prenom`). Le prénom se règle dans les Paramètres globaux (carte « Enfant »).
 
 ## Récompenses globales (dans `index.html`)
@@ -41,6 +41,11 @@ Cibles >= 56px, bordures 3px, textes secondaires >= 16px, menus centrés vertica
 4. **Finde das Wort** : une image (emoji) et 3 pills **avec l'article** (« der Bleistift ») ; le mot trouvé est prononcé.
    Les mots sans emoji utilisent des dessins SVG faits main (objet `PIC` dans `deutsch.html`) : Gans, Schulhof, Tisch, Klasse, Radiergummi, Tafel, Mäppchen, Reihe, Spitzer ; Musik = 🎶.
    Ne pas reprendre les illustrations du manuel « Die Rappelkiste » (droits d'auteur).
+
+### Logique (`code.html`)
+- **Le code secret** : jeu de déduction (principe « bulls and cows ») avec des fruits. Ne pas l'appeler ni le styliser comme le jeu de société de marque.
+  Niveaux (clé `code_lvl`) : Facile 3 parmi 4, Moyen 4 parmi 5 (sans répétition, fruits déjà posés grisés), Difficile 4 parmi 6 avec répétitions.
+  8 essais max. Retour par essai : point vert = bon fruit bonne place, point jaune = bon fruit mauvaise place. Victoire : +5 ⭐ en 3 essais ou moins, sinon +3 ⭐.
 
 ## Point technique important : la voix
 Tout repose sur `speechSynthesis` (Web Speech API). Une **WebView Android classique ne la gère généralement pas**.
