@@ -43,8 +43,8 @@ Cibles >= 56px, bordures 3px, textes secondaires >= 16px, menus centrés vertica
    Ne pas reprendre les illustrations du manuel « Die Rappelkiste » (droits d'auteur).
 
 ### Logique (`code.html`)
-- **Le code secret** : jeu de déduction (principe « bulls and cows ») avec des chiffres (1 à 4, 5 ou 6 selon le niveau). Ne pas l'appeler ni le styliser comme le jeu de société de marque.
-  Niveaux (clé `code_lvl`) : Facile 3 parmi 4, Moyen 4 parmi 5 (sans répétition, chiffres déjà posés grisés), Difficile 4 parmi 6 avec répétitions.
+- **Le code secret** : jeu de déduction (principe « bulls and cows ») avec des chiffres (Facile 1-4, Moyen 1-5, Difficile 0-9). Ne pas l'appeler ni le styliser comme le jeu de société de marque.
+  Niveaux (clé `code_lvl`) : Facile 3 parmi 4, Moyen 4 parmi 5 (sans répétition, chiffres déjà posés grisés), Difficile 4 chiffres de 0 à 9 avec répétitions. Page entière défilable au doigt ; ⌫/✓ juste sous la ligne en cours, puis message, puis pavé de chiffres.
   8 essais max. Retour par essai : point vert = bon chiffre bonne place, point jaune = bon chiffre mauvaise place. Victoire : +5 ⭐ en 3 essais ou moins, sinon +3 ⭐.
 
 ## Point technique important : la voix
