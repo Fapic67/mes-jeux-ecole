@@ -32,12 +32,21 @@ header{display:flex;justify-content:space-between;align-items:center;font-weight
 #title{font-size:28px;font-weight:700;color:var(--mu)}
 .btn{height:64px;border:0;border-radius:18px;font-size:22px;font-weight:700;color:#fff;background:var(--mu);box-shadow:0 5px 0 #0c7d7d}
 .btn.alt{background:var(--card);color:var(--fg);border:3px solid var(--bd);box-shadow:none}
+#hd{display:flex;align-items:center;gap:10px}
+.gear{width:56px;height:56px;border:3px solid var(--bd);border-radius:16px;background:var(--card);color:var(--fg);font-size:26px;line-height:1;padding:0}
+.sheet{position:fixed;inset:0;background:rgba(10,8,40,.55);display:flex;align-items:flex-end;justify-content:center;z-index:5}
+.panel{background:var(--bg);width:100%;max-width:520px;border-radius:28px 28px 0 0;padding:20px 18px calc(22px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px}
+.panel h2{margin:0;font-size:26px}
+.panel h3{margin:0;font-size:19px;color:var(--mut)}
+.opt{min-height:72px;border:3px solid var(--bd);background:var(--card);color:var(--fg);border-radius:20px;padding:10px 16px;text-align:left;font-size:22px;font-weight:700}
+.opt small{display:block;font-size:16px;font-weight:500;color:var(--mut)}
+.opt.on{border-color:var(--mu);background:var(--mu);color:#fff}.opt.on small{color:#fff}
 [hidden]{display:none!important}
 </style>
 </head>
 <body>
 <div id="wrap"><div id="inner">
-<header><span>🎵 Morceau mystère</span><span id="cnt"></span></header>
+<header><span>🎵 Morceau mystère</span><span id="hd"><span id="cnt"></span><button class="gear" id="gear" aria-label="Réglages">⚙️</button></span></header>
 <div class="bar"><i id="prog"></i></div>
 <div id="staff"></div>
 <div id="msg"></div>
@@ -47,6 +56,12 @@ header{display:flex;justify-content:space-between;align-items:center;font-weight
   <button class="btn" id="replay">▶ Réécouter</button>
   <button class="btn alt" id="next">Morceau suivant ➜</button>
 </div>
+</div></div>
+<div class="sheet" id="sheet" hidden><div class="panel">
+  <h2>Réglages</h2>
+  <h3>Clé principale</h3>
+  <div id="opts" style="display:flex;flex-direction:column;gap:10px"></div>
+  <button class="btn" id="close">Jouer</button>
 </div></div>
 <script>
 (function(){
@@ -60,7 +75,10 @@ var SONGS=[
  {t:"L'Ode à la joie",n:"E4:1 E4:1 F4:1 G4:1 G4:1 F4:1 E4:1 D4:1 C4:1 C4:1 D4:1 E4:1 E4:1.5 D4:0.5 D4:2"}
 ].map(function(s){return{t:s.t,n:s.n.split(" ").map(function(x){var p=x.split(":");return{l:p[0][0],o:+p[0][1],d:+p[1]}})}});
 var NAME={C:"do",D:"ré",E:"mi",F:"fa",G:"sol",A:"la",B:"si"},ORDER="CDEFGAB",SEMI={C:0,D:2,E:4,F:5,G:7,A:9,B:11};
-function pos(n){return(n.o-4)*7+ORDER.indexOf(n.l)-2} // 0 = mi (ligne du bas)
+/* clé principale : sol (ligne du bas = mi4) ou fa (ligne du bas = sol2, morceaux joués une octave plus bas) */
+var CLES={sol:{base:4*7+2,tr:0},fa:{base:2*7+4,tr:-1}};
+var cle=ls("mus_cle")==="fa"?"fa":"sol";
+function pos(n){return n.o*7+ORDER.indexOf(n.l)-CLES[cle].base} // 0 = ligne du bas de la clé active
 function freq(n){return 440*Math.pow(2,((n.o+1)*12+SEMI[n.l]-69)/12)}
 function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
 
@@ -79,6 +97,8 @@ function star(n){try{if(parent!==window)parent.postMessage({type:"stars",n:n},"*
 var W=360,H=150,G=12,BOT=96,X0=64,STEP=50,WIN=6;
 function y(p){return BOT-p*G/2}
 var CLEF='<path transform="translate(0 11)" d="M31 112c-6 4-13 0-12-6 1-5 8-6 10-1M29 106 30 20c0-7 9-11 11-3 3 11-6 21-16 30C15 56 11 64 13 74c3 12 20 16 28 7 7-8 2-21-9-21-8 0-13 8-9 14" fill="none" stroke="var(--ink)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>';
+// Clé de fa : tête sur la 4e ligne (y=60), deux points de part et d'autre
+var CLEF_FA='<path d="M9.5 99.5C26 91 41.5 79 41.5 61.5C41.5 51.5 34.5 45 25 45C17 45 10.5 49.5 9 57L13 58C14.5 52 19 48.5 24.5 48.5C31.5 48.5 35.5 53.5 35.5 61.5C35.5 77 25 89 9.5 99.5Z" fill="var(--ink)"/><circle cx="14" cy="60" r="5.6" fill="var(--ink)"/><circle cx="45" cy="54" r="2.9" fill="var(--ink)"/><circle cx="45" cy="66" r="2.9" fill="var(--ink)"/>';
 function noteSvg(n,x,col,label){var p=pos(n),cy=y(p),h="";
  for(var lp=-2;lp>=p;lp-=2)h+='<line x1="'+(x-15)+'" x2="'+(x+15)+'" y1="'+y(lp)+'" y2="'+y(lp)+'" stroke="var(--ink)" stroke-width="2"/>';
  for(lp=10;lp<=p;lp+=2)h+='<line x1="'+(x-15)+'" x2="'+(x+15)+'" y1="'+y(lp)+'" y2="'+y(lp)+'" stroke="var(--ink)" stroke-width="2"/>';
@@ -89,7 +109,7 @@ function noteSvg(n,x,col,label){var p=pos(n),cy=y(p),h="";
 function drawStaff(notes,from,cur,showAll){
  var h='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Portée">';
  for(var l=0;l<5;l++)h+='<line x1="6" x2="'+(W-6)+'" y1="'+y(l*2)+'" y2="'+y(l*2)+'" stroke="var(--ink)" stroke-width="1.6" opacity=".75"/>';
- h+=CLEF;
+ h+=cle==='fa'?CLEF_FA:CLEF;
  for(var k=from,i=0;k<notes.length&&i<WIN;k++,i++){var n=notes[k],isCur=k===cur;if(!showAll&&k>cur)break;
   h+=noteSvg(n,X0+i*STEP+10,isCur?"var(--cur)":"var(--ok)",(k<cur||showAll)?NAME[n.l]:"")}
  $("staff").innerHTML=h+"</svg>"}
@@ -98,14 +118,14 @@ function drawStaff(notes,from,cur,showAll){
 var order=JSON.parse(ls("mus_order")||"null"),song,idx,errs,missed,lock,playing=false,tk=0;
 if(!order||order.length!==SONGS.length){order=SONGS.map(function(_,i){return i}).sort(function(){return Math.random()-.5})}
 var si=Math.max(0,parseInt(ls("mus_i"))||0)%SONGS.length;
-function startSong(){song=SONGS[order[si]];idx=0;errs=0;lock=false;$("end").hidden=true;$("pills").hidden=false;msg("Quelle est cette note ?");show()}
+var csi=si;function startSong(i){csi=i===undefined?si:i;var S=SONGS[order[csi]],tr=CLES[cle].tr;song={t:S.t,n:S.n.map(function(n){return{l:n.l,o:n.o+tr,d:n.d}})};idx=0;errs=0;lock=false;$("end").hidden=true;$("pills").hidden=false;msg("Quelle est cette note ?");show()}
 function msg(t){$("msg").textContent=t}
 function show(){missed=false;$("cnt").textContent=(idx+1)+" / "+song.n.length;$("prog").style.width=(idx/song.n.length*100)+"%";
  drawStaff(song.n,Math.max(0,idx-WIN+1),idx,false);
  $("pills").innerHTML=ORDER.split("").map(function(l){return '<button data-l="'+l+'">'+NAME[l]+"</button>"}).join("")}
 $("pills").addEventListener("click",function(e){var b=e.target.closest("button");if(!b||lock||b.disabled)return;var n=song.n[idx];
- if(b.dataset.l===n.l){lock=true;b.classList.add("ok");play(freq(n),0,.6);msg("Bravo, c'est un "+NAME[n.l]+" !");
-  setTimeout(function(){idx++;lock=false;if(idx<song.n.length){msg("Quelle est cette note ?");show()}else finish()},750)}
+ if(b.dataset.l===n.l){lock=true;b.classList.add("ok");play(freq(n),0,.6);msg("Bravo, c'est un "+NAME[n.l]+" !");var my=tk;
+  setTimeout(function(){if(my!==tk)return;idx++;lock=false;if(idx<song.n.length){msg("Quelle est cette note ?");show()}else finish()},750)}
  else{errs++;b.classList.add("no");b.disabled=true;buzz();msg("Essaie encore !")}});
 function finish(){$("prog").style.width="100%";$("pills").hidden=true;$("end").hidden=false;$("title").textContent="🎶 "+song.t;
  msg(errs?"Tu as trouvé toutes les notes !":"Parfait, aucune erreur !");star(errs?3:5);
@@ -117,8 +137,17 @@ function playSong(){var my=++tk,beat=.5,t=0,k=0;playing=true;
   drawStaff(song.n,Math.max(0,k-WIN+1),k,true);var d=song.n[k].d*beat*1000;k++;setTimeout(hl,d)})()}
 $("replay").onclick=function(){ctx();playSong()};
 $("next").onclick=function(){tk++;startSong()};
+/* réglages : clé principale */
+var CLE_TXT={sol:["Clé de sol","Notes aiguës"],fa:["Clé de fa","Notes graves"]};
+function opts(){$("opts").innerHTML=["sol","fa"].map(function(c){return '<button class="opt'+(c===cle?" on":"")+'" data-c="'+c+'">'+CLE_TXT[c][0]+"<small>"+CLE_TXT[c][1]+"</small></button>"}).join("")}
+$("gear").onclick=function(){opts();$("sheet").hidden=false};
+$("opts").addEventListener("click",function(e){var b=e.target.closest("button");if(!b||b.dataset.c===cle)return;
+ cle=b.dataset.c;ls("mus_cle",cle);opts();tk++;startSong(csi)});
+$("close").onclick=function(){$("sheet").hidden=true};
 startSong();
 })();
+// Bouton retour du téléphone : ferme d'abord les réglages
+window.hubBack=function(){var s=document.getElementById("sheet");if(s&&!s.hidden){s.hidden=true;return true}return false};
 </script>
 </body>
 </html>
