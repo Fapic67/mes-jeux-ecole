@@ -16,7 +16,7 @@ Le but est d'en faire une **appli Android installable (APK)** et partageable à 
 ## Récompenses globales (dans `index.html`)
 - Les jeux envoient `parent.postMessage({type:"stars",n}, "*")` ; l'accueil cumule les étoiles (clé `rw` = `{stars, money}`).
   Gains : Calcul malin +1 ⭐ par bonne réponse, Téléphone +3 ⭐ par appel réussi, Der·Die·Das / Finde das Wort +1 ⭐ par mot trouvé du premier coup.
-- Paramètres globaux (⚙️ de l'accueil, clé `rw_cfg` = `{unit, per, gain, pin}`) : unité de monnaie, taux « per ⭐ = gain unité », conversion, ajout/retrait d'argent, code parent.
+- Paramètres globaux (⚙️ de l'accueil, clé `rw_cfg` = `{money, unit, per, gain, pin}`) : interrupteur `money` (false = étoiles seules, tout élément `.mon` masqué via `body.nomoney`), unité de monnaie, taux « per ⭐ = gain unité », conversion, ajout/retrait d'argent, code parent.
 - Code parent : 4 chiffres, haché en SHA-256 (préfixe `tm:`). `window.hubGate(ok)` est exposé aux jeux ; le Téléphone l'utilise pour ses réglages.
 - Migration unique (`rw_mig`) : l'ancienne cagnotte du Téléphone (`tel_cash` + 100 par ticket) est versée dans la monnaie, et son PIN devient le code parent.
 

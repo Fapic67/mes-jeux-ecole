@@ -86,6 +86,14 @@ h1{margin:0;font-size:34px;font-weight:700;line-height:1.15}
 .bal{display:flex;gap:12px}
 .bal>div{flex:1;background:var(--bg);border-radius:16px;padding:10px 12px;text-align:center}
 
+/* Interrupteur */
+.switch{display:flex;align-items:center;gap:14px;min-height:var(--tap);cursor:pointer}
+.switch input{appearance:none;-webkit-appearance:none;flex:none;width:68px;height:40px;border-radius:20px;background:var(--line);position:relative;transition:background .2s;margin:0}
+.switch input::after{content:"";position:absolute;top:4px;left:4px;width:32px;height:32px;border-radius:50%;background:#fff;box-shadow:0 2px 4px rgba(0,0,0,.25);transition:left .2s}
+.switch input:checked{background:var(--ok)}
+.switch input:checked::after{left:32px}
+body.nomoney .mon{display:none!important}
+
 /* Clavier du code */
 .pinbox{background:var(--bg);width:100%;max-width:420px;border-radius:28px 28px 0 0;padding:22px 20px calc(22px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:14px;align-items:center}
 .pinbox h3{margin:0;font-size:24px;text-align:center}
@@ -105,7 +113,7 @@ h1{margin:0;font-size:34px;font-weight:700;line-height:1.15}
 
 <section class="view" id="v-home">
   <div class="top">
-    <div class="purse" id="purse"><span class="grow"><span class="st">⭐ <span class="nst">0</span></span> &nbsp;💰 <span class="nmo">0</span><span class="hint" id="hint"></span></span></div>
+    <div class="purse" id="purse"><span class="grow"><span class="st">⭐ <span class="nst">0</span></span> <span class="mon">&nbsp;💰 <span class="nmo">0</span></span><span class="hint mon" id="hint"></span></span></div>
     <button class="btn icon-btn" id="gear" aria-label="Paramètres">⚙️</button>
   </div>
   <div class="mid">
@@ -151,16 +159,22 @@ h1{margin:0;font-size:34px;font-weight:700;line-height:1.15}
   <h2>⚙️ Paramètres <button class="btn" id="sclose">Fermer</button></h2>
 
   <div class="card">
-    <h3>Cagnotte</h3>
-    <div class="bal"><div><div class="muted">Étoiles</div><div class="big">⭐ <span id="s-st">0</span></div></div><div><div class="muted">Monnaie</div><div class="big" id="s-mo">0</div></div></div>
-    <button class="btn okb" id="s-conv">Convertir</button>
-    <div class="muted" id="s-convhint"></div>
-    <div class="row"><input class="field num" id="s-amt" type="number" inputmode="decimal" min="0" step="0.5" placeholder="0"><span class="grow muted" id="s-unit2"></span>
-      <button class="btn" id="s-sub">− Retirer</button><button class="btn" id="s-add">+ Ajouter</button></div>
-    <div class="muted">Retirer = ce que tu donnes « pour de vrai » à l'enfant.</div>
+    <h3>Récompenses</h3>
+    <label class="switch"><input type="checkbox" id="s-money"><span class="grow">Échanger les étoiles contre une monnaie</span></label>
+    <div class="muted" id="s-moneyst"></div>
   </div>
 
   <div class="card">
+    <h3>Cagnotte</h3>
+    <div class="bal"><div><div class="muted">Étoiles</div><div class="big">⭐ <span id="s-st">0</span></div></div><div class="mon"><div class="muted">Monnaie</div><div class="big" id="s-mo">0</div></div></div>
+    <button class="btn okb mon" id="s-conv">Convertir</button>
+    <div class="muted mon" id="s-convhint"></div>
+    <div class="row mon"><input class="field num" id="s-amt" type="number" inputmode="decimal" min="0" step="0.5" placeholder="0"><span class="grow muted" id="s-unit2"></span>
+      <button class="btn" id="s-sub">− Retirer</button><button class="btn" id="s-add">+ Ajouter</button></div>
+    <div class="muted mon">Retirer = ce que tu donnes « pour de vrai » à l'enfant.</div>
+  </div>
+
+  <div class="card mon">
     <h3>Monnaie</h3>
     <label class="row"><span class="grow">Unité</span><input class="field" id="s-unit" maxlength="14" style="width:170px" placeholder="€"></label>
     <div class="muted">Exemples : €, points, minutes d'écran, bonbons…</div>
@@ -197,7 +211,7 @@ function lj(k,d){try{return JSON.parse(localStorage.getItem(k))||d}catch(e){retu
 /* ---------- Récompenses globales ---------- */
 var W=lj("rw",{stars:0,money:0});
 var CFG=lj("rw_cfg",{});
-CFG.unit=CFG.unit||"€";CFG.per=Math.max(1,parseInt(CFG.per)||10);CFG.gain=Math.max(.01,parseFloat(CFG.gain)||1);CFG.pin=CFG.pin||"";
+CFG.unit=CFG.unit||"€";CFG.per=Math.max(1,parseInt(CFG.per)||10);CFG.gain=Math.max(.01,parseFloat(CFG.gain)||1);CFG.pin=CFG.pin||"";CFG.money=CFG.money!==false;
 (function migrate(){ // reprise de l'ancienne cagnotte du téléphone et de son code
  if(ls("rw_mig"))return;
  var cash=parseInt(ls("tel_cash"))||0,tk=parseInt(ls("tel_tickets"))||0;
@@ -209,6 +223,7 @@ function saveCfg(){ls("rw_cfg",JSON.stringify(CFG))}
 function r2(x){return Math.round(x*100)/100}
 function money(v){return r2(v).toLocaleString("fr-FR")+" "+CFG.unit}
 function renderPurse(bump){
+ document.body.classList.toggle("nomoney",!CFG.money);
  document.querySelectorAll(".nst").forEach(function(e){e.textContent=W.stars});
  document.querySelectorAll(".nmo").forEach(function(e){e.textContent=money(W.money)});
  $("pstars").textContent="⭐ "+W.stars;
@@ -238,6 +253,8 @@ window.hubGate=function(ok){if(CFG.pin)checkCode(ok);else newCode(ok,"Pas encore
 
 /* ---------- Paramètres ---------- */
 function renderSettings(){
+ $("s-money").checked=CFG.money;
+ $("s-moneyst").textContent=CFG.money?"Les étoiles peuvent être converties en monnaie.":"Pas de monnaie : l'enfant gagne seulement des étoiles.";
  $("s-st").textContent=W.stars;$("s-mo").textContent=money(W.money);
  var lots=Math.floor(W.stars/CFG.per);
  $("s-conv").disabled=!lots;
@@ -253,6 +270,7 @@ function renderSettings(){
 function openSettings(){renderSettings();$("settings").hidden=false}
 $("gear").onclick=function(){if(CFG.pin)checkCode(openSettings);else openSettings()};
 $("sclose").onclick=function(){$("settings").hidden=true;renderPurse()};
+$("s-money").onchange=function(){CFG.money=this.checked;saveCfg();renderSettings()};
 $("s-conv").onclick=function(){var lots=Math.floor(W.stars/CFG.per);if(!lots)return;W.stars-=lots*CFG.per;W.money=r2(W.money+lots*CFG.gain);saveW();renderSettings()};
 function amt(){var v=parseFloat(String($("s-amt").value).replace(",","."));return v>0?r2(v):0}
 $("s-add").onclick=function(){var v=amt();if(!v)return;W.money=r2(W.money+v);saveW();$("s-amt").value="";renderSettings()};
