@@ -27,13 +27,11 @@ h1{margin:0;font-size:34px}
 .gap{display:inline-block;min-width:3.2em;padding:0 .2em;border-bottom:4px solid var(--syl);color:var(--syl);font-weight:700}
 .gap.ok{color:var(--ok);border-color:var(--ok)}
 .gap.ko{color:var(--bad);border-color:var(--bad)}
-.typ{display:flex;gap:10px;width:100%}
-.typ input{flex:1;min-width:0;min-height:70px;font:700 34px "Fredoka",sans-serif;text-align:center;border:4px solid var(--syl);border-radius:22px;background:var(--card);color:var(--fg);user-select:text;-webkit-user-select:text}
-.typ input:focus{outline:none;box-shadow:0 0 0 4px rgba(155,107,255,.25)}
-.typ .btn{padding:0 22px}
 .hint{color:var(--mut);font-size:19px;min-height:24px}
+body.withkb{justify-content:flex-start;padding-top:28px;padding-bottom:300px}
 .back{position:fixed;top:10px;left:12px;min-height:52px;padding:0 16px;background:var(--card);border:3px solid var(--bd);border-radius:16px;font:700 18px "Fredoka",sans-serif;color:var(--fg);cursor:pointer}
 </style>
+<script src="jeux/clavier.js"></script>
 </head>
 <body>
 <div id="app"></div>
@@ -49,27 +47,32 @@ function star(){try{if(parent!==window)parent.postMessage({type:"stars",n:1},"*"
 function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
 function bar(){return '<div class="cnt">'+(i+1)+' / '+deck.length+'</div><div class="bar"><i style="width:'+(i/deck.length*100)+'%"></i></div>'}
 var deck,i,good,missed;
-function home(){if(window.START){parent.postMessage("hub-back","*");return}bk.style.display="none";app.innerHTML='<h1>Français</h1><div class="menu" style="width:100%"><button class="btn" id="m3">Complète la phrase</button></div>';document.getElementById("m3").onclick=start3}
+function home(){nokb();if(window.START){parent.postMessage("hub-back","*");return}bk.style.display="none";app.innerHTML='<h1>Français</h1><div class="menu" style="width:100%"><button class="btn" id="m3">Complète la phrase</button></div>';document.getElementById("m3").onclick=start3}
 // Complète la phrase : écrire qui / que au clavier, de mémoire
 function start3(){bk.style.display="block";deck=shuffle(QQ).slice(0,TOTAL);i=0;good=0;show3()}
 function esc(t){return t.replace(/&/g,"&amp;").replace(/</g,"&lt;")}
+var KB=null;
+function kb(o){if(KB)KB.destroy();KB=Clavier(o);document.body.classList.add("withkb")}
+function nokb(){if(KB){KB.destroy();KB=null}document.body.classList.remove("withkb")}
 function show3(){
-  var q=deck[i],tries=0,lock=false;missed=false;
-  app.innerHTML=bar()+'<div class="phr">'+esc(q.a)+'<span class="gap" id="gap">&nbsp;</span>'+esc(q.b)+'</div><button class="ear" id="ear" aria-label="Réécouter">🔊</button>'+
-   '<form class="typ" id="f" autocomplete="off"><input id="in" type="text" inputmode="text" enterkeyhint="done" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="6" placeholder="✏️"><button class="btn" type="submit">OK</button></form><div class="hint" id="hint"></div>';
-  var inp=document.getElementById("in"),gap=document.getElementById("gap");
+  var q=deck[i],tries=0,lock=false,val="";missed=false;
+  app.innerHTML=bar()+'<div class="phr">'+esc(q.a)+'<span class="gap" id="gap">&nbsp;</span>'+esc(q.b)+'</div><button class="ear" id="ear" aria-label="Réécouter">🔊</button><div class="hint" id="hint"></div>';
+  var gap=document.getElementById("gap"),hint=document.getElementById("hint");
+  function paint(){gap.className="gap";gap.textContent=val||" "}
   document.getElementById("ear").onclick=function(){say(q.full)};
-  inp.oninput=function(){gap.className="gap";gap.textContent=inp.value||"\u00a0"};
-  document.getElementById("f").onsubmit=function(e){e.preventDefault();if(lock)return;
-    var v=inp.value.trim().toLowerCase();if(!v){inp.focus();return}
-    if(v===q.w){lock=true;if(!missed){good++;star()}gap.className="gap ok";gap.textContent=q.w;inp.disabled=true;document.getElementById("hint").textContent="Bravo !";
-      say(q.full,function(){i++;i<deck.length?show3():end()})}
-    else{missed=true;tries++;gap.className="gap ko";gap.classList.add("shake");
-      document.getElementById("hint").textContent="Essaie encore ! Écoute bien la phrase.";if(tries>=2)say(q.full);
-      setTimeout(function(){inp.value="";gap.className="gap";gap.innerHTML="&nbsp;";inp.focus()},700)}};
-  say(q.full);setTimeout(function(){try{inp.focus()}catch(e){}},50);
+  kb({
+    onKey:function(k){if(lock||val.length>=8)return;val+=k;hint.textContent="";paint()},
+    onDel:function(){if(lock)return;val=val.slice(0,-1);paint()},
+    onOk:function(){if(lock||!val)return;
+      if(val===q.w){lock=true;KB.enable(false);if(!missed){good++;star()}gap.className="gap ok";gap.textContent=q.w;hint.textContent="Bravo !";
+        say(q.full,function(){i++;i<deck.length?show3():end()})}
+      else{missed=true;tries++;lock=true;gap.className="gap ko shake";hint.textContent="Essaie encore ! Écoute bien la phrase.";if(tries>=2)say(q.full);
+        setTimeout(function(){val="";paint();lock=false},700)}}
+  });
+  say(q.full);
 }
 function end(){
+  nokb();
   var n=Math.round(good/deck.length*10*2)/2,s=String(n).replace(".",",");
   app.innerHTML='<h1>Bravo !</h1><div class="big">'+s+' / 10</div><div class="cnt">'+good+' / '+deck.length+' du premier coup</div><button class="btn" id="re">Rejouer</button><button class="btn btn2" id="mn">Menu</button>';
   document.getElementById("re").onclick=function(){start3()};

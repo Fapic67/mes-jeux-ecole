@@ -24,7 +24,7 @@ Le but est d'en faire une **appli Android installable (APK)** et partageable à 
 Cibles >= 56px, bordures 3px, textes secondaires >= 16px, menus centrés verticalement (`.mid`).
 
 ### Français (`francais.html`)
-- **Complète la phrase** (qui / que) : 32 phrases (`QQ`, mot manquant entre `{}`), 15 par partie. L'enfant tape « qui » ou « que » au clavier ; la voix lit la phrase entière (mot compris) à l'affichage et après la bonne réponse. Aucun affichage de « qui »/« que » avant la bonne réponse (pas d'indice, pas de placeholder, titre neutre) : l'enfant doit l'orthographier de mémoire. Après 2 erreurs, la phrase est relue. Hash `#quique`.
+- **Complète la phrase** (qui / que) : 32 phrases (`QQ`, mot manquant entre `{}`), 15 par partie. L'enfant tape « qui » ou « que » avec le clavier virtuel maison (`jeux/clavier.js` : AZERTY minuscules + ligne é è ê à ç, ⌫ et ✓, clic sonore, pas de voix ; clavier physique accepté ; le clavier Android ne s'ouvre jamais) ; la voix lit la phrase entière (mot compris) à l'affichage et après la bonne réponse. Aucun affichage de « qui »/« que » avant la bonne réponse (pas d'indice, pas de placeholder, titre neutre) : l'enfant doit l'orthographier de mémoire. Après 2 erreurs, la phrase est relue. Hash `#quique`.
 
 ### Mathématiques
 1. **Calcul malin** : additions, soustractions et compléments, avec un résultat maximum réglable. Fin de partie au choix : sans fin, objectif d'étoiles ou minuteur (au minuteur, l'enfant termine la dernière opération).
