@@ -64,7 +64,7 @@ function star(){try{if(parent!==window)parent.postMessage({type:"stars",n:1},"*"
 function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
 function bar(){return '<div class="cnt">'+(i+1)+' / '+deck.length+'</div><div class="bar"><i style="width:'+(i/deck.length*100)+'%"></i></div>'}
 var deck,i,good,missed,mode=0;
-function home(){if(window.START){parent.postMessage("hub-back","*");return}mode=0;bk.style.display="none";app.innerHTML='<h1>Français</h1><div class="pills col menu"><button class="btn" id="m1">Lis et trouve</button><button class="btn" id="m2">La première syllabe</button><button class="btn" id="m3">Qui ou que ?</button></div>';document.getElementById("m1").onclick=start1;document.getElementById("m2").onclick=start2;document.getElementById("m3").onclick=start3}
+function home(){if(window.START){parent.postMessage("hub-back","*");return}mode=0;bk.style.display="none";app.innerHTML='<h1>Français</h1><div class="pills col menu"><button class="btn" id="m1">Lis et trouve</button><button class="btn" id="m2">La première syllabe</button><button class="btn" id="m3">Complète la phrase</button></div>';document.getElementById("m1").onclick=start1;document.getElementById("m2").onclick=start2;document.getElementById("m3").onclick=start3}
 function answer(p,ok,w,next){
   if(ok){if(!missed){good++;star()}app.querySelectorAll(".pill").forEach(function(x){x.disabled=true});p.classList.add("ok");say(w.w);
     if(mode===2)document.getElementById("wd").innerHTML="<b>"+w.s[0]+"</b>"+w.s.slice(1).join("");
@@ -97,7 +97,7 @@ function esc(t){return t.replace(/&/g,"&amp;").replace(/</g,"&lt;")}
 function show3(){
   var q=deck[i],tries=0,lock=false;missed=false;
   app.innerHTML=bar()+'<div class="phr">'+esc(q.a)+'<span class="gap" id="gap">&nbsp;</span>'+esc(q.b)+'</div><button class="ear" id="ear" aria-label="Réécouter">🔊</button>'+
-   '<form class="typ" id="f" autocomplete="off"><input id="in" type="text" inputmode="text" enterkeyhint="done" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="6" placeholder="qui ou que ?"><button class="btn" type="submit">OK</button></form><div class="hint" id="hint"></div>';
+   '<form class="typ" id="f" autocomplete="off"><input id="in" type="text" inputmode="text" enterkeyhint="done" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="6" placeholder="✏️"><button class="btn" type="submit">OK</button></form><div class="hint" id="hint"></div>';
   var inp=document.getElementById("in"),gap=document.getElementById("gap");
   document.getElementById("ear").onclick=function(){say(q.full)};
   inp.oninput=function(){gap.className="gap";gap.textContent=inp.value||"\u00a0"};
@@ -106,7 +106,7 @@ function show3(){
     if(v===q.w){lock=true;if(!missed){good++;star()}gap.className="gap ok";gap.textContent=q.w;inp.disabled=true;document.getElementById("hint").textContent="Bravo !";
       say(q.full,function(){i++;i<deck.length?show3():end()})}
     else{missed=true;tries++;gap.className="gap ko";gap.classList.add("shake");
-      document.getElementById("hint").textContent=tries>=2?"Indice : c'est « "+q.w+" »":"Essaie encore !";
+      document.getElementById("hint").textContent="Essaie encore ! Écoute bien la phrase.";if(tries>=2)say(q.full);
       setTimeout(function(){inp.value="";gap.className="gap";gap.innerHTML="&nbsp;";inp.focus()},700)}};
   say(q.full);setTimeout(function(){try{inp.focus()}catch(e){}},50);
 }
