@@ -7,10 +7,10 @@ Dépôt : https://github.com/Fapic67/mes-jeux-ecole · site : https://fapic67.gi
 Le but est d'en faire une **appli Android installable (APK)** et partageable à des amis.
 
 ## Structure actuelle
-- `index.html` = accueil par matière (Français, Mathématiques, Allemand, Logique). Chaque jeu est un fichier de `jeux/` (`francais.html`, `calcul.html`, `telephone.html`, `deutsch.html`), récupéré par `fetch` puis chargé dans une iframe `srcdoc` (même origine que l'accueil, donc même localStorage).
+- `index.html` = accueil par matière (Français, Mathématiques, Allemand, Logique, Jeux). Chaque jeu est un fichier de `jeux/` (`francais.html`, `calcul.html`, `telephone.html`, `deutsch.html`), récupéré par `fetch` puis chargé dans une iframe `srcdoc` (même origine que l'accueil, donc même localStorage).
   Avant le chargement, l'accueil injecte `window.START` (mode du jeu) et `window.PRENOM` (prénom saisi sur l'accueil).
 - `manifest.webmanifest`, `sw.js` (hors-ligne, **changer `VERSION` à chaque mise à jour**), `icons/`.
-- Navigation par hash : `#francais`, `#quique`, `#phrase`, `#maths`, `#allemand`, `#calcul`, `#telephone`, `#article`, `#mot`, `#logique`, `#code`.
+- Navigation par hash : `#francais`, `#quique`, `#phrase`, `#maths`, `#allemand`, `#calcul`, `#telephone`, `#article`, `#mot`, `#logique`, `#code`, `#jeux`, `#morpion`.
 - Les jeux enregistrent leurs données en localStorage (clés `calcul`, `tel_*`, `hub_prenom`). Le prénom se règle dans les Paramètres globaux (carte « Enfant »).
 
 ## Récompenses globales (dans `index.html`)
@@ -49,6 +49,9 @@ Cibles >= 56px, bordures 3px, textes secondaires >= 16px, menus centrés vertica
 - **Le code secret** : jeu de déduction (principe « bulls and cows ») avec des chiffres (Facile 1-4, Moyen 1-5, Difficile 0-9). Ne pas l'appeler ni le styliser comme le jeu de société de marque.
   Niveaux (clé `code_lvl`) : Facile 3 parmi 4, Moyen 4 parmi 5 (sans répétition, chiffres déjà posés grisés), Difficile 4 chiffres de 0 à 9 avec répétitions. Page entière défilable au doigt ; ⌫/✓ juste sous la ligne en cours, puis message, puis pavé de chiffres.
   8 essais max. Retour par essai, un point aligné sous chaque chiffre (positionnel) : vert = bonne place, jaune = présent ailleurs, vide = absent ; les répétitions sont comptées correctement. Victoire : +5 ⭐ en 3 essais ou moins, sinon +3 ⭐.
+
+### Jeux (`morpion.html`)
+- **Morpion** : 3×3, deux joueurs sur le même appareil (✕ rouge / ◯ bleu), uniquement à deux. **Aucune étoile.** Le premier joueur alterne à chaque manche ; score de la séance (✕, ◯, égalités) non sauvegardé ; ligne gagnante surlignée, bouton « Rejouer ».
 
 ## Point technique important : la voix
 Tout repose sur `speechSynthesis` (Web Speech API). Une **WebView Android classique ne la gère généralement pas**.

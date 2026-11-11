@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Morpion</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#fff6ec;--fg:#3a2416;--mut:#8a6a55;--card:#fff;--bd:#f1dcc6;--x:#e5484d;--o:#4a7cff;--win:#ffe08a;box-sizing:border-box}
+@media (prefers-color-scheme:dark){:root{--bg:#1e1712;--fg:#fbefe4;--mut:#c4a893;--card:#2b211a;--bd:#4a3a2e;--win:#5a4a14}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--fg);font-family:"Fredoka",system-ui,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:16px;user-select:none;touch-action:manipulation}
+.score{display:flex;gap:10px;width:100%;max-width:420px}
+.score div{flex:1;background:var(--card);border:3px solid var(--bd);border-radius:18px;padding:8px;text-align:center;font-size:17px;color:var(--mut);font-weight:600}
+.score b{display:block;font-size:30px;color:var(--fg)}
+.score .on{border-color:currentColor}
+#sx.on{color:var(--x)}#so.on{color:var(--o)}
+#turn{font-size:26px;font-weight:700;min-height:36px;text-align:center}
+#board{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:10px;width:min(100%,420px);aspect-ratio:1}
+#board button{border:0;border-radius:22px;background:var(--card);box-shadow:0 5px 0 var(--bd);font:700 clamp(56px,20vw,96px)/1 "Fredoka",sans-serif;cursor:pointer;padding:0}
+#board button:active{transform:translateY(3px);box-shadow:0 2px 0 var(--bd)}
+#board button.x{color:var(--x)}#board button.o{color:var(--o)}
+#board button.w{background:var(--win);animation:pop .5s}
+#board button:disabled{cursor:default}
+@keyframes pop{40%{transform:scale(1.08)}}
+#again{min-height:64px;padding:0 32px;border:0;border-radius:999px;background:#ff8a3d;color:#fff;font:700 22px "Fredoka",sans-serif;box-shadow:0 5px 0 #d9601a;cursor:pointer}
+#again[hidden]{display:none}
+</style>
+</head>
+<body>
+<div class="score"><div id="sx">Joueur ✕<b id="nx">0</b></div><div>Égalités<b id="nd">0</b></div><div id="so">Joueur ◯<b id="no">0</b></div></div>
+<div id="turn"></div>
+<div id="board"></div>
+<button id="again" hidden>🔁 Rejouer</button>
+<script>
+(function(){
+// Morpion à deux joueurs sur le même appareil. Pas d'étoiles.
+var SYM={x:"✕",o:"◯"},LINES=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+var cells,turn,first="x",over,score={x:0,o:0,d:0};
+var $=function(i){return document.getElementById(i)};
+var ac=null;
+function tone(f,t,d,v){try{if(!ac){var C=window.AudioContext||window.webkitAudioContext;if(!C)return;ac=new C()}if(ac.state==="suspended")ac.resume();var o=ac.createOscillator(),g=ac.createGain(),s=ac.currentTime+t;o.type="triangle";o.frequency.value=f;g.gain.setValueAtTime(.0001,s);g.gain.exponentialRampToValueAtTime(v||.2,s+.02);g.gain.exponentialRampToValueAtTime(.0001,s+d);o.connect(g);g.connect(ac.destination);o.start(s);o.stop(s+d+.05)}catch(e){}}
+function start(){cells=["","","","","","","","",""];turn=first;first=first==="x"?"o":"x";over=false;$("again").hidden=true;
+ var h="";for(var i=0;i<9;i++)h+='<button data-i="'+i+'" aria-label="Case '+(i+1)+'"></button>';$("board").innerHTML=h;show()}
+function show(){$("turn").innerHTML=over?$("turn").innerHTML:'À <span style="color:var(--'+turn+')">'+SYM[turn]+"</span> de jouer";
+ $("sx").classList.toggle("on",!over&&turn==="x");$("so").classList.toggle("on",!over&&turn==="o");
+ $("nx").textContent=score.x;$("no").textContent=score.o;$("nd").textContent=score.d}
+function winner(){for(var k=0;k<LINES.length;k++){var l=LINES[k];if(cells[l[0]]&&cells[l[0]]===cells[l[1]]&&cells[l[0]]===cells[l[2]])return l}return null}
+$("board").addEventListener("click",function(e){var b=e.target.closest("button");if(!b||over)return;var i=+b.dataset.i;if(cells[i])return;
+ cells[i]=turn;b.textContent=SYM[turn];b.className=turn;b.disabled=true;tone(turn==="x"?520:660,0,.1,.15);
+ var l=winner();
+ if(l){over=true;score[turn]++;l.forEach(function(j){$("board").children[j].classList.add("w")});
+  $("turn").innerHTML='🎉 <span style="color:var(--'+turn+')">'+SYM[turn]+"</span> a gagné !";[523,659,784,1047].forEach(function(f,k){tone(f,k*.1,.25,.22)})}
+ else if(cells.every(Boolean)){over=true;score.d++;$("turn").textContent="🤝 Égalité !";tone(440,0,.3,.15)}
+ else turn=turn==="x"?"o":"x";
+ if(over){[].forEach.call($("board").children,function(c){c.disabled=true});$("again").hidden=false}
+ show()});
+$("again").onclick=start;
+start();
+})();
+</script>
+</body>
+</html>
