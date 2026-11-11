@@ -184,7 +184,7 @@ body.nomoney .mon{display:none!important}
   <div class="card">
     <h3>Code parent</h3>
     <div class="muted" id="s-pinst"></div>
-    <div class="row"><button class="btn pri grow" id="s-pin">Définir le code</button><button class="btn danger" id="s-nopin">Supprimer</button></div>
+    <div class="row"><button class="btn pri grow" id="s-pin">Définir le code</button><button class="btn danger" id="s-nopin">Remettre 0000</button></div>
   </div>
 </div></div>
 
@@ -246,10 +246,13 @@ $("keys").addEventListener("click",function(e){var b=e.target.closest("button");
  if(k==="<"){pinVal=pinVal.slice(0,-1);dots();return}
  if(pinVal.length>=4)return;pinVal+=k;dots();
  if(pinVal.length===4){var v=pinVal,cb=pinCb;setTimeout(function(){cb&&cb(v)},150)}});
-function checkCode(ok,cancel){askCode("Code parent",function(v){sha(v).then(function(h){if(h===CFG.pin){closePin();ok()}else pinFail("Code incorrect")})},cancel)}
+// Code par défaut : 0000 (CFG.pin vide = code par défaut)
+var DEF_PIN="PdW+LyJI5qF8jKYNJzUoR8I0Q5IL5yglAk4MLSwDRG0=";
+function pinHash(){return CFG.pin||DEF_PIN}
+function checkCode(ok,cancel){askCode("Code parent",function(v){sha(v).then(function(h){if(h===pinHash()){closePin();ok()}else pinFail("Code incorrect")})},cancel)}
 function newCode(ok,why){askCode((why||"")+"Choisis un code à 4 chiffres",function(v){askCode("Tape-le encore une fois",function(v2){if(v2!==v){newCode(ok,"Les codes sont différents. ");return}sha(v2).then(function(h){CFG.pin=h;saveCfg();closePin();ok&&ok()})})})}
 // Utilisé aussi par les jeux (ex. réglages du téléphone)
-window.hubGate=function(ok){if(CFG.pin)checkCode(ok);else newCode(ok,"Pas encore de code parent. ")};
+window.hubGate=function(ok){checkCode(ok)};
 
 /* ---------- Paramètres ---------- */
 function renderSettings(){
@@ -264,11 +267,11 @@ function renderSettings(){
  if(document.activeElement!==$("s-unit"))$("s-unit").value=CFG.unit;
  if(document.activeElement!==$("s-per"))$("s-per").value=CFG.per;
  if(document.activeElement!==$("s-gain"))$("s-gain").value=CFG.gain;
- $("s-pinst").textContent=CFG.pin?"🔒 Les paramètres sont protégés par un code.":"⚠️ Aucun code : n'importe qui peut ouvrir ces paramètres.";
- $("s-pin").textContent=CFG.pin?"Changer le code":"Définir le code";$("s-nopin").hidden=!CFG.pin;
+ $("s-pinst").textContent=CFG.pin&&CFG.pin!==DEF_PIN?"🔒 Les paramètres sont protégés par ton code personnel.":"🔒 Code par défaut : 0000. Pense à le changer.";
+ $("s-pin").textContent="Changer le code";$("s-nopin").hidden=!CFG.pin||CFG.pin===DEF_PIN;
  renderPurse()}
 function openSettings(){renderSettings();$("settings").hidden=false}
-$("gear").onclick=function(){if(CFG.pin)checkCode(openSettings);else openSettings()};
+$("gear").onclick=function(){checkCode(openSettings)};
 $("sclose").onclick=function(){$("settings").hidden=true;renderPurse()};
 $("s-money").onchange=function(){CFG.money=this.checked;saveCfg();renderSettings()};
 $("s-conv").onclick=function(){var lots=Math.floor(W.stars/CFG.per);if(!lots)return;W.stars-=lots*CFG.per;W.money=r2(W.money+lots*CFG.gain);saveW();renderSettings()};
@@ -280,7 +283,7 @@ $("s-unit").onblur=function(){if(!this.value.trim())this.value=CFG.unit};
 $("s-per").oninput=function(){var v=parseInt(this.value);if(v>=1){CFG.per=v;saveCfg();renderSettings()}};
 $("s-gain").oninput=function(){var v=parseFloat(String(this.value).replace(",","."));if(v>0){CFG.gain=r2(v);saveCfg();renderSettings()}};
 $("s-pin").onclick=function(){newCode(renderSettings)};
-$("s-nopin").onclick=function(){if(confirm("Supprimer le code parent ?")){CFG.pin="";saveCfg();renderSettings()}};
+$("s-nopin").onclick=function(){if(confirm("Remettre le code par défaut 0000 ?")){CFG.pin="";saveCfg();renderSettings()}};
 
 /* ---------- Navigation et jeux ---------- */
 var cache={},loadTok=0;
