@@ -1,6 +1,6 @@
 // Service worker : fonctionnement hors ligne.
 // Pensez à changer VERSION à chaque mise à jour des fichiers pour que les téléphones la récupèrent.
-var VERSION = "v20";
+var VERSION = "v21";
 var CACHE = "jeux-ecole-" + VERSION;
 var FILES = [
   "./",
@@ -43,6 +43,8 @@ self.addEventListener("fetch", function (e) {
     return;
   }
   if (url.origin !== location.origin) return;
+  // sw.js n'est jamais servi depuis le cache (sert à vérifier la connexion et la version en ligne)
+  if (url.pathname.endsWith("/sw.js")) return;
   // Fichiers de l'appli : cache d'abord (ignore le #hash et les ?paramètres).
   e.respondWith(caches.match(req, { ignoreSearch: true }).then(function (hit) {
     return hit || fetch(req).then(function (r) {

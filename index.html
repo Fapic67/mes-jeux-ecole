@@ -201,6 +201,13 @@ body.nomoney .mon{display:none!important}
     <div class="muted" id="s-pinst"></div>
     <div class="row"><button class="btn pri grow" id="s-pin">Définir le code</button><button class="btn danger" id="s-nopin">Remettre 0000</button></div>
   </div>
+
+  <div class="card">
+    <h3>Application</h3>
+    <div class="muted">Version installée : <b id="s-ver">…</b></div>
+    <button class="btn pri" id="s-upd">🔄 Mettre à jour maintenant</button>
+    <div class="muted" id="s-updst">Les étoiles, la monnaie et les réglages sont conservés.</div>
+  </div>
 </div></div>
 
 <!-- Saisie du code -->
@@ -287,7 +294,17 @@ function renderSettings(){
  $("s-pinst").textContent=CFG.pin&&CFG.pin!==DEF_PIN?"🔒 Les paramètres sont protégés par ton code personnel.":"🔒 Code par défaut : 0000. Pense à le changer.";
  $("s-pin").textContent="Changer le code";$("s-nopin").hidden=!CFG.pin||CFG.pin===DEF_PIN;
  renderPurse()}
-function openSettings(){$("prenom").value=ls("hub_prenom");renderSettings();$("settings").hidden=false}
+/* ---------- Mise à jour forcée ---------- */
+function installedVersion(){if(!window.caches)return Promise.resolve("");return caches.keys().then(function(k){return k.filter(function(x){return x.indexOf("jeux-ecole-")===0}).map(function(x){return x.slice(11)}).join(", ")}).catch(function(){return ""})}
+function showVersion(){installedVersion().then(function(v){$("s-ver").textContent=v||"(pas encore installée hors-ligne)"})}
+$("s-upd").onclick=function(){var b=this,st=$("s-updst");b.disabled=true;st.textContent="Vérification…";
+ fetch("sw.js?t="+Date.now(),{cache:"no-store"}).then(function(r){if(!r.ok)throw 0;return r.text()}).then(function(t){
+  var m=t.match(/VERSION = "([^"]+)"/),online=m?m[1]:"?";st.textContent="Version en ligne : "+online+". Mise à jour…";
+  var jobs=[];if(window.caches)jobs.push(caches.keys().then(function(k){return Promise.all(k.map(function(x){return caches.delete(x)}))}));
+  if(navigator.serviceWorker)jobs.push(navigator.serviceWorker.getRegistrations().then(function(rs){return Promise.all(rs.map(function(r){return r.unregister()}))}));
+  return Promise.all(jobs).then(function(){location.replace(location.pathname+"?maj="+Date.now())})
+ }).catch(function(){b.disabled=false;st.textContent="⚠️ Pas de connexion internet : réessaie quand tu es en ligne."})};
+function openSettings(){showVersion();$("prenom").value=ls("hub_prenom");renderSettings();$("settings").hidden=false}
 $("gear").onclick=function(){checkCode(openSettings)};
 $("sclose").onclick=function(){$("settings").hidden=true;renderPurse()};
 $("s-money").onchange=function(){CFG.money=this.checked;saveCfg();renderSettings()};
@@ -330,6 +347,7 @@ window.addEventListener("message",function(e){
 window.addEventListener("hashchange",route);
 $("prenom").addEventListener("input",function(){ls("hub_prenom",this.value.trim());var p=this.value.trim();$("hello").textContent=p?"Bonjour "+p+" ! 👋":"Bonjour ! 👋"});
 route();
+if(/[?&]maj=/.test(location.search)){try{history.replaceState(null,"",location.pathname+location.hash)}catch(e){}}
 if("serviceWorker" in navigator){
  // Nouvelle version installée : on recharge une fois, sauf pendant une partie
  var hadSW=!!navigator.serviceWorker.controller,reloaded=false;

@@ -20,6 +20,9 @@ Le but est d'en faire une **appli Android installable (APK)** et partageable à 
 - Code parent : 4 chiffres, haché en SHA-256 (préfixe `tm:`). **Code par défaut : 0000** (`CFG.pin` vide = `DEF_PIN`) ; les paramètres sont toujours protégés, « Remettre 0000 » rétablit le défaut. `window.hubGate(ok)` est exposé aux jeux ; le Téléphone l'utilise pour ses réglages.
 - Migration unique (`rw_mig`) : l'ancienne cagnotte du Téléphone (`tel_cash` + 100 par ticket) est versée dans la monnaie, et son PIN devient le code parent.
 
+## Mise à jour
+Paramètres → carte « Application » : affiche la version en cache (`jeux-ecole-vXX`) et un bouton « Mettre à jour maintenant » qui vérifie la connexion (fetch `sw.js` no-store), supprime les caches, désinscrit le service worker puis recharge. Le localStorage (étoiles, réglages) est conservé.
+
 ## Design system tactile
 Cibles >= 56px, bordures 3px, textes secondaires >= 16px, menus centrés verticalement (`.mid`).
 
