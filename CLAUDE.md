@@ -10,7 +10,7 @@ Le but est d'en faire une **appli Android installable (APK)** et partageable à 
 - `index.html` = accueil par matière (Français, Mathématiques, Allemand, Logique, Jeux). Chaque jeu est un fichier de `jeux/` (`francais.html`, `calcul.html`, `telephone.html`, `deutsch.html`), récupéré par `fetch` puis chargé dans une iframe `srcdoc` (même origine que l'accueil, donc même localStorage).
   Avant le chargement, l'accueil injecte `window.START` (mode du jeu) et `window.PRENOM` (prénom saisi sur l'accueil).
 - `manifest.webmanifest`, `sw.js` (hors-ligne, **changer `VERSION` à chaque mise à jour**), `icons/`.
-- Navigation par hash : `#francais`, `#quique`, `#phrase`, `#maths`, `#allemand`, `#calcul`, `#telephone`, `#article`, `#mot`, `#logique`, `#code`, `#jeux`, `#morpion`.
+- Navigation par hash : `#francais`, `#quique`, `#phrase`, `#maths`, `#allemand`, `#calcul`, `#telephone`, `#article`, `#mot`, `#logique`, `#code`, `#robot`, `#jeux`, `#morpion`.
 - Les jeux enregistrent leurs données en localStorage (clés `calcul`, `tel_*`, `hub_prenom`). Le prénom se règle dans les Paramètres globaux (carte « Enfant »).
 
 ## Récompenses globales (dans `index.html`)
@@ -49,6 +49,9 @@ Cibles >= 56px, bordures 3px, textes secondaires >= 16px, menus centrés vertica
 - **Le code secret** : jeu de déduction (principe « bulls and cows ») avec des chiffres (Facile 1-4, Moyen 1-5, Difficile 0-9). Ne pas l'appeler ni le styliser comme le jeu de société de marque.
   Niveaux (clé `code_lvl`) : Facile 3 parmi 4, Moyen 4 parmi 5 (sans répétition, chiffres déjà posés grisés), Difficile 4 chiffres de 0 à 9 avec répétitions. Page entière défilable au doigt ; ⌫/✓ juste sous la ligne en cours, puis message, puis pavé de chiffres.
   8 essais max. Retour par essai, un point aligné sous chaque chiffre (positionnel) : vert = bonne place, jaune = présent ailleurs, vide = absent ; les répétitions sont comptées correctement. Victoire : +5 ⭐ en 3 essais ou moins, sinon +3 ⭐.
+
+- **Le petit robot** (`robot.html`) : grille avec 🤖, ⭐ et rochers 🪨 ; l'enfant aligne des flèches absolues (← ↑ ↓ →, 24 max) puis ▶ ; le robot exécute pas à pas (flèche en cours surlignée, trace). Cogne un rocher / sort de la grille / n'arrive pas sur l'étoile → retour au départ, programme conservé. Arriver sur l'étoile = réussi (même s'il reste des flèches).
+  Niveaux générés au hasard mais toujours faisables (BFS) : 4×4 sans rocher (niv. 1-2), 5×5 (niv. 4-8), 6×6 ensuite ; longueur du plus court chemin croissante. Clés `robot_lvl`, `robot_best` ; choix parmi les niveaux déjà atteints. +2 ⭐ du premier coup, sinon +1 ⭐.
 
 ### Jeux (`morpion.html`)
 - **Morpion** : 3×3, deux joueurs sur le même appareil (✕ rouge / ◯ bleu), uniquement à deux. **Aucune étoile.** Le premier joueur alterne à chaque manche ; score de la séance (✕, ◯, égalités) non sauvegardé ; ligne gagnante surlignée, bouton « Rejouer ».
