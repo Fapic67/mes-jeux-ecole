@@ -58,7 +58,6 @@ h1{margin:0;font-size:34px;font-weight:700;line-height:1.15}
 .bump{animation:bump .5s}
 @keyframes bump{30%{transform:scale(1.25)}}
 
-.name{display:flex;flex-direction:column;gap:6px;color:var(--soft);font-size:17px}
 .field{width:100%;min-height:var(--tap);border:var(--bw) solid var(--line);background:var(--card);color:var(--ink);border-radius:16px;padding:8px 14px;font:600 20px "Fredoka",sans-serif}
 .field:focus{outline:none;border-color:var(--math)}
 
@@ -123,7 +122,6 @@ body.nomoney .mon{display:none!important}
     <button class="tile math" data-go="maths"><span class="ic">🧮</span><span>Mathématiques<small>Calcul, téléphone</small></span></button>
     <button class="tile de" data-go="allemand"><span class="ic">🇩🇪</span><span>Allemand<small>Der · Die · Das, mots en images</small></span></button>
   </div>
-  <label class="name">Prénom<input class="field" id="prenom" maxlength="20" placeholder="pour les bravos" autocomplete="off"></label>
 </section>
 
 <section class="view" id="v-francais">
@@ -157,6 +155,11 @@ body.nomoney .mon{display:none!important}
 <!-- Paramètres globaux -->
 <div class="sheet" id="settings" hidden><div class="panel">
   <h2>⚙️ Paramètres <button class="btn" id="sclose">Fermer</button></h2>
+
+  <div class="card">
+    <h3>Enfant</h3>
+    <label class="row"><span>Prénom</span><input class="field grow" id="prenom" maxlength="20" placeholder="pour les bravos" autocomplete="off"></label>
+  </div>
 
   <div class="card">
     <h3>Récompenses</h3>
@@ -270,7 +273,7 @@ function renderSettings(){
  $("s-pinst").textContent=CFG.pin&&CFG.pin!==DEF_PIN?"🔒 Les paramètres sont protégés par ton code personnel.":"🔒 Code par défaut : 0000. Pense à le changer.";
  $("s-pin").textContent="Changer le code";$("s-nopin").hidden=!CFG.pin||CFG.pin===DEF_PIN;
  renderPurse()}
-function openSettings(){renderSettings();$("settings").hidden=false}
+function openSettings(){$("prenom").value=ls("hub_prenom");renderSettings();$("settings").hidden=false}
 $("gear").onclick=function(){checkCode(openSettings)};
 $("sclose").onclick=function(){$("settings").hidden=true;renderPurse()};
 $("s-money").onchange=function(){CFG.money=this.checked;saveCfg();renderSettings()};
@@ -309,7 +312,6 @@ window.addEventListener("message",function(e){
  if(e.data==="hub-back")$("pback").onclick();
  else if(e.data&&e.data.type==="stars")addStars(e.data.n)});
 window.addEventListener("hashchange",route);
-$("prenom").value=ls("hub_prenom");
 $("prenom").addEventListener("input",function(){ls("hub_prenom",this.value.trim());var p=this.value.trim();$("hello").textContent=p?"Bonjour "+p+" ! 👋":"Bonjour ! 👋"});
 route();
 if("serviceWorker" in navigator){

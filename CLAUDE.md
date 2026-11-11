@@ -11,7 +11,7 @@ Le but est d'en faire une **appli Android installable (APK)** et partageable à 
   Avant le chargement, l'accueil injecte `window.START` (mode du jeu) et `window.PRENOM` (prénom saisi sur l'accueil).
 - `manifest.webmanifest`, `sw.js` (hors-ligne, **changer `VERSION` à chaque mise à jour**), `icons/`.
 - Navigation par hash : `#francais`, `#quique`, `#maths`, `#allemand`, `#calcul`, `#telephone`, `#article`, `#mot`.
-- Les jeux enregistrent leurs données en localStorage (clés `calcul`, `tel_*`, `hub_prenom`).
+- Les jeux enregistrent leurs données en localStorage (clés `calcul`, `tel_*`, `hub_prenom`). Le prénom se règle dans les Paramètres globaux (carte « Enfant »).
 
 ## Récompenses globales (dans `index.html`)
 - Les jeux envoient `parent.postMessage({type:"stars",n}, "*")` ; l'accueil cumule les étoiles (clé `rw` = `{stars, money}`).
