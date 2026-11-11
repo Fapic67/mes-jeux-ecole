@@ -7,10 +7,10 @@ Dépôt : https://github.com/Fapic67/mes-jeux-ecole · site : https://fapic67.gi
 Le but est d'en faire une **appli Android installable (APK)** et partageable à des amis.
 
 ## Structure actuelle
-- `index.html` = accueil par matière (Français, Mathématiques, Allemand, Logique, Jeux). Chaque jeu est un fichier de `jeux/` (`francais.html`, `calcul.html`, `telephone.html`, `deutsch.html`), récupéré par `fetch` puis chargé dans une iframe `srcdoc` (même origine que l'accueil, donc même localStorage).
+- `index.html` = accueil par matière (Français, Mathématiques, Allemand, Logique, Musique, Jeux). Chaque jeu est un fichier de `jeux/` (`francais.html`, `calcul.html`, `telephone.html`, `deutsch.html`), récupéré par `fetch` puis chargé dans une iframe `srcdoc` (même origine que l'accueil, donc même localStorage).
   Avant le chargement, l'accueil injecte `window.START` (mode du jeu) et `window.PRENOM` (prénom saisi sur l'accueil).
 - `manifest.webmanifest`, `sw.js` (hors-ligne, **changer `VERSION` à chaque mise à jour**), `icons/`.
-- Navigation par hash : `#francais`, `#quique`, `#phrase`, `#maths`, `#allemand`, `#calcul`, `#telephone`, `#article`, `#mot`, `#logique`, `#code`, `#robot`, `#jeux`, `#morpion`.
+- Navigation par hash : `#francais`, `#quique`, `#phrase`, `#maths`, `#allemand`, `#calcul`, `#telephone`, `#article`, `#mot`, `#logique`, `#code`, `#robot`, `#musique`, `#note`, `#jeux`, `#morpion`.
 - Les jeux enregistrent leurs données en localStorage (clés `calcul`, `tel_*`, `hub_prenom`). Le prénom se règle dans les Paramètres globaux (carte « Enfant »).
 
 ## Récompenses globales (dans `index.html`)
@@ -52,6 +52,11 @@ Cibles >= 56px, bordures 3px, textes secondaires >= 16px, menus centrés vertica
 
 - **Le petit robot** (`robot.html`) : grille avec 🤖, ⭐ et rochers 🪨 ; l'enfant aligne des flèches absolues (← ↑ ↓ →, 24 max) puis ▶ ; le robot exécute pas à pas (flèche en cours surlignée, trace). Cogne un rocher / sort de la grille / n'arrive pas sur l'étoile → retour au départ, programme conservé. Arriver sur l'étoile = réussi (même s'il reste des flèches).
   Niveaux générés au hasard mais toujours faisables (BFS) : 4×4 sans rocher (niv. 1-2), 5×5 (niv. 4-8), 6×6 ensuite ; longueur du plus court chemin croissante. Clés `robot_lvl`, `robot_best` ; choix parmi les niveaux déjà atteints. +2 ⭐ du premier coup, sinon +1 ⭐.
+
+### Musique (`musique.html`)
+- **Trouve la note** : portée en clé de sol (SVG dessiné à la main), une note à la fois (fenêtre de 6 notes, notes trouvées en vert avec leur nom). L'enfant choisit parmi 7 pastilles do ré mi fa sol la si ; bonne réponse → la note est jouée (synthé façon piano WebAudio) ; mauvaise → pastille barrée.
+  Les notes forment un « morceau mystère » ; à la fin : titre révélé, voix « C'était … », morceau joué en entier avec la note en cours surlignée, boutons Réécouter / Morceau suivant.
+  Airs du domaine public uniquement (`SONGS`) : Au clair de la lune, Frère Jacques, Ah ! vous dirai-je maman, Joyeux anniversaire, Ode à la joie (do4 à ré5). Ordre aléatoire mémorisé (`mus_order`, `mus_i`). +5 ⭐ sans erreur, sinon +3 ⭐.
 
 ### Jeux (`morpion.html`)
 - **Morpion** : 3×3, deux joueurs sur le même appareil (✕ rouge / ◯ bleu), uniquement à deux. **Aucune étoile.** Le premier joueur alterne à chaque manche ; score de la séance (✕, ◯, égalités) non sauvegardé ; ligne gagnante surlignée, bouton « Rejouer ».

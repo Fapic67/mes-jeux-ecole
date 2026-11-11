@@ -15,7 +15,7 @@
 <style>
 /* ---------- Design system (tactile) ----------
    Cibles tactiles >= 56px, bordures 3px, textes secondaires >= 16px. */
-:root{--bg:#f4f1ff;--card:#fff;--ink:#22204a;--soft:#5f5b8a;--line:#d9d3f3;--fr:#22a861;--math:#4a7cff;--de:#ff5c7a;--lo:#9b6bff;--jx:#ff8a3d;--star:#ffb800;--ok:#22a861;--ko:#e5484d;
+:root{--bg:#f4f1ff;--card:#fff;--ink:#22204a;--soft:#5f5b8a;--line:#d9d3f3;--fr:#22a861;--math:#4a7cff;--de:#ff5c7a;--lo:#9b6bff;--jx:#ff8a3d;--mu:#13a8a8;--star:#ffb800;--ok:#22a861;--ko:#e5484d;
  --tap:56px;--r:20px;--bw:3px;box-sizing:border-box}
 @media (prefers-color-scheme:dark){:root{--bg:#16152b;--card:#232142;--ink:#f2f0ff;--soft:#b3afdb;--line:#3d3a68}}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -35,7 +35,7 @@ h1{margin:0;font-size:34px;font-weight:700;line-height:1.15}
 .tile:active{transform:translateY(4px);box-shadow:0 3px 0 rgba(0,0,0,.18)}
 .tile .ic{font-size:46px;line-height:1}
 .tile small{display:block;font-size:18px;font-weight:500;opacity:.95;margin-top:2px}
-.fr{background:var(--fr)}.math{background:var(--math)}.lo{background:var(--lo)}.jx{background:var(--jx)}.de{background:var(--de)}
+.fr{background:var(--fr)}.math{background:var(--math)}.lo{background:var(--lo)}.jx{background:var(--jx)}.mu{background:var(--mu)}.de{background:var(--de)}
 
 .game{display:flex;align-items:center;gap:16px;width:100%;min-height:96px;border:var(--bw) solid var(--line);background:var(--card);color:var(--ink);border-radius:24px;padding:16px 18px;font:700 24px "Fredoka",sans-serif;text-align:left;cursor:pointer;box-shadow:0 5px 0 var(--line)}
 .game:active{transform:translateY(3px);box-shadow:0 2px 0 var(--line)}
@@ -122,6 +122,7 @@ body.nomoney .mon{display:none!important}
     <button class="tile math" data-go="maths"><span class="ic">🧮</span><span>Mathématiques<small>Calcul, téléphone</small></span></button>
     <button class="tile de" data-go="allemand"><span class="ic">🇩🇪</span><span>Allemand<small>Der · Die · Das, mots en images</small></span></button>
     <button class="tile lo" data-go="logique"><span class="ic">🧩</span><span>Logique<small>Code secret, petit robot</small></span></button>
+    <button class="tile mu" data-go="musique"><span class="ic">🎵</span><span>Musique<small>Trouve la note</small></span></button>
     <button class="tile jx" data-go="jeux"><span class="ic">🎲</span><span>Jeux<small>Morpion à deux</small></span></button>
   </div>
 </section>
@@ -159,6 +160,14 @@ body.nomoney .mon{display:none!important}
     <h1>🧩 Logique</h1>
     <button class="game" data-play="code"><span class="ic">🔐</span><span>Le code secret<small>Devine le code de chiffres caché</small></span></button>
     <button class="game" data-play="robot"><span class="ic">🤖</span><span>Le petit robot<small>Programme le chemin avec des flèches</small></span></button>
+  </div>
+</section>
+
+<section class="view" id="v-musique">
+  <div class="top"><button class="btn" data-go="">← Matières</button><span style="flex:1"></span><span class="purse" style="flex:none"><span class="st">⭐ <span class="nst">0</span></span></span></div>
+  <div class="mid">
+    <h1>🎵 Musique</h1>
+    <button class="game" data-play="note"><span class="ic">🎼</span><span>Trouve la note<small>Lis les notes et découvre le morceau</small></span></button>
   </div>
 </section>
 
@@ -237,6 +246,7 @@ var GAMES={
  article:{t:"Der · Die · Das",app:"deutsch",start:1,subj:"allemand"},
  code:{t:"Le code secret",app:"code",subj:"logique"},
  robot:{t:"Le petit robot",app:"robot",subj:"logique"},
+ note:{t:"Trouve la note",app:"musique",subj:"musique"},
  morpion:{t:"Morpion",app:"morpion",subj:"jeux"},
  mot:{t:"Finde das Wort",app:"deutsch",start:2,subj:"allemand"}
 };
