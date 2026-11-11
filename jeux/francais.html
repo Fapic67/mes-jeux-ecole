@@ -36,8 +36,12 @@ body.withkb{justify-content:flex-start;padding-top:28px;padding-bottom:300px}
 <body>
 <div id="app"></div>
 <script>
-// Phrases « qui / que » : le mot manquant est entre accolades
-var QQ=["Le chat {qui} dort est tout noir.","Le gâteau {que} je mange est au chocolat.","La fille {qui} chante est ma sœur.","Le livre {que} tu lis est très drôle.","J'ai un chien {qui} aboie fort.","La pomme {que} maman achète est rouge.","Le garçon {qui} court vite s'appelle Tom.","Le dessin {que} je fais est pour papa.","C'est la maîtresse {qui} lit une histoire.","La robe {que} Léa porte est bleue.","Je vois un oiseau {qui} vole dans le ciel.","Le jeu {que} nous aimons est caché.","Le bébé {qui} pleure a faim.","La chanson {que} tu chantes est jolie.","Il y a une souris {qui} mange du fromage.","Le vélo {que} papa répare est rouge.","Le lapin {qui} saute est tout blanc.","La glace {que} je préfère est à la fraise.","Mon ami {qui} habite ici a un chat.","Le ballon {que} Paul lance va très loin.","La poule {qui} picore est dans le jardin.","Le film {que} nous regardons fait peur.","Le bus {qui} arrive est jaune.","La lettre {que} je donne est pour mamie.","J'aime le soleil {qui} brille.","Le cadeau {que} tu ouvres est très grand.","La tortue {qui} marche est très lente.","Le pain {que} le boulanger fait est chaud.","Les enfants {qui} jouent rient fort.","La fleur {que} je cueille sent bon.","Le chat {que} je caresse ronronne.","Le chien {qui} mord est méchant."].map(function(t){var m=t.match(/^(.*)\{(qui|que)\}(.*)$/);return{a:m[1],w:m[2],b:m[3],full:m[1]+m[2]+m[3]}});
+// Le mot manquant est entre accolades
+function parse(t){var m=t.match(/^(.*)\{([^}]+)\}(.*)$/);return{a:m[1],w:m[2],b:m[3],full:m[1]+m[2]+m[3]}}
+// Phrases « qui / que »
+var QQ=["Le chat {qui} dort est tout noir.","Le gâteau {que} je mange est au chocolat.","La fille {qui} chante est ma sœur.","Le livre {que} tu lis est très drôle.","J'ai un chien {qui} aboie fort.","La pomme {que} maman achète est rouge.","Le garçon {qui} court vite s'appelle Tom.","Le dessin {que} je fais est pour papa.","C'est la maîtresse {qui} lit une histoire.","La robe {que} Léa porte est bleue.","Je vois un oiseau {qui} vole dans le ciel.","Le jeu {que} nous aimons est caché.","Le bébé {qui} pleure a faim.","La chanson {que} tu chantes est jolie.","Il y a une souris {qui} mange du fromage.","Le vélo {que} papa répare est rouge.","Le lapin {qui} saute est tout blanc.","La glace {que} je préfère est à la fraise.","Mon ami {qui} habite ici a un chat.","Le ballon {que} Paul lance va très loin.","La poule {qui} picore est dans le jardin.","Le film {que} nous regardons fait peur.","Le bus {qui} arrive est jaune.","La lettre {que} je donne est pour mamie.","J'aime le soleil {qui} brille.","Le cadeau {que} tu ouvres est très grand.","La tortue {qui} marche est très lente.","Le pain {que} le boulanger fait est chaud.","Les enfants {qui} jouent rient fort.","La fleur {que} je cueille sent bon.","Le chat {que} je caresse ronronne.","Le chien {qui} mord est méchant."].map(parse);
+// Phrases « mots simples » (mots qui s'écrivent comme ils se prononcent)
+var MOTS=["La {lune} brille dans le ciel.", "Maman a planté une {tulipe} rouge.", "Papa roule vite avec sa {moto}.", "Je fais du {vélo} dans la cour.", "Je mange une {tomate} bien rouge.", "Il y a de la {salade} dans mon assiette.", "Le singe mange une {banane}.", "Le {pirate} cherche un trésor.", "Léa porte une jolie {robe}.", "La {mule} porte un gros sac.", "Le {lama} vit dans la montagne.", "Je pose un {domino} sur la table.", "Les enfants construisent une {cabane}.", "Je me lave les mains au {lavabo}.", "Le {kiwi} est un fruit vert.", "Mon frère fait du {judo}.", "Le chat saute sur le {mur}.", "Je range mes livres dans mon {sac}.", "Je bois mon lait dans un {bol}.", "Mamie coud avec du {fil}.", "Papa met du {sel} sur les frites.", "Les abeilles vivent dans la {ruche}.", "Aujourd'hui, nous sommes {mardi}.", "À {midi}, je mange à la cantine.", "Le {samedi}, je vais à la piscine.", "La {tortue} marche très lentement.", "Pour faire un gâteau, il faut de la {farine}.", "Je mets ma trousse dans mon {cartable}.", "Je suis {malade}, je reste au lit.", "Le {pilote} conduit l'avion.", "Mon {numéro} de maillot est le sept.", "Le {bébé} dort dans son berceau.", "Papa boit un {café} chaud.", "En {été}, il fait très chaud.", "Je regarde un dessin animé à la {télé}.", "Mamie met une {olive} sur la pizza.", "Le chien est mon {animal} préféré.", "Nous jouons au {parc} après la classe.", "Les canards nagent sur le {lac}.", "Le pont est très {solide}.", "Je mets une pièce dans ma {tirelire}.", "J'écoute de la musique à la {radio}.", "Il est tard, c'est l'heure de faire {dodo}.", "Attends une {minute}, j'arrive !", "La rose a une {épine} qui pique.", "Mon {école} est près de chez moi.", "Deux moins deux, ça fait {zéro}.", "J'appuie sur la {pédale} pour avancer.", "Nous aimons nous promener dans la {nature}.", "J'aime {lire} des histoires."].map(parse);
 var TOTAL=15,app=document.getElementById("app"),voice=null;
 var bk=document.createElement("button");bk.className="back";bk.textContent="← Menu";bk.style.display="none";bk.onclick=function(){home()};if(!window.START)document.body.appendChild(bk);
 function pickVoice(){var v=(window.speechSynthesis&&speechSynthesis.getVoices())||[];voice=v.find(function(x){return x.lang&&/^fr/i.test(x.lang)})||null}
@@ -46,10 +50,11 @@ function say(t,cb){var done=false,fin=function(){if(!done){done=true;cb&&cb()}};
 function star(){try{if(parent!==window)parent.postMessage({type:"stars",n:1},"*")}catch(e){}}
 function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
 function bar(){return '<div class="cnt">'+(i+1)+' / '+deck.length+'</div><div class="bar"><i style="width:'+(i/deck.length*100)+'%"></i></div>'}
-var deck,i,good,missed;
-function home(){nokb();if(window.START){parent.postMessage("hub-back","*");return}bk.style.display="none";app.innerHTML='<h1>Français</h1><div class="menu" style="width:100%"><button class="btn" id="m3">Complète la phrase : qui ou que ?</button></div>';document.getElementById("m3").onclick=start3}
+var deck,i,good,missed,cur=3;
+function home(){nokb();if(window.START){parent.postMessage("hub-back","*");return}bk.style.display="none";app.innerHTML='<h1>Français</h1><div class="menu" style="width:100%"><button class="btn" id="m3">Complète la phrase : qui ou que ?</button><button class="btn" id="m4">Complète la phrase</button></div>';document.getElementById("m3").onclick=function(){startQ(3)};document.getElementById("m4").onclick=function(){startQ(4)}}
 // Complète la phrase : écrire qui / que au clavier, de mémoire
-function start3(){bk.style.display="block";deck=shuffle(QQ).slice(0,TOTAL);i=0;good=0;show3()}
+// 3 = qui / que, 4 = mots simples
+function startQ(m){cur=m;bk.style.display="block";deck=shuffle(m===4?MOTS:QQ).slice(0,TOTAL);i=0;good=0;show3()}
 function esc(t){return t.replace(/&/g,"&amp;").replace(/</g,"&lt;")}
 var KB=null;
 function kb(o){if(KB)KB.destroy();KB=Clavier(o);document.body.classList.add("withkb")}
@@ -61,7 +66,7 @@ function show3(){
   function paint(){gap.className="gap";gap.textContent=val||" "}
   document.getElementById("ear").onclick=function(){say(q.full)};
   kb({
-    onKey:function(k){if(lock||val.length>=8)return;val+=k;hint.textContent="";paint()},
+    onKey:function(k){if(lock||val.length>=12)return;val+=k;hint.textContent="";paint()},
     onDel:function(){if(lock)return;val=val.slice(0,-1);paint()},
     onOk:function(){if(lock||!val)return;
       if(val===q.w){lock=true;KB.enable(false);if(!missed){good++;star()}gap.className="gap ok";gap.textContent=q.w;hint.textContent="Bravo !";
@@ -75,11 +80,11 @@ function end(){
   nokb();
   var n=Math.round(good/deck.length*10*2)/2,s=String(n).replace(".",",");
   app.innerHTML='<h1>Bravo !</h1><div class="big">'+s+' / 10</div><div class="cnt">'+good+' / '+deck.length+' du premier coup</div><button class="btn" id="re">Rejouer</button><button class="btn btn2" id="mn">Menu</button>';
-  document.getElementById("re").onclick=function(){start3()};
+  document.getElementById("re").onclick=function(){startQ(cur)};
   document.getElementById("mn").onclick=home;
   say("Bravo ! "+s+" sur dix");
 }
-window.START?start3():home();
+window.START?startQ(window.START==4?4:3):home();
 </script>
 </body>
 </html>

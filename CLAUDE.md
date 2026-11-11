@@ -10,7 +10,7 @@ Le but est d'en faire une **appli Android installable (APK)** et partageable à 
 - `index.html` = accueil par matière (Français, Mathématiques, Allemand). Chaque jeu est un fichier de `jeux/` (`francais.html`, `calcul.html`, `telephone.html`, `deutsch.html`), récupéré par `fetch` puis chargé dans une iframe `srcdoc` (même origine que l'accueil, donc même localStorage).
   Avant le chargement, l'accueil injecte `window.START` (mode du jeu) et `window.PRENOM` (prénom saisi sur l'accueil).
 - `manifest.webmanifest`, `sw.js` (hors-ligne, **changer `VERSION` à chaque mise à jour**), `icons/`.
-- Navigation par hash : `#francais`, `#quique`, `#maths`, `#allemand`, `#calcul`, `#telephone`, `#article`, `#mot`.
+- Navigation par hash : `#francais`, `#quique`, `#phrase`, `#maths`, `#allemand`, `#calcul`, `#telephone`, `#article`, `#mot`.
 - Les jeux enregistrent leurs données en localStorage (clés `calcul`, `tel_*`, `hub_prenom`). Le prénom se règle dans les Paramètres globaux (carte « Enfant »).
 
 ## Récompenses globales (dans `index.html`)
@@ -24,7 +24,8 @@ Le but est d'en faire une **appli Android installable (APK)** et partageable à 
 Cibles >= 56px, bordures 3px, textes secondaires >= 16px, menus centrés verticalement (`.mid`).
 
 ### Français (`francais.html`)
-- **Complète la phrase** (qui / que) : 32 phrases (`QQ`, mot manquant entre `{}`), 15 par partie. L'enfant tape « qui » ou « que » avec le clavier virtuel maison (`jeux/clavier.js` : AZERTY minuscules + ligne é è ê à ç, ⌫ et ✓, clic sonore, pas de voix ; clavier physique accepté ; le clavier Android ne s'ouvre jamais) ; la voix lit la phrase entière (mot compris) à l'affichage et après la bonne réponse. Le titre affiche « Complète la phrase : qui ou que ? » (barre du jeu : « Qui ou que ? »), à la demande de l'utilisateur ; sinon aucun indice : pas de placeholder, pas de réponse donnée après une erreur. Après 2 erreurs, la phrase est relue. Hash `#quique`.
+- **Complète la phrase** (qui / que) : 32 phrases (`QQ`, mot manquant entre `{}`), 15 par partie. L'enfant tape « qui » ou « que » avec le clavier virtuel maison (`jeux/clavier.js` : AZERTY minuscules + ligne é è ê à ç, ⌫ et ✓, clic sonore, pas de voix ; clavier physique accepté ; le clavier Android ne s'ouvre jamais) ; la voix lit la phrase entière (mot compris) à l'affichage et après la bonne réponse. Le titre affiche « Complète la phrase : qui ou que ? » (barre du jeu : « Qui ou que ? »), à la demande de l'utilisateur ; sinon aucun indice : pas de placeholder, pas de réponse donnée après une erreur. Après 2 erreurs, la phrase est relue. Hash `#quique` (START=3).
+- **Complète la phrase** (mots simples) : même mécanique, 50 phrases (`MOTS`) portant chacune sur un mot différent qui s'écrit comme il se prononce (pas de lettre finale muette, pas de « eau/ph », pas de double consonne). 15 par partie. Hash `#phrase` (START=4).
 
 ### Mathématiques
 1. **Calcul malin** : additions, soustractions et compléments, avec un résultat maximum réglable. Fin de partie au choix : sans fin, objectif d'étoiles ou minuteur (au minuteur, l'enfant termine la dernière opération).
