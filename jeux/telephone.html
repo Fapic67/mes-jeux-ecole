@@ -122,4 +122,6 @@ function stars(n){try{if(parent!==window)parent.postMessage({type:"stars",n:n},"
 // Dans l'appli, les réglages utilisent le code parent global
 function gate(ok){try{if(parent!==window&&parent.hubGate){parent.hubGate(ok);return}}catch(e){}var m=ls("tel_lock");if(m==="wa"&&ls("tel_cred")){try{waGet(ok,function(){if(!playing)msg("🔒 Accès refusé")})}catch(e){if(!playing)msg("🔒 Accès refusé")}}else if(m==="pin")askPin(ok);else setupLock(ok)}
 render();
+// Bouton retour du téléphone : ferme d'abord le verrou ou les réglages
+window.hubBack=function(){var l=document.getElementById("lock"),s=document.getElementById("set");if(l&&!l.hidden){l.hidden=true;return true}if(s&&!s.hidden){s.hidden=true;return true}return false};
 </script></body></html>

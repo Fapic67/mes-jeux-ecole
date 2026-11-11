@@ -20,6 +20,9 @@ Le but est d'en faire une **appli Android installable (APK)** et partageable à 
 - Code parent : 4 chiffres, haché en SHA-256 (préfixe `tm:`). **Code par défaut : 0000** (`CFG.pin` vide = `DEF_PIN`) ; les paramètres sont toujours protégés, « Remettre 0000 » rétablit le défaut. `window.hubGate(ok)` est exposé aux jeux ; le Téléphone l'utilise pour ses réglages.
 - Migration unique (`rw_mig`) : l'ancienne cagnotte du Téléphone (`tel_cash` + 100 par ticket) est versée dans la monnaie, et son PIN devient le code parent.
 
+## Navigation et bouton retour
+Historique géré dans `index.html` (`go` = pushState, `back` = history.back si possible, sinon parent). Le bouton retour du téléphone (popstate) = bouton « ← » de l'appli : ferme d'abord une fenêtre du hub (pile `OV` : `settings`, `pin`), puis demande au jeu via `window.hubBack()` (renvoie true s'il a fermé sa propre fenêtre : réglages Calcul/Téléphone, choix du niveau code/robot), sinon remonte d'un niveau. Lien profond : la pile Accueil → Matière → Jeu est reconstruite au lancement.
+
 ## Mise à jour
 Paramètres → carte « Application » : affiche la version en cache (`jeux-ecole-vXX`) et un bouton « Mettre à jour maintenant » qui vérifie la connexion (fetch `sw.js` no-store), supprime les caches, désinscrit le service worker puis recharge. Le localStorage (étoiles, réglages) est conservé.
 

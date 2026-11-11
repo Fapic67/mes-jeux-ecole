@@ -152,6 +152,8 @@ $("lvls").addEventListener("click",function(e){var b=e.target.closest("button");
 $("close").onclick=function(){$("sheet").hidden=true};
 newLevel();
 })();
+// Bouton retour du téléphone : ferme d'abord le choix du niveau
+window.hubBack=function(){var s=document.getElementById("sheet");if(s&&!s.hidden){s.hidden=true;return true}return false};
 </script>
 </body>
 </html>

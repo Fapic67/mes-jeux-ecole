@@ -192,6 +192,8 @@ document.addEventListener("pointerdown",function(e){if(cur&&!cur.spoken&&!locked
 $("op").addEventListener("click",function(){if(cur&&!locked)say(textOp(false))});
 build();restart();
 })();
+// Bouton retour du téléphone : ferme d'abord les réglages
+window.hubBack=function(){var s=document.getElementById("sheet");if(s&&s.classList.contains("open")){s.classList.remove("open");return true}return false};
 </script>
 </body>
 </html>

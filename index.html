@@ -128,7 +128,7 @@ body.nomoney .mon{display:none!important}
 </section>
 
 <section class="view" id="v-francais">
-  <div class="top"><button class="btn" data-go="">← Matières</button><span style="flex:1"></span><span class="purse" style="flex:none"><span class="st">⭐ <span class="nst">0</span></span></span></div>
+  <div class="top"><button class="btn" data-back="1">← Matières</button><span style="flex:1"></span><span class="purse" style="flex:none"><span class="st">⭐ <span class="nst">0</span></span></span></div>
   <div class="mid">
     <h1>📚 Français</h1>
     <button class="game" data-play="phrase"><span class="ic">✏️</span><span>Complète la phrase<small>Écoute et écris le mot manquant</small></span></button>
@@ -137,7 +137,7 @@ body.nomoney .mon{display:none!important}
 </section>
 
 <section class="view" id="v-maths">
-  <div class="top"><button class="btn" data-go="">← Matières</button><span class="grow" style="flex:1"></span><span class="purse" style="flex:none"><span class="st">⭐ <span class="nst">0</span></span></span></div>
+  <div class="top"><button class="btn" data-back="1">← Matières</button><span class="grow" style="flex:1"></span><span class="purse" style="flex:none"><span class="st">⭐ <span class="nst">0</span></span></span></div>
   <div class="mid">
     <h1>🧮 Mathématiques</h1>
     <button class="game" data-play="calcul"><span class="ic">➕</span><span>Calcul malin<small>Additions, soustractions, compléments · voix en allemand</small></span></button>
@@ -146,7 +146,7 @@ body.nomoney .mon{display:none!important}
 </section>
 
 <section class="view" id="v-allemand">
-  <div class="top"><button class="btn" data-go="">← Matières</button><span style="flex:1"></span><span class="purse" style="flex:none"><span class="st">⭐ <span class="nst">0</span></span></span></div>
+  <div class="top"><button class="btn" data-back="1">← Matières</button><span style="flex:1"></span><span class="purse" style="flex:none"><span class="st">⭐ <span class="nst">0</span></span></span></div>
   <div class="mid">
     <h1>🇩🇪 Allemand</h1>
     <button class="game" data-play="article"><span class="ic">🔤</span><span>Der · Die · Das<small>Trouve le bon article</small></span></button>
@@ -155,7 +155,7 @@ body.nomoney .mon{display:none!important}
 </section>
 
 <section class="view" id="v-logique">
-  <div class="top"><button class="btn" data-go="">← Matières</button><span style="flex:1"></span><span class="purse" style="flex:none"><span class="st">⭐ <span class="nst">0</span></span></span></div>
+  <div class="top"><button class="btn" data-back="1">← Matières</button><span style="flex:1"></span><span class="purse" style="flex:none"><span class="st">⭐ <span class="nst">0</span></span></span></div>
   <div class="mid">
     <h1>🧩 Logique</h1>
     <button class="game" data-play="code"><span class="ic">🔐</span><span>Le code secret<small>Devine le code de chiffres caché</small></span></button>
@@ -164,7 +164,7 @@ body.nomoney .mon{display:none!important}
 </section>
 
 <section class="view" id="v-musique">
-  <div class="top"><button class="btn" data-go="">← Matières</button><span style="flex:1"></span><span class="purse" style="flex:none"><span class="st">⭐ <span class="nst">0</span></span></span></div>
+  <div class="top"><button class="btn" data-back="1">← Matières</button><span style="flex:1"></span><span class="purse" style="flex:none"><span class="st">⭐ <span class="nst">0</span></span></span></div>
   <div class="mid">
     <h1>🎵 Musique</h1>
     <button class="game" data-play="note"><span class="ic">🎼</span><span>Trouve la note<small>Lis les notes et découvre le morceau</small></span></button>
@@ -172,7 +172,7 @@ body.nomoney .mon{display:none!important}
 </section>
 
 <section class="view" id="v-jeux">
-  <div class="top"><button class="btn" data-go="">← Matières</button></div>
+  <div class="top"><button class="btn" data-back="1">← Matières</button></div>
   <div class="mid">
     <h1>🎲 Jeux</h1>
     <button class="game" data-play="morpion"><span class="ic">⭕</span><span>Morpion<small>À deux joueurs, chacun son tour</small></span></button>
@@ -284,19 +284,19 @@ function sha(s){return crypto.subtle.digest("SHA-256",new TextEncoder().encode("
 var pinVal="",pinCb=null,pinCancel=null;
 (function(){var h="";["1","2","3","4","5","6","7","8","9","x","0","<"].forEach(function(k){h+='<button data-k="'+k+'"'+(k==="x"||k==="<"?' class="fn"':'')+'>'+(k==="x"?"Annuler":k==="<"?"⌫":k)+'</button>'});$("keys").innerHTML=h})();
 function dots(){var d=$("dots").children;for(var i=0;i<4;i++)d[i].className=i<pinVal.length?"on":""}
-function askCode(title,cb,cancel){$("pint").textContent=title;$("pinerr").textContent="";pinVal="";dots();pinCb=cb;pinCancel=cancel||null;$("pin").hidden=false}
+function askCode(title,cb,cancel){$("pint").textContent=title;$("pinerr").textContent="";pinVal="";dots();pinCb=cb;pinCancel=cancel||null;if(OV[OV.length-1]!=="pin")openOv("pin")}
 function pinFail(msg){$("pinerr").textContent=msg;var d=$("dots");d.classList.remove("shake");void d.offsetWidth;d.classList.add("shake");pinVal="";dots()}
-function closePin(){$("pin").hidden=true;pinCb=null}
+function closePin(cb){pinCb=null;closeOv("pin",cb)}
 $("keys").addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;var k=b.dataset.k;
- if(k==="x"){var c=pinCancel;closePin();c&&c();return}
+ if(k==="x"){closePin(pinCancel);return}
  if(k==="<"){pinVal=pinVal.slice(0,-1);dots();return}
  if(pinVal.length>=4)return;pinVal+=k;dots();
  if(pinVal.length===4){var v=pinVal,cb=pinCb;setTimeout(function(){cb&&cb(v)},150)}});
 // Code par défaut : 0000 (CFG.pin vide = code par défaut)
 var DEF_PIN="PdW+LyJI5qF8jKYNJzUoR8I0Q5IL5yglAk4MLSwDRG0=";
 function pinHash(){return CFG.pin||DEF_PIN}
-function checkCode(ok,cancel){askCode("Code parent",function(v){sha(v).then(function(h){if(h===pinHash()){closePin();ok()}else pinFail("Code incorrect")})},cancel)}
-function newCode(ok,why){askCode((why||"")+"Choisis un code à 4 chiffres",function(v){askCode("Tape-le encore une fois",function(v2){if(v2!==v){newCode(ok,"Les codes sont différents. ");return}sha(v2).then(function(h){CFG.pin=h;saveCfg();closePin();ok&&ok()})})})}
+function checkCode(ok,cancel){askCode("Code parent",function(v){sha(v).then(function(h){if(h===pinHash()){if(ok===openSettings)swapOv("pin","settings"),openSettings(true);else closePin(ok)}else pinFail("Code incorrect")})},cancel)}
+function newCode(ok,why){askCode((why||"")+"Choisis un code à 4 chiffres",function(v){askCode("Tape-le encore une fois",function(v2){if(v2!==v){newCode(ok,"Les codes sont différents. ");return}sha(v2).then(function(h){CFG.pin=h;saveCfg();closePin(ok)})})})}
 // Utilisé aussi par les jeux (ex. réglages du téléphone)
 window.hubGate=function(ok){checkCode(ok)};
 
@@ -326,9 +326,9 @@ $("s-upd").onclick=function(){var b=this,st=$("s-updst");b.disabled=true;st.text
   if(navigator.serviceWorker)jobs.push(navigator.serviceWorker.getRegistrations().then(function(rs){return Promise.all(rs.map(function(r){return r.unregister()}))}));
   return Promise.all(jobs).then(function(){location.replace(location.pathname+"?maj="+Date.now())})
  }).catch(function(){b.disabled=false;st.textContent="⚠️ Pas de connexion internet : réessaie quand tu es en ligne."})};
-function openSettings(){showVersion();$("prenom").value=ls("hub_prenom");renderSettings();$("settings").hidden=false}
+function openSettings(already){showVersion();$("prenom").value=ls("hub_prenom");renderSettings();if(!already)openOv("settings")}
 $("gear").onclick=function(){checkCode(openSettings)};
-$("sclose").onclick=function(){$("settings").hidden=true;renderPurse()};
+$("sclose").onclick=function(){closeOv("settings")};
 $("s-money").onchange=function(){CFG.money=this.checked;saveCfg();renderSettings()};
 $("s-stset").onclick=function(){var v=parseInt($("s-stv").value);if(!(v>=0))return;W.stars=Math.min(v,99999);saveW();$("s-stv").value="";renderSettings()};
 $("s-st0").onclick=function(){if(!W.stars)return;if(confirm("Remettre les étoiles à 0 ?")){W.stars=0;saveW();renderSettings()}};
@@ -349,32 +349,58 @@ function load(app){return cache[app]||(cache[app]=fetch("jeux/"+app+".html").the
 function src(g,h){
  var pre="<script>window.START="+(g.start||0)+";window.PRENOM="+JSON.stringify(ls("hub_prenom")).replace(/</g,"\\u003c")+"<\/script>";
  return h.replace("<head>","<head>"+pre)}
-function stopGame(){loadTok++;var f=$("frame");try{f.contentWindow&&f.contentWindow.speechSynthesis&&f.contentWindow.speechSynthesis.cancel()}catch(e){}f.removeAttribute("srcdoc");f.src="about:blank";$("play").classList.remove("on")}
-function route(){
- var h=location.hash.replace("#","");
+// Un nouvel iframe à chaque fois : modifier src/srcdoc d'un iframe existant ajouterait une entrée d'historique
+function setFrame(html){var old=$("frame"),f=document.createElement("iframe");f.id="frame";f.setAttribute("allow",old.getAttribute("allow"));if(html!=null)f.srcdoc=html;old.replaceWith(f);return f}
+function stopGame(){loadTok++;var f=$("frame");try{f.contentWindow&&f.contentWindow.speechSynthesis&&f.contentWindow.speechSynthesis.cancel()}catch(e){}if(f.hasAttribute("srcdoc"))setFrame(null);$("play").classList.remove("on")}
+/* ---------- Navigation (historique : bouton retour du téléphone = bouton retour de l'appli) ---------- */
+var cur=null,pendingReload=false;
+function parentOf(h){return GAMES[h]?GAMES[h].subj:""}
+function depth(){return(history.state&&history.state.d)||0}
+function url(h){return h?"#"+h:location.pathname+location.search}
+function show(h){
+ if(h===cur)return;cur=h;
+ if(pendingReload&&!GAMES[h]){location.reload();return}
  document.querySelectorAll(".view").forEach(function(v){v.classList.remove("on")});
  renderPurse();
- if(GAMES[h]){var g=GAMES[h];$("v-"+g.subj).classList.add("on");$("ptitle").textContent=g.t;$("play").classList.add("on");var tok=++loadTok;load(g.app).then(function(h){if(tok===loadTok)$("frame").srcdoc=src(g,h)},function(){if(tok===loadTok)$("frame").srcdoc="<p style=\"font:20px sans-serif;padding:20px\">Impossible de charger le jeu. Vérifie la connexion puis réessaie.</p>"});return}
+ if(GAMES[h]){var g=GAMES[h];$("v-"+g.subj).classList.add("on");$("ptitle").textContent=g.t;$("play").classList.add("on");var tok=++loadTok;setFrame(null);load(g.app).then(function(t){if(tok===loadTok)setFrame(src(g,t))},function(){if(tok===loadTok)setFrame("<p style=\"font:20px sans-serif;padding:20px\">Impossible de charger le jeu. Vérifie la connexion puis réessaie.</p>")});return}
  stopGame();
  ($("v-"+h)||$("v-home")).classList.add("on");
  var p=ls("hub_prenom");$("hello").textContent=p?"Bonjour "+p+" ! 👋":"Bonjour ! 👋"}
-function go(h){if(("#"+h)===location.hash||(!h&&!location.hash)){route();return}location.hash=h;if(!h){try{history.replaceState(null,"",location.pathname+location.search)}catch(e){}route()}}
-document.addEventListener("click",function(e){var b=e.target.closest("[data-go],[data-play]");if(!b)return;
- if(b.dataset.play!==undefined)go(b.dataset.play);else go(b.dataset.go)});
-$("pback").onclick=function(){var h=location.hash.replace("#","");go(GAMES[h]?GAMES[h].subj:"")};
+function go(h){if(h===cur)return;history.pushState({d:depth()+1,r:h},"",url(h));show(h)}
+function back(){if(OV.length){closeOv(OV[OV.length-1]);return}
+ if(depth()>0){history.back();return}
+ var p=parentOf(cur);if(p===cur||cur===""){return}history.replaceState({d:0,r:p},"",url(p));show(p)}
+/* fenêtres (paramètres, code) : le retour les ferme d'abord */
+var OV=[],ovCb=null,OVEL={settings:"settings",pin:"pin"};
+function hideOv(n){$(OVEL[n]).hidden=true;if(n==="settings")renderPurse();if(n==="pin")pinCb=null}
+function openOv(n){$(OVEL[n]).hidden=false;OV.push(n);history.pushState({d:depth()+1,r:cur,ov:n},"",location.href)}
+function closeOv(n,cb){if(OV[OV.length-1]===n&&history.state&&history.state.ov===n){ovCb=cb||null;history.back()}else{OV=OV.filter(function(x){return x!==n});hideOv(n);cb&&cb()}}
+function swapOv(from,to){OV[OV.length-1]=to;hideOv(from);$(OVEL[to]).hidden=false;var st=history.state||{};history.replaceState({d:st.d,r:st.r,ov:to},"",location.href)}
+window.addEventListener("popstate",function(){
+ var st=history.state||{},h=location.hash.replace("#","");
+ if(OV.length&&OV[OV.length-1]!==st.ov){while(OV.length&&OV[OV.length-1]!==st.ov)hideOv(OV.pop());var c=ovCb;ovCb=null;c&&c();if(st.r===cur)return}
+ // en jeu : le jeu peut d'abord fermer sa propre fenêtre (réglages, choix du niveau…)
+ if(GAMES[cur]&&h!==cur){var w=null;try{w=$("frame").contentWindow}catch(e){}
+  try{if(w&&w.hubBack&&w.hubBack()){history.pushState({d:(st.d||0)+1,r:cur},"",url(cur));return}}catch(e){}}
+ show(h)});
+document.addEventListener("click",function(e){var b=e.target.closest("[data-go],[data-play],[data-back]");if(!b)return;
+ if(b.dataset.back)back();else if(b.dataset.play!==undefined)go(b.dataset.play);else go(b.dataset.go)});
+$("pback").onclick=back;
 window.addEventListener("message",function(e){
  if(e.source!==$("frame").contentWindow)return;
- if(e.data==="hub-back")$("pback").onclick();
+ if(e.data==="hub-back")back();
  else if(e.data&&e.data.type==="stars")addStars(e.data.n)});
-window.addEventListener("hashchange",route);
 $("prenom").addEventListener("input",function(){ls("hub_prenom",this.value.trim());var p=this.value.trim();$("hello").textContent=p?"Bonjour "+p+" ! 👋":"Bonjour ! 👋"});
-route();
+(function init(){ // reconstruit Accueil → Matière → Jeu si l'appli est ouverte sur un lien profond
+ var h=location.hash.replace("#",""),chain=[""];if(GAMES[h])chain.push(GAMES[h].subj,h);else if(h&&$("v-"+h))chain.push(h);
+ history.replaceState({d:0,r:""},"",url(""));for(var k=1;k<chain.length;k++)history.pushState({d:k,r:chain[k]},"",url(chain[k]));
+ show(chain[chain.length-1])})();
 if(/[?&]maj=/.test(location.search)){try{history.replaceState(null,"",location.pathname+location.hash)}catch(e){}}
 if("serviceWorker" in navigator){
  // Nouvelle version installée : on recharge une fois, sauf pendant une partie
  var hadSW=!!navigator.serviceWorker.controller,reloaded=false;
  navigator.serviceWorker.addEventListener("controllerchange",function(){if(!hadSW||reloaded)return;reloaded=true;
-  if(GAMES[location.hash.replace("#","")])window.addEventListener("hashchange",function(){location.reload()},{once:true});else location.reload()});
+  if(GAMES[cur])pendingReload=true;else location.reload()});
  window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").then(function(r){r.update()}).catch(function(){})});
  document.addEventListener("visibilitychange",function(){if(!document.hidden)navigator.serviceWorker.getRegistration().then(function(r){r&&r.update()})})}
 </script>
