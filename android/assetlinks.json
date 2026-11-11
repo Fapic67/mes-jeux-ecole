@@ -1,0 +1,8 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "io.github.fapic67.jeuxecole",
+    "sha256_cert_fingerprints": ["88:AC:BB:C5:80:3D:75:61:48:A0:FE:2B:56:66:F8:46:B9:45:50:C7:98:3C:26:4A:A0:38:DD:0A:02:7A:0E:7C"]
+  }
+}]

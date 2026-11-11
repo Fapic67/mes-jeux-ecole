@@ -34,5 +34,8 @@ Tout repose sur `speechSynthesis` (Web Speech API). Une **WebView Android classi
 ## À faire
 - [x] Séparer le fichier en `index.html` + un fichier par jeu (sans base64).
 - [x] Manifest, service worker, icônes. Git initialisé.
-- [ ] Publier sur GitHub Pages (voir README.md).
-- [ ] Générer l'APK (TWA via PWABuilder) + `assetlinks.json`, tester la voix de-DE / fr-FR sur un vrai téléphone.
+- [x] Publié sur GitHub Pages.
+- [x] APK v1.0.0 généré (TWA, Bubblewrap, paquet `io.github.fapic67.jeuxecole`, minSdk 24). Config dans `android/twa-manifest.json`.
+  La clé de signature (`android.keystore`) n'est PAS dans le dépôt : le propriétaire la garde en privé.
+- [ ] Publier `android/assetlinks.json` sur https://fapic67.github.io/.well-known/assetlinks.json (dépôt `Fapic67/Fapic67.github.io`) pour retirer la barre d'adresse.
+- [ ] Tester la voix de-DE / fr-FR sur un vrai téléphone.
