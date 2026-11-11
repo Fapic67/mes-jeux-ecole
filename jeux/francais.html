@@ -47,7 +47,7 @@ function star(){try{if(parent!==window)parent.postMessage({type:"stars",n:1},"*"
 function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
 function bar(){return '<div class="cnt">'+(i+1)+' / '+deck.length+'</div><div class="bar"><i style="width:'+(i/deck.length*100)+'%"></i></div>'}
 var deck,i,good,missed;
-function home(){nokb();if(window.START){parent.postMessage("hub-back","*");return}bk.style.display="none";app.innerHTML='<h1>Français</h1><div class="menu" style="width:100%"><button class="btn" id="m3">Complète la phrase</button></div>';document.getElementById("m3").onclick=start3}
+function home(){nokb();if(window.START){parent.postMessage("hub-back","*");return}bk.style.display="none";app.innerHTML='<h1>Français</h1><div class="menu" style="width:100%"><button class="btn" id="m3">Complète la phrase : qui ou que ?</button></div>';document.getElementById("m3").onclick=start3}
 // Complète la phrase : écrire qui / que au clavier, de mémoire
 function start3(){bk.style.display="block";deck=shuffle(QQ).slice(0,TOTAL);i=0;good=0;show3()}
 function esc(t){return t.replace(/&/g,"&amp;").replace(/</g,"&lt;")}
