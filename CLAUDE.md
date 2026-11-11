@@ -1,7 +1,8 @@
 # Mes jeux d'école — passation depuis claude.ai
 
 Appli web pour enfant (6 ans), à l'origine un artifact claude.ai en un seul fichier, désormais découpée en PWA.
-Dépôt : https://github.com/Fapic67/mes-jeux-ecole · site : https://fapic67.github.io/mes-jeux-ecole/ Le but est d'en faire une **appli Android installable (APK)** et partageable à des amis.
+Dépôt : https://github.com/Fapic67/mes-jeux-ecole · site : https://fapic67.github.io/mes-jeux-ecole/
+Le but est d'en faire une **appli Android installable (APK)** et partageable à des amis.
 
 ## Structure actuelle
 - `index.html` = accueil par matière. Chaque jeu est un fichier de `jeux/` (`calcul.html`, `telephone.html`, `deutsch.html`), récupéré par `fetch` puis chargé dans une iframe `srcdoc` (même origine que l'accueil, donc même localStorage).
