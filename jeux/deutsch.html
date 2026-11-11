@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Deutsch</title>
+<style>
+:root{--bg:#faf8f5;--fg:#1d1d1f;--mut:#6b6b70;--card:#fff;--bd:#e3e0da;--der:#2f6fed;--die:#e0457b;--das:#1f9d6b;--bad:#d64545;box-sizing:border-box}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17171a;--fg:#f2f2f4;--mut:#9a9aa2;--card:#222227;--bd:#34343b}}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;box-sizing:border-box}
+#app{width:100%;max-width:420px;display:flex;flex-direction:column;gap:24px;align-items:center}
+.bar{width:100%;height:8px;background:var(--bd);border-radius:4px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--der);transition:width .3s}
+.cnt{color:var(--mut);font-size:15px}
+.word{font-size:clamp(40px,13vw,64px);font-weight:700;word-break:break-word;margin:8px 0}
+.pic{font-size:110px;line-height:1.1}
+.pills{display:flex;gap:12px;width:100%}
+.pills.col{flex-direction:column}
+.pill{flex:1;font-size:24px;font-weight:700;padding:18px 0;border-radius:999px;border:2px solid var(--bd);background:var(--card);color:var(--fg);cursor:pointer}
+.col .pill{flex:none}
+.pill[data-a=der]{border-color:var(--der)}.pill[data-a=die]{border-color:var(--die)}.pill[data-a=das]{border-color:var(--das)}
+.pill.ok{color:#fff;background:var(--das);border-color:var(--das)}
+.pill.ok[data-a=der]{background:var(--der)}.pill.ok[data-a=die]{background:var(--die)}
+.pill.no{opacity:.35;border-color:var(--bad);text-decoration:line-through}
+.pill:disabled{cursor:default}
+.shake{animation:sh .25s}
+@keyframes sh{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.btn{font-size:20px;font-weight:700;padding:16px 36px;border-radius:999px;border:0;background:var(--der);color:#fff;cursor:pointer}
+.btn2{background:var(--card);color:var(--fg);border:2px solid var(--bd)}
+.menu .btn{width:100%}
+.big{font-size:72px;font-weight:800}
+h1{margin:0;font-size:34px}
+.ear{background:none;border:0;font-size:30px;cursor:pointer;color:var(--fg)}
+.back{position:fixed;top:8px;left:12px;background:none;border:0;font-size:15px;color:var(--mut);cursor:pointer}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+// Liste commune (photos) : article|mot|image ; sans article = verbe/adjectif/nombre
+var RAW="die|Nase|👃;der|Mantel|🧥;die|Gans|;der|Nebel|🌫️;der|Schulhof|;das|Brot|🍞;das|Obst|🍓;der|Orangensaft|🧃;das|Ohr|👂;die|Traube|🍇;die|Laterne|🏮;der|Kürbis|🎃;das|Gras|🌱;die|Kiste|📦;der|Bus|🚌;der|Regen|🌧️;der|Freund|👦;die|Freundin|👧;die|Reihe|;der|Spitzer|;die|Idee|💡;der|Bleistift|✏️;der|Tisch|;der|Ball|⚽;das|Lineal|📏;das|Lied|🎵;die|Blume|🌸;die|Uhr|🕐;die|Schule|🏫;die|Klasse|;der|Radiergummi|;der|Schulranzen|🎒;die|Tafel|;der|Apfel|🍎;das|Mäppchen|;die|Ampel|🚦;die|Musik|;die|Maus|🐭;|rot|🔴;|braun|🟤;|lila|🟣;|bunt|🌈;|neun|9️⃣;|brennen|🔥;|singen|🎤;|lesen|📖;|lachen|😂;|schwimmen|🏊;|malen|🎨;|basteln|✂️;|suchen|🔍;|pusten|💨;|arbeiten|💼;|gut|👍;|leuchten|🔦;|raus|🚪;|richtig|✅";
+var ALL=RAW.split(";").map(function(s){var p=s.split("|");return{a:p[0],w:p[1],e:p[2]}});
+var TOTAL=20,app=document.getElementById("app"),voice=null,msg=document.createElement("div");
+msg.style.cssText="position:fixed;bottom:12px;left:12px;right:12px;font-size:13px;color:#d64545";document.body.appendChild(msg);
+var bk=document.createElement("button");bk.className="back";bk.textContent="← Menü";bk.style.display="none";bk.onclick=function(){home()};if(!window.START)document.body.appendChild(bk);
+function pickVoice(){var v=(window.speechSynthesis&&speechSynthesis.getVoices())||[];voice=v.find(function(x){return x.lang&&x.lang.indexOf("de")===0})||null}
+if(window.speechSynthesis){pickVoice();speechSynthesis.onvoiceschanged=pickVoice}
+function say(t){try{if(!window.speechSynthesis){msg.textContent="Synthèse vocale indisponible : ouvre le lien dans le navigateur du téléphone";return}pickVoice();speechSynthesis.cancel();setTimeout(function(){var u=new SpeechSynthesisUtterance(t);u.lang="de-DE";if(voice)u.voice=voice;u.rate=.9;u.onerror=function(e){msg.textContent="Erreur voix : "+e.error};speechSynthesis.resume();speechSynthesis.speak(u)},60)}catch(e){msg.textContent="Erreur voix : "+e}}
+function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
+function bar(){return '<div class="cnt">'+(i+1)+' / '+deck.length+'</div><div class="bar"><i style="width:'+(i/deck.length*100)+'%"></i></div>'}
+var deck,i,good,missed,mode=0;
+function home(){if(window.START){parent.postMessage("hub-back","*");return}mode=0;bk.style.display="none";app.innerHTML='<h1>Deutsch</h1><div class="pills col menu"><button class="btn" id="m1">Der · Die · Das</button><button class="btn" id="m2">Finde das Wort</button></div>';document.getElementById("m1").onclick=start;document.getElementById("m2").onclick=start2}
+// Exercice 1 : article
+function start(){mode=1;bk.style.display="block";deck=shuffle(ALL.filter(function(x){return x.a})).slice(0,TOTAL);i=0;good=0;showWord()}
+function showWord(){
+  var w=deck[i];missed=false;
+  app.innerHTML=bar()+'<div class="word">'+w.w+'</div><button class="ear" id="ear" aria-label="Wiederholen">🔊</button><div class="pills"><button class="pill" data-a="der">der</button><button class="pill" data-a="die">die</button><button class="pill" data-a="das">das</button></div>';
+  document.getElementById("ear").onclick=function(){say(w.w)};
+  say(w.w);
+  app.querySelectorAll(".pill").forEach(function(p){p.onclick=function(){
+    if(p.dataset.a===w.a){missed||good++;app.querySelectorAll(".pill").forEach(function(x){x.disabled=true});p.classList.add("ok");say(w.a+" "+w.w);setTimeout(function(){i++;i<deck.length?showWord():end()},1500)}
+    else{missed=true;p.classList.add("no","shake");p.disabled=true}}});
+}
+// Exercice 2 : trouve le mot
+function start2(){mode=2;bk.style.display="block";deck=shuffle(ALL.filter(function(x){return x.e})).slice(0,TOTAL);i=0;good=0;show2()}
+function show2(){
+  var w=deck[i];missed=false;
+  var others=shuffle(ALL.filter(function(x){return x.e&&x.w!==w.w&&!x.a===!w.a})).slice(0,2);
+  var ch=shuffle([w].concat(others));
+  app.innerHTML=bar()+'<div class="pic">'+w.e+'</div><div class="pills col">'+ch.map(function(c){return '<button class="pill" data-w="'+c.w+'">'+(c.a?c.a+' ':'')+c.w+'</button>'}).join("")+'</div>';
+  app.querySelectorAll(".pill").forEach(function(p){p.onclick=function(){
+    if(p.dataset.w===w.w){missed||good++;app.querySelectorAll(".pill").forEach(function(x){x.disabled=true});p.classList.add("ok");say((w.a?w.a+" ":"")+w.w);setTimeout(function(){i++;i<deck.length?show2():end()},1500)}
+    else{missed=true;p.classList.add("no","shake");p.disabled=true}}});
+}
+function end(){
+  var n=Math.round(good/deck.length*10*2)/2,s=String(n).replace(".",",");
+  app.innerHTML='<h1>Fertig!</h1><div class="big">'+s+' / 10</div><div class="cnt">'+good+' / '+deck.length+'</div><button class="btn" id="re">Nochmal</button><button class="btn btn2" id="mn">Menü</button>';
+  document.getElementById("re").onclick=function(){mode==2?start2():start()};
+  document.getElementById("mn").onclick=home;
+  say("Fertig! "+s+" von zehn");
+}
+window.START==2?start2():window.START==1?start():home();
+</script>
+</body>
+</html>

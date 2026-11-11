@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Le téléphone magique</title>
+<style>
+:root{--bg:#fff7e6;--fg:#2b2b2b;--card:#fff;--key:#ffd166;--keyfg:#2b2b2b;--ok:#2fb344;--soft:#e9e1cf;color-scheme:light;box-sizing:border-box}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1d1b16;--fg:#f4efe2;--card:#2a2720;--key:#f2b83b;--keyfg:#222;--soft:#3a362c;color-scheme:dark}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none}
+[hidden]{display:none!important}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;display:flex;flex-direction:column;align-items:center;padding:12px;gap:10px;max-width:480px;margin:0 auto}
+header{width:100%;display:flex;justify-content:space-between;align-items:center}
+h1{font-size:20px;margin:0}
+.gear{background:var(--soft);border:0;border-radius:12px;font-size:20px;padding:8px 12px;color:var(--fg)}
+#set{width:100%;background:var(--card);border-radius:14px;padding:10px 14px;font-size:16px}
+#set input[type=range],#set input[type=number]{width:100%;margin-top:6px}
+#set label{display:block;margin-top:10px}
+#set label:first-child{margin-top:0}
+#msg{min-height:28px;font-size:18px;font-weight:600;text-align:center}
+#disp{width:100%;background:var(--card);border-radius:16px;padding:14px;font-size:34px;font-weight:700;text-align:center;letter-spacing:2px;min-height:68px;overflow-x:auto;white-space:nowrap}
+#go{width:100%;padding:16px;font-size:22px;font-weight:700;border:0;border-radius:16px;background:#4c7cf3;color:#fff}
+#pad{width:100%;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;flex:1;min-height:0}
+#pad button{border:0;border-radius:18px;font-size:34px;font-weight:700;background:var(--key);color:var(--keyfg);min-height:56px}
+#pad button:active{transform:scale(.95)}
+#pad .del{background:var(--soft);color:var(--fg);font-size:26px}
+#pad .call{grid-column:span 2;background:var(--ok);color:#fff;font-size:28px}
+#bank{width:100%;display:flex;align-items:center;gap:12px;background:var(--card);border-radius:14px;padding:10px 12px;font-size:18px;flex-wrap:wrap}
+#bank .sp{flex:1}
+#buy,#use{border:0;border-radius:12px;padding:10px 12px;font-size:15px;font-weight:700;background:#4c7cf3;color:#fff}
+#buy:disabled,#use:disabled{opacity:.4}
+input{-webkit-user-select:text;user-select:text}
+#lock{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:10;padding:20px}
+#lock .box{background:var(--card);border-radius:18px;padding:18px;width:100%;max-width:340px;display:flex;flex-direction:column;gap:10px}
+#lt{font-size:18px;font-weight:700;text-align:center}
+#lp{font-size:30px;text-align:center;letter-spacing:10px;padding:10px;border-radius:12px;border:2px solid var(--soft);background:var(--bg);color:var(--fg)}
+#le{min-height:20px;color:#e5484d;text-align:center;font-size:15px}
+#lock .row{display:flex;gap:10px}
+#lock .row button{flex:1;border:0;border-radius:12px;padding:12px;font-size:17px;font-weight:700;background:var(--soft);color:var(--fg)}
+#lock .row #lo{background:#4c7cf3;color:#fff}
+</style></head><body>
+<header><h1>📞 Le téléphone magique</h1><button class="gear" id="gear" aria-label="Réglages">⚙️</button></header>
+<div id="set" hidden>
+<label>🔢 Nombre max : <b id="mv">99</b><input type="number" id="mx" min="10" max="99" value="99" inputmode="numeric"></label>
+<label><input type="checkbox" id="bs" style="width:auto;margin-right:8px">Favoriser une plage de nombres</label>
+<div id="bsf" style="display:flex;gap:8px;align-items:center;margin-top:6px;flex-wrap:wrap">De <input type="number" id="bmin" min="10" max="99" inputmode="numeric" style="width:64px"> à <input type="number" id="bmax" min="10" max="99" inputmode="numeric" style="width:64px"> : <input type="number" id="bpct" min="0" max="100" inputmode="numeric" style="width:64px"> %</div>
+<div style="margin-top:10px">🎟 Tickets : <b id="tk2">0</b> <button id="use">Utiliser un ticket</button></div>
+</div>
+<div id="msg">Appuie sur Jouer !</div>
+<div id="disp"></div>
+<button id="go">▶ Jouer</button>
+<div id="pad"></div>
+<div id="lock" hidden><div class="box"><div id="lt"></div><input id="lp" type="password" inputmode="numeric" maxlength="4" pattern="[0-9]*" autocomplete="off"><div id="le"></div><div class="row"><button id="lc">Annuler</button><button id="lo">OK</button></div></div></div>
+<div id="bank"><span>💰 <b id="cash">0</b> €</span><span>🎟 <b id="tk">0</b></span><span class="sp"></span><button id="buy">Acheter un ticket (100 €)</button></div>
+<script>
+var target="",entry="",playing=false,busy=false,ac=null,timer=null,delay=2,maxn=99,waitMode=false,need=0,nextFn=null,cur="",base=0;
+var $=function(i){return document.getElementById(i)};
+function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
+var boost=false,bmin=11,bmax=19,bpct=92;delay=1;maxn=Math.max(10,parseInt(ls("tel_max"))||99);waitMode=true;boost=ls("tel_boost")==="1";bmin=parseInt(ls("tel_bmin"))||11;bmax=parseInt(ls("tel_bmax"))||19;bpct=ls("tel_bpct")===null?92:Math.min(100,Math.max(0,parseInt(ls("tel_bpct"))||0));
+function msg(t){$("msg").textContent=t}
+function render(){$("disp").textContent=entry?entry.replace(/(\d{2})(?=\d)/g,"$1 "):"…"}
+function ctx(){if(!ac){var C=window.AudioContext||window.webkitAudioContext;if(C)ac=new C()}if(ac&&ac.state==="suspended")ac.resume();return ac}
+function tone(f,t,d,v){var a=ctx();if(!a)return;var g=a.createGain();g.gain.value=0;g.connect(a.destination);var s=a.currentTime+t;g.gain.setValueAtTime(0,s);g.gain.linearRampToValueAtTime(v||.15,s+.01);g.gain.setValueAtTime(v||.15,s+d-.02);g.gain.linearRampToValueAtTime(0,s+d);f.forEach(function(x){var o=a.createOscillator();o.frequency.value=x;o.connect(g);o.start(s);o.stop(s+d)})}
+var R=[697,770,852,941],C=[1209,1336,1477],K=["1","2","3","4","5","6","7","8","9","*","0","#"];
+function dtmf(k){var i=K.indexOf(k);tone([R[Math.floor(i/3)],C[i%3]],0,.12,.12)}
+var voice=null;function pick(){try{var v=speechSynthesis.getVoices();voice=v.filter(function(x){return /^fr/i.test(x.lang)})[0]||null}catch(e){}}
+try{pick();speechSynthesis.onvoiceschanged=pick}catch(e){}
+function say(t,cb,rate){try{var s=window.speechSynthesis;if(!s||!window.SpeechSynthesisUtterance){cb&&cb();return}if(s.speaking||s.pending)s.cancel();pick();var u=new SpeechSynthesisUtterance(t);u.lang="fr-FR";if(voice)u.voice=voice;u.rate=rate||.8;var done=false;var fin=function(){if(!done){done=true;cb&&cb()}};u.onend=fin;u.onerror=fin;window._u=u;s.speak(u);if(s.paused)s.resume();setTimeout(fin,Math.max(3000,t.length*350))}catch(e){cb&&cb()}}
+var WIN=["Bravo !","Super !","Tu as gagné !","Génial !","Bien joué !","Excellent !","Formidable !","Tu es une championne !","Tu as réussi !"];
+var PAL=["#ffd166","#ff8fab","#7bdff2","#a0e8af","#cdb4ff","#ffb870","#8fb8ff"];var wins=parseInt(ls("tel_wins"))||0;
+function colorKeys(){var multi=wins>0&&wins%10===0,c=PAL[wins%PAL.length];document.querySelectorAll("#pad [data-k]").forEach(function(b){var k=b.dataset.k;if(!/\d/.test(k))return;b.style.background=multi?"hsl("+(K.indexOf(k)*33)+",85%,70%)":c})}
+function spk(g){return g.length===2&&g[0]==="0"?"zéro "+g[1]:g}
+function stopAll(){clearTimeout(timer);nextFn=null;try{speechSynthesis.cancel()}catch(e){}}
+function gen(){var s="",lo=Math.max(10,bmin),hi=Math.min(maxn,bmax),on=boost&&lo<=hi,rest=[];if(on){for(var j=10;j<=maxn;j++)if(j<lo||j>hi)rest.push(j)}for(var i=0;i<5;i++){var n;if(on&&(rest.length===0||Math.random()<bpct/100))n=lo+Math.floor(Math.random()*(hi-lo+1));else if(on)n=rest[Math.floor(Math.random()*rest.length)];else n=10+Math.floor(Math.random()*(maxn-9));s+=n}return s}
+function dictate(){
+ var d=target.match(/\d{1,2}/g),i=0;need=0;nextFn=null;cur="";base=0;
+ (function step(){
+  if(i>=d.length){if(!waitMode)timer=setTimeout(function(){msg("À toi de composer ! 📞")},delay*1000);return}
+  var g=d[i++];cur=g;base=need;say(spk(g),null,.9);
+  if(waitMode){need+=g.length;nextFn=step}else timer=setTimeout(step,delay*1000)
+ })()}
+function start(){
+ if(busy)return;ctx();
+ if(!window.speechSynthesis){msg("🔇 Pas de voix ici : ouvre le lien dans le navigateur du téléphone");return}
+ $("set").hidden=true;stopAll();target=gen();entry="";render();colorKeys();playing=true;$("go").textContent="🔁 Répéter";msg("Écoute bien puis compose !");dictate()}
+function repeat(){if(cur)say(spk(cur),null,.9)}
+function press(k){
+ if(busy)return;dtmf(k);if(!playing)return;
+ if(entry.length<15)entry+=k;render();
+ if(entry===target){nextFn=null;clearTimeout(timer);say("Appuie sur téléphoner");msg("Appuie sur 📞 !");return}
+ if(nextFn&&entry.length>=need){
+  if(entry.slice(base)===cur){var f=nextFn;nextFn=null;busy=true;timer=setTimeout(function(){busy=false;f()},delay*1000)}
+  else{busy=true;tone([220],0,.25,.2);tone([150],.3,.45,.2);setTimeout(function(){entry=entry.slice(0,base);render();say("Recommence",function(){setTimeout(function(){say(spk(cur),null,.9);busy=false},300)})},1000)}}}
+function del(){if(busy||!playing)return;if(waitMode&&entry.length<=base)return;entry=entry.slice(0,-1);render()}
+function ring(){for(var i=0;i<2;i++)tone([440,480],i*2.2,1.2,.1)}
+function busyTone(){for(var i=0;i<4;i++)tone([480,620],i,.5,.1)}
+function end(m){entry="";render();busy=false;playing=false;target="";$("go").textContent="▶ Jouer";msg(m)}
+function call(){
+ if(busy||!playing||!entry)return;ctx();busy=true;stopAll();msg("📞 Ça sonne…");
+ if(entry===target){ring();setTimeout(function(){tone([900],0,.05,.2);wins++;ls("tel_wins",wins);cash+=10;bank();var w=wins%10===0?(window.PRENOM?"Bravo "+window.PRENOM+" !":"Bravo champion !"):WIN[Math.floor(Math.random()*WIN.length)];msg("🎉 "+w+" +10 €");say("Allô ? "+w,function(){end("Rejoue avec ▶ Jouer")},.85)},4600)}
+ else{busyTone();setTimeout(function(){msg("📵 Occupé… Essaie encore !")},200);setTimeout(function(){tone([300],0,.15,.15);end("Appuie sur ▶ Jouer")},4200)}}
+(function(){var p=$("pad"),h="";K.forEach(function(k){h+='<button data-k="'+k+'">'+k+'</button>'});h+='<button class="del" id="del">⌫</button><button class="call" id="call">📞</button>';p.innerHTML=h;
+p.addEventListener("click",function(e){var b=e.target.closest("button");if(b&&b.dataset.k)press(b.dataset.k)})})();
+$("del").onclick=del;$("call").onclick=call;
+$("go").onclick=function(){if(busy)return;ctx();if(playing)repeat();else start()};
+$("gear").onclick=function(){if(!$("set").hidden){$("set").hidden=true;return}if(busy)return;gate(function(){$("set").hidden=false})};
+$("mx").value=maxn;$("mv").textContent=maxn;$("bs").checked=boost;$("bmin").value=bmin;$("bmax").value=bmax;$("bpct").value=bpct;
+$("mx").oninput=function(){var v=parseInt(this.value);if(v>=10&&v<=99){maxn=v;$("mv").textContent=v;ls("tel_max",v)}};
+$("bs").onchange=function(){boost=this.checked;ls("tel_boost",boost?"1":"0")};
+function rng(id,key,lo,hi,set){$(id).oninput=function(){var v=parseInt(this.value);if(v>=lo&&v<=hi){set(v);ls(key,v)}}}
+rng("bmin","tel_bmin",10,99,function(v){bmin=v});rng("bmax","tel_bmax",10,99,function(v){bmax=v});rng("bpct","tel_bpct",0,100,function(v){bpct=v});colorKeys();
+var lockCb=null,lockTmp="";
+function b64(b){return btoa(String.fromCharCode.apply(null,new Uint8Array(b)))}
+function unb64(s){return Uint8Array.from(atob(s),function(c){return c.charCodeAt(0)})}
+function rnd(n){return crypto.getRandomValues(new Uint8Array(n))}
+function sha(s){return crypto.subtle.digest("SHA-256",new TextEncoder().encode("tm:"+s)).then(b64)}
+function showLock(t,cb){$("lt").textContent=t;$("lp").value="";$("le").textContent="";$("lock").hidden=false;lockCb=cb;setTimeout(function(){$("lp").focus()},50)}
+function hideLock(){$("lock").hidden=true;lockCb=null}
+$("lc").onclick=hideLock;
+$("lo").onclick=function(){var v=$("lp").value;if(!/^\d{4}$/.test(v)){$("le").textContent="4 chiffres, s’il te plaît";return}if(lockCb)lockCb(v)};
+function askPin(ok){showLock("Code parent",function(v){sha(v).then(function(h){if(h===ls("tel_pin")){hideLock();ok()}else{$("le").textContent="Code incorrect";$("lp").value=""}})})}
+function setupPin(ok,why){showLock((why||"")+"Crée un code à 4 chiffres",function(v){lockTmp=v;showLock("Confirme le code",function(v2){if(v2!==lockTmp){setupPin(ok,"Les codes diffèrent. ");return}sha(v2).then(function(h){ls("tel_pin",h);ls("tel_lock","pin");hideLock();ok()})})})}
+function waCreate(ok,fail){navigator.credentials.create({publicKey:{challenge:rnd(32),rp:{name:"Téléphone magique"},user:{id:rnd(16),name:"parent",displayName:"Parent"},pubKeyCredParams:[{type:"public-key",alg:-7},{type:"public-key",alg:-257}],authenticatorSelection:{authenticatorAttachment:"platform",userVerification:"required"},timeout:60000,attestation:"none"}}).then(function(c){ls("tel_cred",b64(c.rawId));ls("tel_lock","wa");ok()}).catch(fail)}
+function waGet(ok,fail){navigator.credentials.get({publicKey:{challenge:rnd(32),allowCredentials:[{type:"public-key",id:unb64(ls("tel_cred"))}],userVerification:"required",timeout:60000}}).then(function(){ok()}).catch(fail)}
+function setupLock(ok){var why="Verrouillage du téléphone indisponible. ";if(!(window.PublicKeyCredential&&navigator.credentials&&navigator.credentials.create)){setupPin(ok,why);return}var t0=Date.now();try{waCreate(ok,function(e){if(e&&e.name==="NotAllowedError"&&Date.now()-t0>1500){if(!playing)msg("🔒 Verrouillage annulé");return}setupPin(ok,why)})}catch(e){setupPin(ok,why)}}
+function gate(ok){var m=ls("tel_lock");if(m==="wa"&&ls("tel_cred")){try{waGet(ok,function(){if(!playing)msg("🔒 Accès refusé")})}catch(e){if(!playing)msg("🔒 Accès refusé")}}else if(m==="pin")askPin(ok);else setupLock(ok)}
+var cash=parseInt(ls("tel_cash"))||0,tickets=parseInt(ls("tel_tickets"))||0,useArm=null;
+function bank(){$("cash").textContent=cash;$("tk").textContent=tickets;$("tk2").textContent=tickets;$("buy").disabled=cash<100;$("use").disabled=tickets<1;ls("tel_cash",cash);ls("tel_tickets",tickets)}
+$("buy").onclick=function(){if(cash>=100){cash-=100;tickets++;bank();if(!playing)msg("🎟 Ticket acheté !")}};
+$("use").onclick=function(){if(tickets<1)return;if(!useArm){$("use").textContent="Confirmer ?";useArm=setTimeout(function(){useArm=null;$("use").textContent="Utiliser un ticket"},3000);return}clearTimeout(useArm);useArm=null;tickets--;$("use").textContent="Utiliser un ticket";bank()};
+bank();
+render();
+</script></body></html>
