@@ -11,23 +11,21 @@ html,body{height:100%;margin:0}
 body{background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;display:flex;flex-direction:column;align-items:center;padding:12px;gap:10px;max-width:480px;margin:0 auto}
 header{width:100%;display:flex;justify-content:space-between;align-items:center}
 h1{font-size:20px;margin:0}
-.gear{background:var(--soft);border:0;border-radius:12px;font-size:20px;padding:8px 12px;color:var(--fg)}
-#set{width:100%;background:var(--card);border-radius:14px;padding:10px 14px;font-size:16px}
-#set input[type=range],#set input[type=number]{width:100%;margin-top:6px}
+.gear{background:var(--soft);border:0;border-radius:16px;font-size:26px;width:56px;height:56px;color:var(--fg)}
+#set{width:100%;background:var(--card);border-radius:18px;padding:14px 16px;font-size:19px;border:3px solid var(--soft)}
+#set input[type=number]{width:100%;margin-top:8px;min-height:52px;font-size:22px;font-weight:700;text-align:center;border:3px solid var(--soft);border-radius:14px;background:var(--bg);color:var(--fg)}
+#set input[type=checkbox]{width:28px!important;height:28px;vertical-align:middle;accent-color:#4c7cf3}
+#bsf input[type=number]{width:80px!important;margin-top:0}
 #set label{display:block;margin-top:10px}
 #set label:first-child{margin-top:0}
-#msg{min-height:28px;font-size:18px;font-weight:600;text-align:center}
+#msg{min-height:30px;font-size:21px;font-weight:600;text-align:center}
 #disp{width:100%;background:var(--card);border-radius:16px;padding:14px;font-size:34px;font-weight:700;text-align:center;letter-spacing:2px;min-height:68px;overflow-x:auto;white-space:nowrap}
-#go{width:100%;padding:16px;font-size:22px;font-weight:700;border:0;border-radius:16px;background:#4c7cf3;color:#fff}
+#go{width:100%;min-height:64px;padding:16px;font-size:24px;box-shadow:0 5px 0 #2f5ad1;font-weight:700;border:0;border-radius:16px;background:#4c7cf3;color:#fff}
 #pad{width:100%;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;flex:1;min-height:0}
-#pad button{border:0;border-radius:18px;font-size:34px;font-weight:700;background:var(--key);color:var(--keyfg);min-height:56px}
-#pad button:active{transform:scale(.95)}
+#pad button{border:0;border-radius:18px;font-size:36px;font-weight:700;background:var(--key);color:var(--keyfg);min-height:60px;box-shadow:0 4px 0 rgba(0,0,0,.15)}
+#pad button:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.15)}
 #pad .del{background:var(--soft);color:var(--fg);font-size:26px}
 #pad .call{grid-column:span 2;background:var(--ok);color:#fff;font-size:28px}
-#bank{width:100%;display:flex;align-items:center;gap:12px;background:var(--card);border-radius:14px;padding:10px 12px;font-size:18px;flex-wrap:wrap}
-#bank .sp{flex:1}
-#buy,#use{border:0;border-radius:12px;padding:10px 12px;font-size:15px;font-weight:700;background:#4c7cf3;color:#fff}
-#buy:disabled,#use:disabled{opacity:.4}
 input{-webkit-user-select:text;user-select:text}
 #lock{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:10;padding:20px}
 #lock .box{background:var(--card);border-radius:18px;padding:18px;width:100%;max-width:340px;display:flex;flex-direction:column;gap:10px}
@@ -43,14 +41,12 @@ input{-webkit-user-select:text;user-select:text}
 <label>🔢 Nombre max : <b id="mv">99</b><input type="number" id="mx" min="10" max="99" value="99" inputmode="numeric"></label>
 <label><input type="checkbox" id="bs" style="width:auto;margin-right:8px">Favoriser une plage de nombres</label>
 <div id="bsf" style="display:flex;gap:8px;align-items:center;margin-top:6px;flex-wrap:wrap">De <input type="number" id="bmin" min="10" max="99" inputmode="numeric" style="width:64px"> à <input type="number" id="bmax" min="10" max="99" inputmode="numeric" style="width:64px"> : <input type="number" id="bpct" min="0" max="100" inputmode="numeric" style="width:64px"> %</div>
-<div style="margin-top:10px">🎟 Tickets : <b id="tk2">0</b> <button id="use">Utiliser un ticket</button></div>
 </div>
 <div id="msg">Appuie sur Jouer !</div>
 <div id="disp"></div>
 <button id="go">▶ Jouer</button>
 <div id="pad"></div>
 <div id="lock" hidden><div class="box"><div id="lt"></div><input id="lp" type="password" inputmode="numeric" maxlength="4" pattern="[0-9]*" autocomplete="off"><div id="le"></div><div class="row"><button id="lc">Annuler</button><button id="lo">OK</button></div></div></div>
-<div id="bank"><span>💰 <b id="cash">0</b> €</span><span>🎟 <b id="tk">0</b></span><span class="sp"></span><button id="buy">Acheter un ticket (100 €)</button></div>
 <script>
 var target="",entry="",playing=false,busy=false,ac=null,timer=null,delay=2,maxn=99,waitMode=false,need=0,nextFn=null,cur="",base=0;
 var $=function(i){return document.getElementById(i)};
@@ -96,7 +92,7 @@ function busyTone(){for(var i=0;i<4;i++)tone([480,620],i,.5,.1)}
 function end(m){entry="";render();busy=false;playing=false;target="";$("go").textContent="▶ Jouer";msg(m)}
 function call(){
  if(busy||!playing||!entry)return;ctx();busy=true;stopAll();msg("📞 Ça sonne…");
- if(entry===target){ring();setTimeout(function(){tone([900],0,.05,.2);wins++;ls("tel_wins",wins);cash+=10;bank();var w=wins%10===0?(window.PRENOM?"Bravo "+window.PRENOM+" !":"Bravo champion !"):WIN[Math.floor(Math.random()*WIN.length)];msg("🎉 "+w+" +10 €");say("Allô ? "+w,function(){end("Rejoue avec ▶ Jouer")},.85)},4600)}
+ if(entry===target){ring();setTimeout(function(){tone([900],0,.05,.2);wins++;ls("tel_wins",wins);stars(3);var w=wins%10===0?(window.PRENOM?"Bravo "+window.PRENOM+" !":"Bravo champion !"):WIN[Math.floor(Math.random()*WIN.length)];msg("🎉 "+w+" +3 ⭐");say("Allô ? "+w,function(){end("Rejoue avec ▶ Jouer")},.85)},4600)}
  else{busyTone();setTimeout(function(){msg("📵 Occupé… Essaie encore !")},200);setTimeout(function(){tone([300],0,.15,.15);end("Appuie sur ▶ Jouer")},4200)}}
 (function(){var p=$("pad"),h="";K.forEach(function(k){h+='<button data-k="'+k+'">'+k+'</button>'});h+='<button class="del" id="del">⌫</button><button class="call" id="call">📞</button>';p.innerHTML=h;
 p.addEventListener("click",function(e){var b=e.target.closest("button");if(b&&b.dataset.k)press(b.dataset.k)})})();
@@ -122,11 +118,8 @@ function setupPin(ok,why){showLock((why||"")+"Crée un code à 4 chiffres",funct
 function waCreate(ok,fail){navigator.credentials.create({publicKey:{challenge:rnd(32),rp:{name:"Téléphone magique"},user:{id:rnd(16),name:"parent",displayName:"Parent"},pubKeyCredParams:[{type:"public-key",alg:-7},{type:"public-key",alg:-257}],authenticatorSelection:{authenticatorAttachment:"platform",userVerification:"required"},timeout:60000,attestation:"none"}}).then(function(c){ls("tel_cred",b64(c.rawId));ls("tel_lock","wa");ok()}).catch(fail)}
 function waGet(ok,fail){navigator.credentials.get({publicKey:{challenge:rnd(32),allowCredentials:[{type:"public-key",id:unb64(ls("tel_cred"))}],userVerification:"required",timeout:60000}}).then(function(){ok()}).catch(fail)}
 function setupLock(ok){var why="Verrouillage du téléphone indisponible. ";if(!(window.PublicKeyCredential&&navigator.credentials&&navigator.credentials.create)){setupPin(ok,why);return}var t0=Date.now();try{waCreate(ok,function(e){if(e&&e.name==="NotAllowedError"&&Date.now()-t0>1500){if(!playing)msg("🔒 Verrouillage annulé");return}setupPin(ok,why)})}catch(e){setupPin(ok,why)}}
-function gate(ok){var m=ls("tel_lock");if(m==="wa"&&ls("tel_cred")){try{waGet(ok,function(){if(!playing)msg("🔒 Accès refusé")})}catch(e){if(!playing)msg("🔒 Accès refusé")}}else if(m==="pin")askPin(ok);else setupLock(ok)}
-var cash=parseInt(ls("tel_cash"))||0,tickets=parseInt(ls("tel_tickets"))||0,useArm=null;
-function bank(){$("cash").textContent=cash;$("tk").textContent=tickets;$("tk2").textContent=tickets;$("buy").disabled=cash<100;$("use").disabled=tickets<1;ls("tel_cash",cash);ls("tel_tickets",tickets)}
-$("buy").onclick=function(){if(cash>=100){cash-=100;tickets++;bank();if(!playing)msg("🎟 Ticket acheté !")}};
-$("use").onclick=function(){if(tickets<1)return;if(!useArm){$("use").textContent="Confirmer ?";useArm=setTimeout(function(){useArm=null;$("use").textContent="Utiliser un ticket"},3000);return}clearTimeout(useArm);useArm=null;tickets--;$("use").textContent="Utiliser un ticket";bank()};
-bank();
+function stars(n){try{if(parent!==window)parent.postMessage({type:"stars",n:n},"*")}catch(e){}}
+// Dans l'appli, les réglages utilisent le code parent global
+function gate(ok){try{if(parent!==window&&parent.hubGate){parent.hubGate(ok);return}}catch(e){}var m=ls("tel_lock");if(m==="wa"&&ls("tel_cred")){try{waGet(ok,function(){if(!playing)msg("🔒 Accès refusé")})}catch(e){if(!playing)msg("🔒 Accès refusé")}}else if(m==="pin")askPin(ok);else setupLock(ok)}
 render();
 </script></body></html>

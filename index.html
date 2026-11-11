@@ -13,60 +13,165 @@
 <title>Mes jeux d'école</title>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#f4f1ff;--card:#fff;--ink:#22204a;--soft:#6e6a99;--line:#e2ddf7;--math:#4a7cff;--de:#ff5c7a;box-sizing:border-box}
-@media (prefers-color-scheme:dark){:root{--bg:#16152b;--card:#232142;--ink:#f2f0ff;--soft:#a5a1cf;--line:#36335f}}
+/* ---------- Design system (tactile) ----------
+   Cibles tactiles >= 56px, bordures 3px, textes secondaires >= 16px. */
+:root{--bg:#f4f1ff;--card:#fff;--ink:#22204a;--soft:#5f5b8a;--line:#d9d3f3;--math:#4a7cff;--de:#ff5c7a;--star:#ffb800;--ok:#22a861;--ko:#e5484d;
+ --tap:56px;--r:20px;--bw:3px;box-sizing:border-box}
+@media (prefers-color-scheme:dark){:root{--bg:#16152b;--card:#232142;--ink:#f2f0ff;--soft:#b3afdb;--line:#3d3a68}}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;margin:0}
-body{background:var(--bg);color:var(--ink);font-family:"Fredoka","Trebuchet MS",sans-serif;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);user-select:none}
-.view{display:none;min-height:100%;max-width:520px;margin:0 auto;padding:20px 18px 28px;flex-direction:column;gap:16px}
+body{background:var(--bg);color:var(--ink);font:500 18px/1.3 "Fredoka","Trebuchet MS",sans-serif;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);user-select:none;touch-action:manipulation}
+button{font-family:inherit;touch-action:manipulation}
+input{user-select:text;-webkit-user-select:text}
+[hidden]{display:none!important}
+
+.view{display:none;min-height:100%;max-width:520px;margin:0 auto;padding:16px 18px 22px;flex-direction:column;gap:14px}
 .view.on{display:flex}
-h1{margin:6px 0 0;font-size:32px;font-weight:700}
-.sub{color:var(--soft);font-size:18px;margin:0}
-.tile{display:flex;align-items:center;gap:16px;width:100%;border:0;border-radius:24px;padding:22px 20px;color:#fff;font:600 26px "Fredoka",sans-serif;text-align:left;box-shadow:0 6px 0 rgba(0,0,0,.15);cursor:pointer}
-.tile:active{transform:translateY(3px);box-shadow:0 3px 0 rgba(0,0,0,.15)}
-.tile .ic{font-size:46px;line-height:1}
-.tile small{display:block;font-size:15px;font-weight:500;opacity:.9}
+.mid{flex:1;display:flex;flex-direction:column;justify-content:center;gap:18px;padding:8px 0}
+h1{margin:0;font-size:34px;font-weight:700;line-height:1.15}
+.sub{color:var(--soft);font-size:20px;margin:0}
+
+.tile{display:flex;align-items:center;gap:18px;width:100%;min-height:112px;border:0;border-radius:28px;padding:22px 22px;color:#fff;font:700 28px "Fredoka",sans-serif;text-align:left;box-shadow:0 7px 0 rgba(0,0,0,.18);cursor:pointer}
+.tile:active{transform:translateY(4px);box-shadow:0 3px 0 rgba(0,0,0,.18)}
+.tile .ic{font-size:52px;line-height:1}
+.tile small{display:block;font-size:18px;font-weight:500;opacity:.95;margin-top:2px}
 .math{background:var(--math)}.de{background:var(--de)}
-.game{display:flex;align-items:center;gap:14px;width:100%;border:3px solid var(--line);background:var(--card);color:var(--ink);border-radius:20px;padding:16px;font:600 22px "Fredoka",sans-serif;text-align:left;cursor:pointer}
-.game:active{transform:scale(.98)}
-.game .ic{font-size:38px}
-.game small{display:block;font-size:14px;font-weight:500;color:var(--soft)}
+
+.game{display:flex;align-items:center;gap:16px;width:100%;min-height:96px;border:var(--bw) solid var(--line);background:var(--card);color:var(--ink);border-radius:24px;padding:16px 18px;font:700 24px "Fredoka",sans-serif;text-align:left;cursor:pointer;box-shadow:0 5px 0 var(--line)}
+.game:active{transform:translateY(3px);box-shadow:0 2px 0 var(--line)}
+.game .ic{font-size:44px}
+.game small{display:block;font-size:17px;font-weight:500;color:var(--soft);margin-top:2px}
+
 .top{display:flex;align-items:center;gap:10px}
-.back{border:0;background:var(--card);color:var(--ink);border-radius:14px;padding:10px 14px;font:600 17px "Fredoka",sans-serif;cursor:pointer}
-.name{display:flex;gap:8px;align-items:center;margin-top:auto;color:var(--soft);font-size:15px}
-.name input{flex:1;min-width:0;border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:8px 10px;font:500 16px "Fredoka",sans-serif;user-select:text}
+.btn{min-height:var(--tap);border:var(--bw) solid var(--line);background:var(--card);color:var(--ink);border-radius:18px;padding:0 18px;font:700 19px "Fredoka",sans-serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn:active{transform:scale(.97)}
+.btn.pri{background:var(--math);border-color:var(--math);color:#fff}
+.btn.okb{background:var(--ok);border-color:var(--ok);color:#fff}
+.btn.danger{color:var(--ko);border-color:var(--ko)}
+.btn:disabled{opacity:.4}
+.icon-btn{width:var(--tap);padding:0;font-size:26px}
+
+/* Cagnotte */
+.purse{flex:1;display:flex;align-items:center;gap:14px;min-height:var(--tap);background:var(--card);border:var(--bw) solid var(--line);border-radius:18px;padding:6px 14px;font-weight:700;font-size:22px}
+.purse .st{color:var(--star)}
+.purse .hint{display:block;font-size:15px;font-weight:500;color:var(--soft)}
+.bump{animation:bump .5s}
+@keyframes bump{30%{transform:scale(1.25)}}
+
+.name{display:flex;flex-direction:column;gap:6px;color:var(--soft);font-size:17px}
+.field{width:100%;min-height:var(--tap);border:var(--bw) solid var(--line);background:var(--card);color:var(--ink);border-radius:16px;padding:8px 14px;font:600 20px "Fredoka",sans-serif}
+.field:focus{outline:none;border-color:var(--math)}
+
+/* Jeu */
 #play{position:fixed;inset:0;display:none;flex-direction:column;background:var(--bg);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);z-index:5}
 #play.on{display:flex}
-#play .bar{display:flex;align-items:center;gap:10px;padding:6px 10px;border-bottom:1px solid var(--line)}
-#play .bar b{font-size:17px}
+#play .bar{display:flex;align-items:center;gap:10px;padding:8px 10px;border-bottom:var(--bw) solid var(--line)}
+#play .bar b{flex:1;font-size:19px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#pstars{font-weight:700;font-size:21px;color:var(--star);padding:0 6px;white-space:nowrap}
 #frame{flex:1;width:100%;border:0;background:transparent}
+.toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 76px);transform:translateX(-50%);background:var(--star);color:#3a2a00;font:700 24px "Fredoka",sans-serif;padding:10px 22px;border-radius:999px;z-index:30;pointer-events:none;animation:toast 1.4s forwards;box-shadow:0 6px 18px rgba(0,0,0,.18)}
+@keyframes toast{0%{opacity:0;transform:translate(-50%,10px) scale(.8)}15%{opacity:1;transform:translate(-50%,0) scale(1.1)}25%{transform:translate(-50%,0) scale(1)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-16px)}}
+
+/* Feuilles (paramètres, code) */
+.sheet{position:fixed;inset:0;background:rgba(10,8,40,.55);display:flex;align-items:flex-end;justify-content:center;z-index:20}
+.panel{background:var(--bg);width:100%;max-width:520px;max-height:94%;overflow:auto;border-radius:28px 28px 0 0;padding:20px 18px calc(22px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:14px}
+.panel h2{margin:0;font-size:28px;display:flex;align-items:center;justify-content:space-between}
+.card{background:var(--card);border:var(--bw) solid var(--line);border-radius:22px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.card h3{margin:0;font-size:21px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.row>.grow{flex:1;min-width:0}
+.big{font-size:30px;font-weight:700}
+.muted{color:var(--soft);font-size:17px}
+.num{width:96px;text-align:center}
+.bal{display:flex;gap:12px}
+.bal>div{flex:1;background:var(--bg);border-radius:16px;padding:10px 12px;text-align:center}
+
+/* Clavier du code */
+.pinbox{background:var(--bg);width:100%;max-width:420px;border-radius:28px 28px 0 0;padding:22px 20px calc(22px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:14px;align-items:center}
+.pinbox h3{margin:0;font-size:24px;text-align:center}
+.dots{display:flex;gap:16px;height:28px;align-items:center}
+.dots i{width:22px;height:22px;border-radius:50%;border:var(--bw) solid var(--soft)}
+.dots i.on{background:var(--ink);border-color:var(--ink)}
+.dots.shake{animation:sh .35s}
+@keyframes sh{25%{transform:translateX(-10px)}75%{transform:translateX(10px)}}
+#pinerr{min-height:24px;color:var(--ko);font-size:17px;text-align:center}
+.keys{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%}
+.keys button{height:64px;border:0;border-radius:18px;background:var(--card);color:var(--ink);font:600 30px "Fredoka",sans-serif;box-shadow:0 4px 0 var(--line)}
+.keys button:active{transform:translateY(3px);box-shadow:0 1px 0 var(--line)}
+.keys .fn{font-size:19px;background:transparent;box-shadow:none;color:var(--soft)}
 </style>
 </head>
 <body>
 
 <section class="view" id="v-home">
-  <h1 id="hello">Bonjour ! 👋</h1>
-  <p class="sub">Choisis une matière</p>
-  <button class="tile math" data-go="maths"><span class="ic">🧮</span><span>Mathématiques<small>Calcul, téléphone</small></span></button>
-  <button class="tile de" data-go="allemand"><span class="ic">🇩🇪</span><span>Allemand<small>Der · Die · Das, mots en images</small></span></button>
-  <label class="name">Prénom : <input id="prenom" maxlength="20" placeholder="pour les bravos" autocomplete="off"></label>
+  <div class="top">
+    <div class="purse" id="purse"><span class="grow"><span class="st">⭐ <span class="nst">0</span></span> &nbsp;💰 <span class="nmo">0</span><span class="hint" id="hint"></span></span></div>
+    <button class="btn icon-btn" id="gear" aria-label="Paramètres">⚙️</button>
+  </div>
+  <div class="mid">
+    <h1 id="hello">Bonjour ! 👋</h1>
+    <p class="sub">Choisis une matière</p>
+    <button class="tile math" data-go="maths"><span class="ic">🧮</span><span>Mathématiques<small>Calcul, téléphone</small></span></button>
+    <button class="tile de" data-go="allemand"><span class="ic">🇩🇪</span><span>Allemand<small>Der · Die · Das, mots en images</small></span></button>
+  </div>
+  <label class="name">Prénom<input class="field" id="prenom" maxlength="20" placeholder="pour les bravos" autocomplete="off"></label>
 </section>
 
 <section class="view" id="v-maths">
-  <div class="top"><button class="back" data-go="">← Matières</button></div>
-  <h1>🧮 Mathématiques</h1>
-  <button class="game" data-play="calcul"><span class="ic">➕</span><span>Calcul malin<small>Additions, soustractions, compléments · voix en allemand</small></span></button>
-  <button class="game" data-play="telephone"><span class="ic">📞</span><span>Le téléphone magique<small>Écoute les nombres et compose le numéro</small></span></button>
+  <div class="top"><button class="btn" data-go="">← Matières</button><span class="grow" style="flex:1"></span><span class="purse" style="flex:none"><span class="st">⭐ <span class="nst">0</span></span></span></div>
+  <div class="mid">
+    <h1>🧮 Mathématiques</h1>
+    <button class="game" data-play="calcul"><span class="ic">➕</span><span>Calcul malin<small>Additions, soustractions, compléments · voix en allemand</small></span></button>
+    <button class="game" data-play="telephone"><span class="ic">📞</span><span>Le téléphone magique<small>Écoute les nombres et compose le numéro</small></span></button>
+  </div>
 </section>
 
 <section class="view" id="v-allemand">
-  <div class="top"><button class="back" data-go="">← Matières</button></div>
-  <h1>🇩🇪 Allemand</h1>
-  <button class="game" data-play="article"><span class="ic">🔤</span><span>Der · Die · Das<small>Trouve le bon article</small></span></button>
-  <button class="game" data-play="mot"><span class="ic">🖼️</span><span>Finde das Wort<small>Une image, trois mots</small></span></button>
+  <div class="top"><button class="btn" data-go="">← Matières</button><span style="flex:1"></span><span class="purse" style="flex:none"><span class="st">⭐ <span class="nst">0</span></span></span></div>
+  <div class="mid">
+    <h1>🇩🇪 Allemand</h1>
+    <button class="game" data-play="article"><span class="ic">🔤</span><span>Der · Die · Das<small>Trouve le bon article</small></span></button>
+    <button class="game" data-play="mot"><span class="ic">🖼️</span><span>Finde das Wort<small>Une image, trois mots</small></span></button>
+  </div>
 </section>
 
-<div id="play"><div class="bar"><button class="back" id="pback">←</button><b id="ptitle"></b></div><iframe id="frame" allow="autoplay; publickey-credentials-get *; publickey-credentials-create *"></iframe></div>
+<div id="play"><div class="bar"><button class="btn" id="pback">← Retour</button><b id="ptitle"></b><span id="pstars">⭐ 0</span></div><iframe id="frame" allow="autoplay; publickey-credentials-get *; publickey-credentials-create *"></iframe></div>
+
+<!-- Paramètres globaux -->
+<div class="sheet" id="settings" hidden><div class="panel">
+  <h2>⚙️ Paramètres <button class="btn" id="sclose">Fermer</button></h2>
+
+  <div class="card">
+    <h3>Cagnotte</h3>
+    <div class="bal"><div><div class="muted">Étoiles</div><div class="big">⭐ <span id="s-st">0</span></div></div><div><div class="muted">Monnaie</div><div class="big" id="s-mo">0</div></div></div>
+    <button class="btn okb" id="s-conv">Convertir</button>
+    <div class="muted" id="s-convhint"></div>
+    <div class="row"><input class="field num" id="s-amt" type="number" inputmode="decimal" min="0" step="0.5" placeholder="0"><span class="grow muted" id="s-unit2"></span>
+      <button class="btn" id="s-sub">− Retirer</button><button class="btn" id="s-add">+ Ajouter</button></div>
+    <div class="muted">Retirer = ce que tu donnes « pour de vrai » à l'enfant.</div>
+  </div>
+
+  <div class="card">
+    <h3>Monnaie</h3>
+    <label class="row"><span class="grow">Unité</span><input class="field" id="s-unit" maxlength="14" style="width:170px" placeholder="€"></label>
+    <div class="muted">Exemples : €, points, minutes d'écran, bonbons…</div>
+    <div class="row"><input class="field num" id="s-per" type="number" inputmode="numeric" min="1" step="1"><span>⭐ =</span><input class="field num" id="s-gain" type="number" inputmode="decimal" min="0.01" step="0.5"><span id="s-unit3"></span></div>
+  </div>
+
+  <div class="card">
+    <h3>Code parent</h3>
+    <div class="muted" id="s-pinst"></div>
+    <div class="row"><button class="btn pri grow" id="s-pin">Définir le code</button><button class="btn danger" id="s-nopin">Supprimer</button></div>
+  </div>
+</div></div>
+
+<!-- Saisie du code -->
+<div class="sheet" id="pin" hidden><div class="pinbox">
+  <h3 id="pint">Code parent</h3>
+  <div class="dots" id="dots"><i></i><i></i><i></i><i></i></div>
+  <div id="pinerr"></div>
+  <div class="keys" id="keys"></div>
+</div></div>
 
 <script>
 var GAMES={
@@ -77,6 +182,79 @@ var GAMES={
 };
 var $=function(i){return document.getElementById(i)};
 function ls(k,v){try{if(v===undefined)return localStorage.getItem(k)||"";localStorage.setItem(k,v)}catch(e){return ""}}
+function lj(k,d){try{return JSON.parse(localStorage.getItem(k))||d}catch(e){return d}}
+
+/* ---------- Récompenses globales ---------- */
+var W=lj("rw",{stars:0,money:0});
+var CFG=lj("rw_cfg",{});
+CFG.unit=CFG.unit||"€";CFG.per=Math.max(1,parseInt(CFG.per)||10);CFG.gain=Math.max(.01,parseFloat(CFG.gain)||1);CFG.pin=CFG.pin||"";
+(function migrate(){ // reprise de l'ancienne cagnotte du téléphone et de son code
+ if(ls("rw_mig"))return;
+ var cash=parseInt(ls("tel_cash"))||0,tk=parseInt(ls("tel_tickets"))||0;
+ W.money+=cash+tk*100;
+ if(!CFG.pin&&ls("tel_lock")==="pin"&&ls("tel_pin"))CFG.pin=ls("tel_pin");
+ ls("rw_mig","1");saveW();saveCfg()})();
+function saveW(){ls("rw",JSON.stringify(W))}
+function saveCfg(){ls("rw_cfg",JSON.stringify(CFG))}
+function r2(x){return Math.round(x*100)/100}
+function money(v){return r2(v).toLocaleString("fr-FR")+" "+CFG.unit}
+function renderPurse(bump){
+ document.querySelectorAll(".nst").forEach(function(e){e.textContent=W.stars});
+ document.querySelectorAll(".nmo").forEach(function(e){e.textContent=money(W.money)});
+ $("pstars").textContent="⭐ "+W.stars;
+ var left=CFG.per-(W.stars%CFG.per);
+ $("hint").textContent=W.stars>=CFG.per?"Demande à un parent de convertir tes étoiles !":"Encore "+left+" ⭐ pour gagner "+money(CFG.gain);
+ if(bump){["pstars","purse"].forEach(function(id){var e=$(id);e.classList.remove("bump");void e.offsetWidth;e.classList.add("bump")})}}
+function addStars(n){n=Math.max(0,Math.min(20,parseInt(n)||0));if(!n)return;W.stars+=n;saveW();renderPurse(true);
+ var t=document.createElement("div");t.className="toast";t.textContent="+"+n+" ⭐";document.body.appendChild(t);setTimeout(function(){t.remove()},1500)}
+
+/* ---------- Code parent ---------- */
+function sha(s){return crypto.subtle.digest("SHA-256",new TextEncoder().encode("tm:"+s)).then(function(b){return btoa(String.fromCharCode.apply(null,new Uint8Array(b)))})}
+var pinVal="",pinCb=null,pinCancel=null;
+(function(){var h="";["1","2","3","4","5","6","7","8","9","x","0","<"].forEach(function(k){h+='<button data-k="'+k+'"'+(k==="x"||k==="<"?' class="fn"':'')+'>'+(k==="x"?"Annuler":k==="<"?"⌫":k)+'</button>'});$("keys").innerHTML=h})();
+function dots(){var d=$("dots").children;for(var i=0;i<4;i++)d[i].className=i<pinVal.length?"on":""}
+function askCode(title,cb,cancel){$("pint").textContent=title;$("pinerr").textContent="";pinVal="";dots();pinCb=cb;pinCancel=cancel||null;$("pin").hidden=false}
+function pinFail(msg){$("pinerr").textContent=msg;var d=$("dots");d.classList.remove("shake");void d.offsetWidth;d.classList.add("shake");pinVal="";dots()}
+function closePin(){$("pin").hidden=true;pinCb=null}
+$("keys").addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;var k=b.dataset.k;
+ if(k==="x"){var c=pinCancel;closePin();c&&c();return}
+ if(k==="<"){pinVal=pinVal.slice(0,-1);dots();return}
+ if(pinVal.length>=4)return;pinVal+=k;dots();
+ if(pinVal.length===4){var v=pinVal,cb=pinCb;setTimeout(function(){cb&&cb(v)},150)}});
+function checkCode(ok,cancel){askCode("Code parent",function(v){sha(v).then(function(h){if(h===CFG.pin){closePin();ok()}else pinFail("Code incorrect")})},cancel)}
+function newCode(ok,why){askCode((why||"")+"Choisis un code à 4 chiffres",function(v){askCode("Tape-le encore une fois",function(v2){if(v2!==v){newCode(ok,"Les codes sont différents. ");return}sha(v2).then(function(h){CFG.pin=h;saveCfg();closePin();ok&&ok()})})})}
+// Utilisé aussi par les jeux (ex. réglages du téléphone)
+window.hubGate=function(ok){if(CFG.pin)checkCode(ok);else newCode(ok,"Pas encore de code parent. ")};
+
+/* ---------- Paramètres ---------- */
+function renderSettings(){
+ $("s-st").textContent=W.stars;$("s-mo").textContent=money(W.money);
+ var lots=Math.floor(W.stars/CFG.per);
+ $("s-conv").disabled=!lots;
+ $("s-conv").textContent=lots?"Convertir "+lots*CFG.per+" ⭐ → "+money(lots*CFG.gain):"Convertir";
+ $("s-convhint").textContent=lots?"":"Il faut au moins "+CFG.per+" ⭐ pour convertir.";
+ $("s-unit2").textContent=CFG.unit;$("s-unit3").textContent=CFG.unit;
+ if(document.activeElement!==$("s-unit"))$("s-unit").value=CFG.unit;
+ if(document.activeElement!==$("s-per"))$("s-per").value=CFG.per;
+ if(document.activeElement!==$("s-gain"))$("s-gain").value=CFG.gain;
+ $("s-pinst").textContent=CFG.pin?"🔒 Les paramètres sont protégés par un code.":"⚠️ Aucun code : n'importe qui peut ouvrir ces paramètres.";
+ $("s-pin").textContent=CFG.pin?"Changer le code":"Définir le code";$("s-nopin").hidden=!CFG.pin;
+ renderPurse()}
+function openSettings(){renderSettings();$("settings").hidden=false}
+$("gear").onclick=function(){if(CFG.pin)checkCode(openSettings);else openSettings()};
+$("sclose").onclick=function(){$("settings").hidden=true;renderPurse()};
+$("s-conv").onclick=function(){var lots=Math.floor(W.stars/CFG.per);if(!lots)return;W.stars-=lots*CFG.per;W.money=r2(W.money+lots*CFG.gain);saveW();renderSettings()};
+function amt(){var v=parseFloat(String($("s-amt").value).replace(",","."));return v>0?r2(v):0}
+$("s-add").onclick=function(){var v=amt();if(!v)return;W.money=r2(W.money+v);saveW();$("s-amt").value="";renderSettings()};
+$("s-sub").onclick=function(){var v=amt();if(!v)return;W.money=r2(Math.max(0,W.money-v));saveW();$("s-amt").value="";renderSettings()};
+$("s-unit").oninput=function(){var v=this.value.trim();if(v){CFG.unit=v;saveCfg();renderSettings()}};
+$("s-unit").onblur=function(){if(!this.value.trim())this.value=CFG.unit};
+$("s-per").oninput=function(){var v=parseInt(this.value);if(v>=1){CFG.per=v;saveCfg();renderSettings()}};
+$("s-gain").oninput=function(){var v=parseFloat(String(this.value).replace(",","."));if(v>0){CFG.gain=r2(v);saveCfg();renderSettings()}};
+$("s-pin").onclick=function(){newCode(renderSettings)};
+$("s-nopin").onclick=function(){if(confirm("Supprimer le code parent ?")){CFG.pin="";saveCfg();renderSettings()}};
+
+/* ---------- Navigation et jeux ---------- */
 var cache={},loadTok=0;
 function load(app){return cache[app]||(cache[app]=fetch("jeux/"+app+".html").then(function(r){if(!r.ok)throw new Error(r.status);return r.text()}).catch(function(e){delete cache[app];throw e}))}
 function src(g,h){
@@ -86,6 +264,7 @@ function stopGame(){loadTok++;var f=$("frame");try{f.contentWindow&&f.contentWin
 function route(){
  var h=location.hash.replace("#","");
  document.querySelectorAll(".view").forEach(function(v){v.classList.remove("on")});
+ renderPurse();
  if(GAMES[h]){var g=GAMES[h];$("v-"+g.subj).classList.add("on");$("ptitle").textContent=g.t;$("play").classList.add("on");var tok=++loadTok;load(g.app).then(function(h){if(tok===loadTok)$("frame").srcdoc=src(g,h)},function(){if(tok===loadTok)$("frame").srcdoc="<p style=\"font:20px sans-serif;padding:20px\">Impossible de charger le jeu. Vérifie la connexion puis réessaie.</p>"});return}
  stopGame();
  ($("v-"+h)||$("v-home")).classList.add("on");
@@ -94,7 +273,10 @@ function go(h){if(("#"+h)===location.hash||(!h&&!location.hash)){route();return}
 document.addEventListener("click",function(e){var b=e.target.closest("[data-go],[data-play]");if(!b)return;
  if(b.dataset.play!==undefined)go(b.dataset.play);else go(b.dataset.go)});
 $("pback").onclick=function(){var h=location.hash.replace("#","");go(GAMES[h]?GAMES[h].subj:"")};
-window.addEventListener("message",function(e){if(e.data==="hub-back")$("pback").onclick()});
+window.addEventListener("message",function(e){
+ if(e.source!==$("frame").contentWindow)return;
+ if(e.data==="hub-back")$("pback").onclick();
+ else if(e.data&&e.data.type==="stars")addStars(e.data.n)});
 window.addEventListener("hashchange",route);
 $("prenom").value=ls("hub_prenom");
 $("prenom").addEventListener("input",function(){ls("hub_prenom",this.value.trim());var p=this.value.trim();$("hello").textContent=p?"Bonjour "+p+" ! 👋":"Bonjour ! 👋"});

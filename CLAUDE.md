@@ -11,6 +11,16 @@ Le but est d'en faire une **appli Android installable (APK)** et partageable à 
 - Navigation par hash : `#maths`, `#allemand`, `#calcul`, `#telephone`, `#article`, `#mot`.
 - Les jeux enregistrent leurs données en localStorage (clés `calcul`, `tel_*`, `hub_prenom`).
 
+## Récompenses globales (dans `index.html`)
+- Les jeux envoient `parent.postMessage({type:"stars",n}, "*")` ; l'accueil cumule les étoiles (clé `rw` = `{stars, money}`).
+  Gains : Calcul malin +1 ⭐ par bonne réponse, Téléphone +3 ⭐ par appel réussi, Der·Die·Das / Finde das Wort +1 ⭐ par mot trouvé du premier coup.
+- Paramètres globaux (⚙️ de l'accueil, clé `rw_cfg` = `{unit, per, gain, pin}`) : unité de monnaie, taux « per ⭐ = gain unité », conversion, ajout/retrait d'argent, code parent.
+- Code parent : 4 chiffres, haché en SHA-256 (préfixe `tm:`). `window.hubGate(ok)` est exposé aux jeux ; le Téléphone l'utilise pour ses réglages.
+- Migration unique (`rw_mig`) : l'ancienne cagnotte du Téléphone (`tel_cash` + 100 par ticket) est versée dans la monnaie, et son PIN devient le code parent.
+
+## Design system tactile
+Cibles >= 56px, bordures 3px, textes secondaires >= 16px, menus centrés verticalement (`.mid`).
+
 ### Mathématiques
 1. **Calcul malin** : additions, soustractions et compléments, avec un résultat maximum réglable. Fin de partie au choix : sans fin, objectif d'étoiles ou minuteur (au minuteur, l'enfant termine la dernière opération).
    L'opération est **énoncée en allemand** ; quand la réponse est juste, l'opération complète est relue avec le résultat. Bonne réponse : le check se secoue, devient vert et un son de victoire part. Mauvaise réponse : croix rouge.
@@ -23,7 +33,8 @@ Le but est d'en faire une **appli Android installable (APK)** et partageable à 
 ### Allemand (liste de mots commune dans `RAW`, format `article|mot|emoji`)
 3. **Der · Die · Das** : le mot s'affiche et est prononcé ; l'enfant choisit l'article. Bonne réponse : l'appli dit article + mot. Partie de 20 mots, note sur 10, bouton « Nochmal ».
 4. **Finde das Wort** : une image (emoji) et 3 pills **avec l'article** (« der Bleistift ») ; le mot trouvé est prononcé.
-   Les mots sans image sont exclus. Prévu : une planche d'images générée par IA (grille 4×3) pour Gans, Schulhof, Tisch, Klasse, Radiergummi, Tafel, Mäppchen, Reihe, Spitzer et Musik, à découper en sprites.
+   Les mots sans emoji utilisent des dessins SVG faits main (objet `PIC` dans `deutsch.html`) : Gans, Schulhof, Tisch, Klasse, Radiergummi, Tafel, Mäppchen, Reihe, Spitzer ; Musik = 🎶.
+   Ne pas reprendre les illustrations du manuel « Die Rappelkiste » (droits d'auteur).
 
 ## Point technique important : la voix
 Tout repose sur `speechSynthesis` (Web Speech API). Une **WebView Android classique ne la gère généralement pas**.
