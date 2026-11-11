@@ -23,6 +23,7 @@ Cibles >= 56px, bordures 3px, textes secondaires >= 16px, menus centrés vertica
 
 ### Français (liste dans `RAW` de `francais.html`, format `mot|syl-la-bes|emoji`)
 0. **Lis et trouve** : une image, 3 mots écrits (si possible même première lettre) ; le mot trouvé est lu en français.
+0. **Qui ou que ?** : 32 phrases (`QQ`, mot manquant entre `{}`), 15 par partie. L'enfant tape « qui » ou « que » au clavier ; la voix lit la phrase entière (mot compris) à l'affichage et après la bonne réponse. Indice après 2 erreurs. Hash `#quique`.
 0. **La première syllabe** : le mot est dit à voix haute ; l'enfant choisit sa première syllabe parmi 3. Partie de 15, note sur 10, +1 ⭐ par réponse juste du premier coup.
 
 ### Mathématiques

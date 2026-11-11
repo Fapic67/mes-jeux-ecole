@@ -35,6 +35,15 @@ body{background:var(--bg);color:var(--fg);font-family:"Fredoka",system-ui,sans-s
 .big{font-size:72px;font-weight:700}
 h1{margin:0;font-size:34px}
 .ear{background:var(--card);border:3px solid var(--bd);border-radius:50%;width:68px;height:68px;font-size:32px;cursor:pointer;color:var(--fg)}
+.phr{font-size:30px;font-weight:600;line-height:1.45}
+.gap{display:inline-block;min-width:3.2em;padding:0 .2em;border-bottom:4px solid var(--syl);color:var(--syl);font-weight:700}
+.gap.ok{color:var(--ok);border-color:var(--ok)}
+.gap.ko{color:var(--bad);border-color:var(--bad)}
+.typ{display:flex;gap:10px;width:100%}
+.typ input{flex:1;min-width:0;min-height:70px;font:700 34px "Fredoka",sans-serif;text-align:center;border:4px solid var(--syl);border-radius:22px;background:var(--card);color:var(--fg);user-select:text;-webkit-user-select:text}
+.typ input:focus{outline:none;box-shadow:0 0 0 4px rgba(155,107,255,.25)}
+.typ .btn{padding:0 22px}
+.hint{color:var(--mut);font-size:19px;min-height:24px}
 .back{position:fixed;top:10px;left:12px;min-height:52px;padding:0 16px;background:var(--card);border:3px solid var(--bd);border-radius:16px;font:700 18px "Fredoka",sans-serif;color:var(--fg);cursor:pointer}
 </style>
 </head>
@@ -43,17 +52,19 @@ h1{margin:0;font-size:34px}
 <script>
 // mot|syllabes (séparées par -)|image
 var RAW="lapin|la-pin|🐰;tomate|to-ma-te|🍅;bateau|ba-teau|⛵;gâteau|gâ-teau|🎂;cadeau|ca-deau|🎁;mouton|mou-ton|🐑;lune|lu-ne|🌙;robot|ro-bot|🤖;banane|ba-na-ne|🍌;carotte|ca-ro-tte|🥕;maison|mai-son|🏠;soleil|so-leil|☀️;papillon|pa-pi-llon|🦋;tigre|ti-gre|🐯;cheval|che-val|🐴;camion|ca-mion|🚚;vélo|vé-lo|🚲;pomme|pom-me|🍎;poire|poi-re|🍐;citron|ci-tron|🍋;livre|li-vre|📖;fusée|fu-sée|🚀;tortue|tor-tue|🐢;poule|pou-le|🐔;souris|sou-ris|🐭;salade|sa-la-de|🥗;cerise|ce-ri-se|🍒;canard|ca-nard|🦆;sapin|sa-pin|🌲;moto|mo-to|🏍️;tulipe|tu-li-pe|🌷;chapeau|cha-peau|🎩;melon|me-lon|🍈;ananas|a-na-nas|🍍;avion|a-vion|✈️;école|é-co-le|🏫;dragon|dra-gon|🐉;renard|re-nard|🦊;girafe|gi-ra-fe|🦒;fourmi|four-mi|🐜";
+// Phrases « qui / que » : le mot manquant est entre accolades
+var QQ=["Le chat {qui} dort est tout noir.","Le gâteau {que} je mange est au chocolat.","La fille {qui} chante est ma sœur.","Le livre {que} tu lis est très drôle.","J'ai un chien {qui} aboie fort.","La pomme {que} maman achète est rouge.","Le garçon {qui} court vite s'appelle Tom.","Le dessin {que} je fais est pour papa.","C'est la maîtresse {qui} lit une histoire.","La robe {que} Léa porte est bleue.","Je vois un oiseau {qui} vole dans le ciel.","Le jeu {que} nous aimons est caché.","Le bébé {qui} pleure a faim.","La chanson {que} tu chantes est jolie.","Il y a une souris {qui} mange du fromage.","Le vélo {que} papa répare est rouge.","Le lapin {qui} saute est tout blanc.","La glace {que} je préfère est à la fraise.","Mon ami {qui} habite ici a un chat.","Le ballon {que} Paul lance va très loin.","La poule {qui} picore est dans le jardin.","Le film {que} nous regardons fait peur.","Le bus {qui} arrive est jaune.","La lettre {que} je donne est pour mamie.","J'aime le soleil {qui} brille.","Le cadeau {que} tu ouvres est très grand.","La tortue {qui} marche est très lente.","Le pain {que} le boulanger fait est chaud.","Les enfants {qui} jouent rient fort.","La fleur {que} je cueille sent bon.","Le chat {que} je caresse ronronne.","Le chien {qui} mord est méchant."].map(function(t){var m=t.match(/^(.*)\{(qui|que)\}(.*)$/);return{a:m[1],w:m[2],b:m[3],full:m[1]+m[2]+m[3]}});
 var ALL=RAW.split(";").map(function(s){var p=s.split("|");return{w:p[0],s:p[1].split("-"),e:p[2]}});
 var TOTAL=15,app=document.getElementById("app"),voice=null;
 var bk=document.createElement("button");bk.className="back";bk.textContent="← Menu";bk.style.display="none";bk.onclick=function(){home()};if(!window.START)document.body.appendChild(bk);
 function pickVoice(){var v=(window.speechSynthesis&&speechSynthesis.getVoices())||[];voice=v.find(function(x){return x.lang&&/^fr/i.test(x.lang)})||null}
 if(window.speechSynthesis){pickVoice();speechSynthesis.onvoiceschanged=pickVoice}
-function say(t){try{if(!window.speechSynthesis)return;pickVoice();speechSynthesis.cancel();setTimeout(function(){var u=new SpeechSynthesisUtterance(t);u.lang="fr-FR";if(voice)u.voice=voice;u.rate=.85;speechSynthesis.resume();speechSynthesis.speak(u)},60)}catch(e){}}
+function say(t,cb){var done=false,fin=function(){if(!done){done=true;cb&&cb()}};setTimeout(fin,1200+t.length*90);try{if(!window.speechSynthesis)return;pickVoice();speechSynthesis.cancel();setTimeout(function(){var u=new SpeechSynthesisUtterance(t);u.lang="fr-FR";if(voice)u.voice=voice;u.rate=.85;u.onend=function(){setTimeout(fin,500)};speechSynthesis.resume();speechSynthesis.speak(u)},60)}catch(e){}}
 function star(){try{if(parent!==window)parent.postMessage({type:"stars",n:1},"*")}catch(e){}}
 function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
 function bar(){return '<div class="cnt">'+(i+1)+' / '+deck.length+'</div><div class="bar"><i style="width:'+(i/deck.length*100)+'%"></i></div>'}
 var deck,i,good,missed,mode=0;
-function home(){if(window.START){parent.postMessage("hub-back","*");return}mode=0;bk.style.display="none";app.innerHTML='<h1>Français</h1><div class="pills col menu"><button class="btn" id="m1">Lis et trouve</button><button class="btn" id="m2">La première syllabe</button></div>';document.getElementById("m1").onclick=start1;document.getElementById("m2").onclick=start2}
+function home(){if(window.START){parent.postMessage("hub-back","*");return}mode=0;bk.style.display="none";app.innerHTML='<h1>Français</h1><div class="pills col menu"><button class="btn" id="m1">Lis et trouve</button><button class="btn" id="m2">La première syllabe</button><button class="btn" id="m3">Qui ou que ?</button></div>';document.getElementById("m1").onclick=start1;document.getElementById("m2").onclick=start2;document.getElementById("m3").onclick=start3}
 function answer(p,ok,w,next){
   if(ok){if(!missed){good++;star()}app.querySelectorAll(".pill").forEach(function(x){x.disabled=true});p.classList.add("ok");say(w.w);
     if(mode===2)document.getElementById("wd").innerHTML="<b>"+w.s[0]+"</b>"+w.s.slice(1).join("");
@@ -80,14 +91,33 @@ function show2(){
   say(w.w);
   app.querySelectorAll(".pill").forEach(function(p){p.onclick=function(){answer(p,p.dataset.s===first,w,show2)}});
 }
+// Jeu 3 : qui ou que ? (à taper au clavier)
+function start3(){mode=3;bk.style.display="block";deck=shuffle(QQ).slice(0,TOTAL);i=0;good=0;show3()}
+function esc(t){return t.replace(/&/g,"&amp;").replace(/</g,"&lt;")}
+function show3(){
+  var q=deck[i],tries=0,lock=false;missed=false;
+  app.innerHTML=bar()+'<div class="phr">'+esc(q.a)+'<span class="gap" id="gap">&nbsp;</span>'+esc(q.b)+'</div><button class="ear" id="ear" aria-label="Réécouter">🔊</button>'+
+   '<form class="typ" id="f" autocomplete="off"><input id="in" type="text" inputmode="text" enterkeyhint="done" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="6" placeholder="qui ou que ?"><button class="btn" type="submit">OK</button></form><div class="hint" id="hint"></div>';
+  var inp=document.getElementById("in"),gap=document.getElementById("gap");
+  document.getElementById("ear").onclick=function(){say(q.full)};
+  inp.oninput=function(){gap.className="gap";gap.textContent=inp.value||"\u00a0"};
+  document.getElementById("f").onsubmit=function(e){e.preventDefault();if(lock)return;
+    var v=inp.value.trim().toLowerCase();if(!v){inp.focus();return}
+    if(v===q.w){lock=true;if(!missed){good++;star()}gap.className="gap ok";gap.textContent=q.w;inp.disabled=true;document.getElementById("hint").textContent="Bravo !";
+      say(q.full,function(){i++;i<deck.length?show3():end()})}
+    else{missed=true;tries++;gap.className="gap ko";gap.classList.add("shake");
+      document.getElementById("hint").textContent=tries>=2?"Indice : c'est « "+q.w+" »":"Essaie encore !";
+      setTimeout(function(){inp.value="";gap.className="gap";gap.innerHTML="&nbsp;";inp.focus()},700)}};
+  say(q.full);setTimeout(function(){try{inp.focus()}catch(e){}},50);
+}
 function end(){
   var n=Math.round(good/deck.length*10*2)/2,s=String(n).replace(".",",");
   app.innerHTML='<h1>Bravo !</h1><div class="big">'+s+' / 10</div><div class="cnt">'+good+' / '+deck.length+' du premier coup</div><button class="btn" id="re">Rejouer</button><button class="btn btn2" id="mn">Menu</button>';
-  document.getElementById("re").onclick=function(){mode==2?start2():start1()};
+  document.getElementById("re").onclick=function(){mode==3?start3():mode==2?start2():start1()};
   document.getElementById("mn").onclick=home;
   say("Bravo ! "+s+" sur dix");
 }
-window.START==2?start2():window.START==1?start1():home();
+window.START==3?start3():window.START==2?start2():window.START==1?start1():home();
 </script>
 </body>
 </html>
