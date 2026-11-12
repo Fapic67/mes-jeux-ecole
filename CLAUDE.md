@@ -44,7 +44,10 @@ Cibles >= 56px, bordures 3px, textes secondaires >= 16px, menus centrés vertica
    La cagnotte gagne 10 € par victoire, et un ticket coûte 100 €. Toutes les 10 victoires, l'appli dit « Bravo + prénom ».
    Réglages : nombre maximum, plage favorisée avec un pourcentage, utilisation des tickets. Ils sont protégés par le verrou du téléphone (WebAuthn), ou à défaut par un PIN parent.
 
-### Allemand (liste de mots commune dans `RAW`, format `article|mot|emoji`)
+### Allemand (vocabulaire commun : `jeux/allemand-mots.js`)
+- Rangé comme le manuel de CP « Die Rappelkiste » : `DE_MODULES` (périodes 1-5, modules 1a…12, leçons 1-32), `DE_LETTERS` (lettre de chaque leçon), `DE_RAW` = `leçon|article|mot|image`. Leçons 1-14 : mots des encadrés de vocabulaire du livre (photos envoyées par l'utilisateur) ; leçons 15-32 : seulement les mots référents du sommaire, à compléter quand l'utilisateur enverra les pages. Ne reprendre que les mots, jamais les images ni les textes du livre.
+- Paramètres → 🎮 Réglages des jeux → Der · Die · Das / Finde das Wort : leçons cochées **par jeu et par profil** (clés `de_sel_dde@<profil>`, `de_sel_fdw@<profil>`, défaut `DE_DEFAULT` = leçons 1-10). Les jeux ne tirent que les mots des leçons cochées (message s'il y en a moins de 3).
+- Pas de doublon d'emoji entre mots (sinon deux réponses auraient la même image).
 3. **Der · Die · Das** : le mot s'affiche et est prononcé ; l'enfant choisit l'article. Bonne réponse : l'appli dit article + mot. Partie de 20 mots, note sur 10, bouton « Nochmal ».
 4. **Finde das Wort** : une image (emoji) et 3 pills **avec l'article** (« der Bleistift ») ; le mot trouvé est prononcé.
    Les mots sans emoji utilisent des dessins SVG faits main (objet `PIC` dans `deutsch.html`) : Gans, Schulhof, Tisch, Klasse, Radiergummi, Tafel, Mäppchen, Reihe, Spitzer ; Musik = 🎶.

@@ -11,6 +11,7 @@
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-title" content="Jeux d'école">
 <title>Mes jeux d'école</title>
+<script src="jeux/allemand-mots.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
 /* ---------- Design system (tactile) ----------
@@ -103,6 +104,19 @@ body.nomoney .home-mon{display:none!important}
 .menuitem::after{content:"›";margin-left:auto;font-size:30px;color:var(--soft)}
 .badge{display:inline-block;font-size:14px;font-weight:700;color:#fff;background:var(--ok);border-radius:999px;padding:2px 10px;margin-left:6px;vertical-align:middle}
 .pg{display:flex;flex-direction:column;gap:14px}
+/* Réglages des leçons (allemand) */
+.per{font-size:22px;font-weight:700;margin:6px 0 0}
+.mod{background:var(--card);border:var(--bw) solid var(--line);border-radius:22px;padding:6px 14px}
+.lrow{display:flex;align-items:center;gap:12px;min-height:60px;padding:6px 0;border-top:2px solid var(--line);cursor:pointer}
+.lrow:first-child{border-top:0}
+.lrow .grow{flex:1;min-width:0}
+.lrow b{font-size:19px}
+.lrow small{display:block;font-size:15px;color:var(--soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lrow.mh b{font-size:20px}
+.pills2{display:flex;flex-wrap:wrap;gap:8px}
+.pills2 button{min-height:48px;padding:0 16px;border:var(--bw) solid var(--line);border-radius:999px;background:var(--card);color:var(--ink);font:700 18px "Fredoka",sans-serif}
+.pills2 button.on{background:var(--math);border-color:var(--math);color:#fff}
+
 /* Écran « Qui joue ? » */
 .ptile{display:flex;align-items:center;gap:16px;width:100%;min-height:92px;border:var(--bw) solid var(--line);background:var(--card);color:var(--ink);border-radius:26px;padding:12px 18px;font:700 26px "Fredoka",sans-serif;text-align:left;cursor:pointer;box-shadow:0 5px 0 var(--line)}
 .ptile:active{transform:translateY(3px);box-shadow:0 2px 0 var(--line)}
@@ -217,6 +231,7 @@ body.nomoney .home-mon{display:none!important}
 
   <div class="pg" id="pg-menu">
     <button class="menuitem" data-page="profils"><span class="ic">👤</span><span>Profils et récompenses<small id="m-prof"></small></span></button>
+    <button class="menuitem" data-page="jeux"><span class="ic">🎮</span><span>Réglages des jeux<small>Choisir ce que chaque jeu propose</small></span></button>
     <button class="menuitem" data-page="progress"><span class="ic">🔄</span><span>Progression<small>Remettre à zéro les niveaux</small></span></button>
     <button class="menuitem" data-page="code"><span class="ic">🔒</span><span>Code parent<small id="m-code"></small></span></button>
     <button class="menuitem" data-page="app"><span class="ic">📱</span><span>Application<small id="m-app">Version et mise à jour</small></span></button>
@@ -259,6 +274,18 @@ body.nomoney .home-mon{display:none!important}
       <div class="row"><button class="btn grow" id="p-sub">− Retirer</button><button class="btn grow" id="p-add">+ Ajouter</button></div>
       <div class="muted">Le montant tapé ci-dessus sert à Définir, Retirer ou Ajouter. Retirer = ce que tu donnes « pour de vrai ».</div>
     </div>
+  </div>
+
+  <div class="pg" id="pg-jeux" hidden>
+    <button class="menuitem" data-lecons="dde"><span class="ic">🔤</span><span>Der · Die · Das<small id="j-dde"></small></span></button>
+    <button class="menuitem" data-lecons="fdw"><span class="ic">🖼️</span><span>Finde das Wort<small id="j-fdw"></small></span></button>
+  </div>
+
+  <div class="pg" id="pg-lecons" hidden>
+    <div class="muted" id="lc-intro"></div>
+    <div class="pills2" id="lc-who"></div>
+    <div class="row"><button class="btn grow" id="lc-all">Tout cocher</button><button class="btn grow" id="lc-none">Tout décocher</button></div>
+    <div id="lc-list" class="pg"></div>
   </div>
 
   <div class="pg" id="pg-progress" hidden>
@@ -372,11 +399,11 @@ function newCode(ok,why){askCode((why||"")+"Choisis un code à 4 chiffres",funct
 window.hubGate=function(ok){checkCode(ok)};
 
 /* ---------- Paramètres : menu et pages ---------- */
-var PG=[],EDIT=null,PTITLE={menu:"⚙️ Paramètres",profils:"👤 Profils",profil:"👤 Profil",progress:"🔄 Progression",code:"🔒 Code parent",app:"📱 Application"};
+var PG=[],EDIT=null,PTITLE={menu:"⚙️ Paramètres",profils:"👤 Profils",profil:"👤 Profil",progress:"🔄 Progression",jeux:"🎮 Réglages des jeux",lecons:"Leçons",code:"🔒 Code parent",app:"📱 Application"};
 function renderPage(){var top=PG[PG.length-1]||"menu";
  document.querySelectorAll("#spanel .pg[id^=pg-]").forEach(function(d){d.hidden=d.id!=="pg-"+top});
  $("stitle").textContent=PTITLE[top];$("sback").hidden=!PG.length;
- ({menu:renderMenu,profils:renderProfils,profil:renderProfil,progress:renderProgress,code:renderCode,app:showVersion})[top]();
+ ({menu:renderMenu,profils:renderProfils,profil:renderProfil,progress:renderProgress,code:renderCode,app:showVersion,jeux:renderJeux,lecons:renderLecons})[top]();
  $("spanel").scrollTop=0}
 function openPage(n){PG.push(n);var k="pg"+PG.length;OV.push(k);history.pushState({d:depth()+1,r:cur,ov:k},"",location.href);renderPage()}
 $("spanel").addEventListener("click",function(e){var b=e.target.closest("[data-page]");if(b)openPage(b.dataset.page)});
@@ -422,6 +449,29 @@ function renderProgress(){var h="";PR.list.forEach(function(p){h+='<div class="c
  $("proglist").innerHTML=h}
 $("proglist").addEventListener("click",function(e){var b=e.target.closest("[data-reset]");if(!b)return;var g=PROGRESS[+b.dataset.reset],p=prof(b.dataset.pid);
  if(!confirm(g.n+" : recommencer au début pour "+pname(p)+" ?"))return;g.keys.forEach(function(k){try{localStorage.removeItem(k+"@"+p.id)}catch(e){}});renderProgress()});
+/* réglages des jeux : leçons du manuel d'allemand cochées par jeu et par profil */
+var LGAME=null,LPID=null,LNAME={dde:"Der · Die · Das",fdw:"Finde das Wort"};
+function selInfo(g,pid){var sel=deSelected(g,pid);var n=DE_WORDS.filter(function(w){return sel.indexOf(w.n)>=0&&(g==="dde"?w.a:true)}).length;return sel.length+" leçon"+(sel.length>1?"s":"")+" · "+n+" mots"}
+function renderJeux(){$("j-dde").textContent="Leçons pour "+pname(prof())+" : "+selInfo("dde",PR.active);$("j-fdw").textContent="Leçons pour "+pname(prof())+" : "+selInfo("fdw",PR.active)}
+$("pg-jeux").addEventListener("click",function(e){var b=e.target.closest("[data-lecons]");if(!b)return;LGAME=b.dataset.lecons;LPID=PR.active;PTITLE.lecons=(LGAME==="dde"?"🔤 ":"🖼️ ")+LNAME[LGAME];openPage("lecons")});
+function wordsOf(n){return DE_WORDS.filter(function(w){return w.n===n&&(LGAME==="dde"?w.a:true)})}
+function renderLecons(){var sel=deSelected(LGAME,LPID),h="",lastP=0;
+ $("lc-intro").textContent="Coche les leçons déjà vues en classe (manuel « Die Rappelkiste »). "+(LGAME==="dde"?"Seuls les noms (avec der, die, das) sont utilisés.":"Les mots sans image ne sont pas proposés.");
+ $("lc-who").innerHTML=PR.list.length<2?"":PR.list.map(function(p){return '<button data-pid="'+p.id+'" class="'+(p.id===LPID?"on":"")+'">👤 '+esc(pname(p))+"</button>"}).join("");
+ DE_MODULES.forEach(function(m){
+  if(m.p!==lastP){lastP=m.p;h+='<div class="per">Période '+m.p+"</div>"}
+  var all=m.l.every(function(n){return sel.indexOf(n)>=0});
+  h+='<div class="mod"><label class="lrow mh switch"><span class="grow"><b>Module '+m.m+" · "+esc(m.t)+"</b><small>"+esc(m.f)+'</small></span><input type="checkbox" data-mod="'+m.m+'"'+(all?" checked":"")+"></label>";
+  m.l.forEach(function(n){var ws=wordsOf(n);h+='<label class="lrow switch"><span class="grow"><b>Leçon '+n+" · "+esc(DE_LETTERS[n])+"</b><small>"+(ws.length?ws.length+" mot"+(ws.length>1?"s":"")+" : "+esc(ws.map(function(w){return (w.a?w.a+" ":"")+w.w}).join(", ")):"pas encore de mots")+'</small></span><input type="checkbox" data-les="'+n+'"'+(sel.indexOf(n)>=0?" checked":"")+"></label>"});
+  h+="</div>"});
+ $("lc-list").innerHTML=h}
+$("lc-who").addEventListener("click",function(e){var b=e.target.closest("[data-pid]");if(!b)return;LPID=b.dataset.pid;renderLecons()});
+$("lc-list").addEventListener("change",function(e){var t=e.target,sel=deSelected(LGAME,LPID);
+ if(t.dataset.les){var n=+t.dataset.les;sel=sel.filter(function(x){return x!==n});if(t.checked)sel.push(n)}
+ else if(t.dataset.mod){var m=DE_MODULES.filter(function(x){return x.m===t.dataset.mod})[0];sel=sel.filter(function(x){return m.l.indexOf(x)<0});if(t.checked)sel=sel.concat(m.l)}
+ sel.sort(function(a,b){return a-b});deSave(LGAME,LPID,sel);renderLecons()});
+$("lc-all").onclick=function(){var all=[];DE_MODULES.forEach(function(m){all=all.concat(m.l)});deSave(LGAME,LPID,all);renderLecons()};
+$("lc-none").onclick=function(){deSave(LGAME,LPID,[]);renderLecons()};
 function renderCode(){$("s-pinst").textContent=CFG.pin&&CFG.pin!==DEF_PIN?"🔒 Les paramètres sont protégés par ton code personnel.":"🔒 Code par défaut : 0000. Pense à le changer.";
  $("s-nopin").hidden=!CFG.pin||CFG.pin===DEF_PIN}
 function renderSettings(){renderPage()}
