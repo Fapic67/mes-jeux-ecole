@@ -35,7 +35,7 @@ header{display:flex;justify-content:space-between;align-items:center;font-weight
 #hd{display:flex;align-items:center;gap:10px}
 .gear{width:56px;height:56px;border:3px solid var(--bd);border-radius:16px;background:var(--card);color:var(--fg);font-size:26px;line-height:1;padding:0}
 .sheet{position:fixed;inset:0;background:rgba(10,8,40,.55);display:flex;align-items:flex-end;justify-content:center;z-index:5}
-.panel{background:var(--bg);width:100%;max-width:520px;border-radius:28px 28px 0 0;padding:20px 18px calc(22px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px}
+.panel{background:var(--bg);width:100%;max-width:520px;max-height:92%;overflow-y:auto;border-radius:28px 28px 0 0;padding:20px 18px calc(22px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px}
 .panel h2{margin:0;font-size:26px}
 .panel h3{margin:0;font-size:19px;color:var(--mut)}
 .opt{min-height:72px;border:3px solid var(--bd);background:var(--card);color:var(--fg);border-radius:20px;padding:10px 16px;text-align:left;font-size:22px;font-weight:700}
@@ -60,6 +60,8 @@ header{display:flex;justify-content:space-between;align-items:center;font-weight
 </div></div>
 <div class="sheet" id="sheet" hidden><div class="panel">
   <h2>Réglages</h2>
+  <h3>Difficulté</h3>
+  <div id="nivs" style="display:flex;flex-direction:column;gap:10px"></div>
   <h3>Clé principale</h3>
   <div id="opts" style="display:flex;flex-direction:column;gap:10px"></div>
   <button class="btn" id="close">Jouer</button>
@@ -69,12 +71,14 @@ header{display:flex;justify-content:space-between;align-items:center;font-weight
 var $=function(i){return document.getElementById(i)};
 /* Airs traditionnels / domaine public. Format : note+octave:durée (en temps) */
 var SONGS=[
- {t:"Au clair de la lune",n:"C4:1 C4:1 C4:1 D4:1 E4:2 D4:2 C4:1 E4:1 D4:1 D4:1 C4:4"},
- {t:"Frère Jacques",n:"C4:1 D4:1 E4:1 C4:1 C4:1 D4:1 E4:1 C4:1 E4:1 F4:1 G4:2 E4:1 F4:1 G4:2"},
- {t:"Ah ! vous dirai-je, maman",n:"C4:1 C4:1 G4:1 G4:1 A4:1 A4:1 G4:2 F4:1 F4:1 E4:1 E4:1 D4:1 D4:1 C4:2"},
- {t:"Joyeux anniversaire",n:"G4:0.75 G4:0.25 A4:1 G4:1 C5:1 B4:2 G4:0.75 G4:0.25 A4:1 G4:1 D5:1 C5:2"},
- {t:"L'Ode à la joie",n:"E4:1 E4:1 F4:1 G4:1 G4:1 F4:1 E4:1 D4:1 C4:1 C4:1 D4:1 E4:1 E4:1.5 D4:0.5 D4:2"}
-].map(function(s){return{t:s.t,n:s.n.split(" ").map(function(x){var p=x.split(":");return{l:p[0][0],o:+p[0][1],d:+p[1]}})}});
+ {t:"Au clair de la lune",n:"C4:1 C4:1 C4:1 D4:1 E4:2 D4:2 C4:1 E4:1 D4:1 D4:1 C4:4",m:"C4:1 C4:1 C4:1 D4:1 E4:2 D4:2 C4:1 E4:1 D4:1 D4:1 C4:4 C4:1 C4:1 C4:1 D4:1 E4:2 D4:2 C4:1 E4:1 D4:1 D4:1 C4:4 D4:1 D4:1 D4:1 D4:1 A3:2 A3:2 D4:1 C4:1 B3:1 A3:1 G3:4 C4:1 C4:1 C4:1 D4:1 E4:2 D4:2 C4:1 E4:1 D4:1 D4:1 C4:4"},
+ {t:"Frère Jacques",n:"C4:1 D4:1 E4:1 C4:1 C4:1 D4:1 E4:1 C4:1 E4:1 F4:1 G4:2 E4:1 F4:1 G4:2",m:"C4:1 D4:1 E4:1 C4:1 C4:1 D4:1 E4:1 C4:1 E4:1 F4:1 G4:2 E4:1 F4:1 G4:2 G4:0.5 A4:0.5 G4:0.5 F4:0.5 E4:1 C4:1 G4:0.5 A4:0.5 G4:0.5 F4:0.5 E4:1 C4:1 C4:1 G3:1 C4:2 C4:1 G3:1 C4:2"},
+ {t:"Ah ! vous dirai-je, maman",n:"C4:1 C4:1 G4:1 G4:1 A4:1 A4:1 G4:2 F4:1 F4:1 E4:1 E4:1 D4:1 D4:1 C4:2",m:"C4:1 C4:1 G4:1 G4:1 A4:1 A4:1 G4:2 F4:1 F4:1 E4:1 E4:1 D4:1 D4:1 C4:2 G4:1 G4:1 F4:1 F4:1 E4:1 E4:1 D4:2 G4:1 G4:1 F4:1 F4:1 E4:1 E4:1 D4:2 C4:1 C4:1 G4:1 G4:1 A4:1 A4:1 G4:2 F4:1 F4:1 E4:1 E4:1 D4:1 D4:1 C4:2"},
+ {t:"Joyeux anniversaire",n:"G4:0.75 G4:0.25 A4:1 G4:1 C5:1 B4:2 G4:0.75 G4:0.25 A4:1 G4:1 D5:1 C5:2",m:"G4:0.75 G4:0.25 A4:1 G4:1 C5:1 B4:2 G4:0.75 G4:0.25 A4:1 G4:1 D5:1 C5:2 G4:0.75 G4:0.25 G5:1 E5:1 C5:1 B4:1 A4:2 F5:0.75 F5:0.25 E5:1 C5:1 D5:1 C5:2"},
+ {t:"L'Ode à la joie",n:"E4:1 E4:1 F4:1 G4:1 G4:1 F4:1 E4:1 D4:1 C4:1 C4:1 D4:1 E4:1 E4:1.5 D4:0.5 D4:2",m:"E4:1 E4:1 F4:1 G4:1 G4:1 F4:1 E4:1 D4:1 C4:1 C4:1 D4:1 E4:1 E4:1.5 D4:0.5 D4:2 E4:1 E4:1 F4:1 G4:1 G4:1 F4:1 E4:1 D4:1 C4:1 C4:1 D4:1 E4:1 D4:1.5 C4:0.5 C4:2"}
+].map(function(s){var P=function(str){return str.split(" ").map(function(x){var p=x.split(":");return{l:p[0][0],o:+p[0][1],d:+p[1]}})};return{t:s.t,n:P(s.n),m:P(s.m)}});
+// Difficulté : facile = début de l'air (version d'origine), moyen = air complet (2 à 4 fois plus long)
+var niv=ls("mus_niv")==="moyen"?"moyen":"facile";
 var NAME={C:"do",D:"ré",E:"mi",F:"fa",G:"sol",A:"la",B:"si"},ORDER="CDEFGAB",SEMI={C:0,D:2,E:4,F:5,G:7,A:9,B:11};
 /* clé principale : sol (ligne du bas = mi4) ou fa (ligne du bas = sol2, morceaux joués une octave plus bas) */
 var CLES={sol:{base:4*7+2,tr:0},fa:{base:2*7+4,tr:-1}};
@@ -119,7 +123,7 @@ function drawStaff(notes,from,cur,showAll){
 var order=JSON.parse(ls("mus_order")||"null"),song,idx,errs,missed,lock,playing=false,tk=0;
 if(!order||order.length!==SONGS.length){order=SONGS.map(function(_,i){return i}).sort(function(){return Math.random()-.5})}
 var si=Math.max(0,parseInt(ls("mus_i"))||0)%SONGS.length;
-var csi=si;function startSong(i){csi=i===undefined?si:i;var S=SONGS[order[csi]],tr=CLES[cle].tr;song={t:S.t,n:S.n.map(function(n){return{l:n.l,o:n.o+tr,d:n.d}})};idx=0;errs=0;lock=false;$("end").hidden=true;$("pills").hidden=false;msg("Quelle est cette note ?");show()}
+var csi=si;function startSong(i){csi=i===undefined?si:i;var S=SONGS[order[csi]],tr=CLES[cle].tr;song={t:S.t,n:(niv==="moyen"?S.m:S.n).map(function(n){return{l:n.l,o:n.o+tr,d:n.d}})};idx=0;errs=0;lock=false;$("end").hidden=true;$("pills").hidden=false;msg("Quelle est cette note ?");show()}
 function msg(t){$("msg").textContent=t}
 function show(){missed=false;$("cnt").textContent=(idx+1)+" / "+song.n.length;$("prog").style.width=(idx/song.n.length*100)+"%";
  drawStaff(song.n,Math.max(0,idx-WIN+1),idx,false);
@@ -129,7 +133,7 @@ $("pills").addEventListener("click",function(e){var b=e.target.closest("button")
   setTimeout(function(){if(my!==tk)return;idx++;lock=false;if(idx<song.n.length){msg("Quelle est cette note ?");show()}else finish()},750)}
  else{errs++;b.classList.add("no");b.disabled=true;buzz();msg("Essaie encore !")}});
 function finish(){$("prog").style.width="100%";$("pills").hidden=true;$("end").hidden=false;$("title").textContent="🎶 "+song.t;
- msg(errs?"Tu as trouvé toutes les notes !":"Parfait, aucune erreur !");star(errs?3:5);
+ msg(errs?"Tu as trouvé toutes les notes !":"Parfait, aucune erreur !");star(niv==="moyen"?(errs?5:8):(errs?3:5));
  si=(si+1)%SONGS.length;ls("mus_i",si);ls("mus_order",JSON.stringify(order));
  say("C'était "+song.t+" !");lockReplay(true);var my=tk;setTimeout(function(){if(my===tk)playSong()},1600)}
 // « Réécouter » est bloqué tant que le morceau joue
@@ -143,7 +147,10 @@ $("next").onclick=function(){tk++;playing=false;lockReplay(false);startSong()};
 /* réglages : clé principale */
 var CLE_TXT={sol:["Clé de sol","Notes aiguës"],fa:["Clé de fa","Notes graves"]};
 function opts(){$("opts").innerHTML=["sol","fa"].map(function(c){return '<button class="opt'+(c===cle?" on":"")+'" data-c="'+c+'">'+CLE_TXT[c][0]+"<small>"+CLE_TXT[c][1]+"</small></button>"}).join("")}
-$("gear").onclick=function(){opts();$("sheet").hidden=false};
+var NIV_TXT={facile:["Facile","Le début de l'air"],moyen:["Moyen","L'air en entier (2 à 4 fois plus long)"]};
+function nivs(){$("nivs").innerHTML=["facile","moyen"].map(function(c){return '<button class="opt'+(c===niv?" on":"")+'" data-n="'+c+'">'+NIV_TXT[c][0]+"<small>"+NIV_TXT[c][1]+"</small></button>"}).join("")}
+$("nivs").addEventListener("click",function(e){var b=e.target.closest("button");if(!b||b.dataset.n===niv)return;niv=b.dataset.n;ls("mus_niv",niv);nivs();tk++;playing=false;lockReplay(false);startSong(csi)});
+$("gear").onclick=function(){opts();nivs();$("sheet").hidden=false};
 $("opts").addEventListener("click",function(e){var b=e.target.closest("button");if(!b||b.dataset.c===cle)return;
  cle=b.dataset.c;ls("mus_cle",cle);opts();tk++;startSong(csi)});
 $("close").onclick=function(){$("sheet").hidden=true};
