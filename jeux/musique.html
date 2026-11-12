@@ -145,7 +145,7 @@ $("pills").addEventListener("click",function(e){var b=e.target.closest("button")
 function finish(){$("prog").style.width="100%";$("pills").hidden=true;$("end").hidden=false;$("title").textContent="🎶 "+song.t;
  msg(errs?"Tu as trouvé toutes les notes !":"Parfait, aucune erreur !");star(niv==="moyen"?(errs?5:8):(errs?3:5));
  si=(si+1)%SONGS.length;ls("mus_i",si);ls("mus_order",JSON.stringify(order));
- say("C'était "+song.t+" !");lockReplay(true);var my=tk;setTimeout(function(){if(my===tk)playSong()},1600)}
+ lockReplay(true);var my=tk;setTimeout(function(){if(my===tk)playSong()},700)} // pas de voix : le titre est seulement affiché
 // « Réécouter » est bloqué tant que le morceau joue
 function lockReplay(on){var b=$("replay");b.disabled=on;b.textContent=on?"🎵 Écoute…":"▶ Réécouter"}
 function playSong(){if(playing&&tk)return;var my=++tk,beat=.5,t=0,k=0;playing=true;lockReplay(true);
