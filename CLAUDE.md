@@ -25,6 +25,9 @@ Le but est d'en faire une **appli Android installable (APK)** et partageable à 
 ## Navigation et bouton retour
 Historique géré dans `index.html` (`go` = pushState, `back` = history.back si possible, sinon parent). Le bouton retour du téléphone (popstate) = bouton « ← » de l'appli : ferme d'abord une fenêtre du hub (pile `OV` : `settings`, `pin`), puis demande au jeu via `window.hubBack()` (renvoie true s'il a fermé sa propre fenêtre : réglages Calcul/Téléphone, choix du niveau code/robot), sinon remonte d'un niveau. Au lancement, l'historique repart de « Qui joue ? » (d=0).
 
+## Sauvegarde
+Paramètres → 💾 Sauvegarde : « Sauvegarder dans un fichier » télécharge `mes-jeux-ecole-sauvegarde-AAAA-MM-JJ.json` = `{app:"mes-jeux-ecole", date, data:{tout le localStorage}}` ; « Restaurer » relit ce fichier (vérifie `app`, confirmation avec les prénoms), vide le localStorage, réécrit les clés puis recharge. `bk_last` = date de la dernière sauvegarde. Au démarrage, `navigator.storage.persist()` est demandé pour éviter l'effacement automatique. Une appli web ne peut pas écrire seule dans les fichiers du téléphone : la sauvegarde est toujours à la demande.
+
 ## Mise à jour
 Paramètres → carte « Application » : affiche la version en cache (`jeux-ecole-vXX`) et un bouton « Mettre à jour maintenant » qui vérifie la connexion (fetch `sw.js` no-store), supprime les caches, désinscrit le service worker puis recharge. Le localStorage (étoiles, réglages) est conservé.
 

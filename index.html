@@ -234,6 +234,7 @@ body.nomoney .home-mon{display:none!important}
     <button class="menuitem" data-page="jeux"><span class="ic">🎮</span><span>Réglages des jeux<small>Choisir ce que chaque jeu propose</small></span></button>
     <button class="menuitem" data-page="progress"><span class="ic">🔄</span><span>Progression<small>Remettre à zéro les niveaux</small></span></button>
     <button class="menuitem" data-page="code"><span class="ic">🔒</span><span>Code parent<small id="m-code"></small></span></button>
+    <button class="menuitem" data-page="save"><span class="ic">💾</span><span>Sauvegarde<small id="m-save">Enregistrer ou restaurer les profils</small></span></button>
     <button class="menuitem" data-page="app"><span class="ic">📱</span><span>Application<small id="m-app">Version et mise à jour</small></span></button>
   </div>
 
@@ -298,6 +299,23 @@ body.nomoney .home-mon{display:none!important}
       <div class="muted" id="s-pinst"></div>
       <div class="row"><button class="btn pri grow" id="s-pin">Changer le code</button><button class="btn danger" id="s-nopin">Remettre 0000</button></div>
     </div>
+  </div>
+
+  <div class="pg" id="pg-save" hidden>
+    <div class="card">
+      <h3>Sauvegarder</h3>
+      <div class="muted">Enregistre dans un fichier (dossier Téléchargements) tous les profils, les étoiles, les récompenses, le code parent et les réglages des jeux.</div>
+      <button class="btn okb" id="bk-save">💾 Sauvegarder dans un fichier</button>
+      <div class="muted" id="bk-last"></div>
+    </div>
+    <div class="card">
+      <h3>Restaurer</h3>
+      <div class="muted">Recharge un fichier de sauvegarde. Les données actuelles sont remplacées par celles du fichier.</div>
+      <button class="btn pri" id="bk-load">📂 Restaurer depuis un fichier</button>
+      <input type="file" id="bk-file" accept=".json,application/json" hidden>
+      <div class="muted" id="bk-st"></div>
+    </div>
+    <div class="muted" id="bk-persist"></div>
   </div>
 
   <div class="pg" id="pg-app" hidden>
@@ -399,17 +417,39 @@ function newCode(ok,why){askCode((why||"")+"Choisis un code à 4 chiffres",funct
 window.hubGate=function(ok){checkCode(ok)};
 
 /* ---------- Paramètres : menu et pages ---------- */
-var PG=[],EDIT=null,PTITLE={menu:"⚙️ Paramètres",profils:"👤 Profils",profil:"👤 Profil",progress:"🔄 Progression",jeux:"🎮 Réglages des jeux",lecons:"Leçons",code:"🔒 Code parent",app:"📱 Application"};
+var PG=[],EDIT=null,PTITLE={menu:"⚙️ Paramètres",profils:"👤 Profils",profil:"👤 Profil",progress:"🔄 Progression",jeux:"🎮 Réglages des jeux",lecons:"Leçons",save:"💾 Sauvegarde",code:"🔒 Code parent",app:"📱 Application"};
 function renderPage(){var top=PG[PG.length-1]||"menu";
  document.querySelectorAll("#spanel .pg[id^=pg-]").forEach(function(d){d.hidden=d.id!=="pg-"+top});
  $("stitle").textContent=PTITLE[top];$("sback").hidden=!PG.length;
- ({menu:renderMenu,profils:renderProfils,profil:renderProfil,progress:renderProgress,code:renderCode,app:showVersion,jeux:renderJeux,lecons:renderLecons})[top]();
+ ({menu:renderMenu,profils:renderProfils,profil:renderProfil,progress:renderProgress,code:renderCode,app:showVersion,save:renderSave,jeux:renderJeux,lecons:renderLecons})[top]();
  $("spanel").scrollTop=0}
 function openPage(n){PG.push(n);var k="pg"+PG.length;OV.push(k);history.pushState({d:depth()+1,r:cur,ov:k},"",location.href);renderPage()}
 $("spanel").addEventListener("click",function(e){var b=e.target.closest("[data-page]");if(b)openPage(b.dataset.page)});
 $("sback").onclick=function(){back()};
+/* ---------- Sauvegarde dans un fichier ---------- */
+// Toutes les données de l'appli sont dans le localStorage du site : on les exporte telles quelles.
+function backupData(){var d={};for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);d[k]=localStorage.getItem(k)}return d}
+function renderSave(){var t=ls("bk_last");$("bk-last").textContent=t?"Dernière sauvegarde : "+new Date(+t).toLocaleString("fr-FR"):"Aucune sauvegarde pour l'instant.";$("bk-st").textContent="";
+ $("bk-persist").textContent="";if(navigator.storage&&navigator.storage.persisted)navigator.storage.persisted().then(function(p){$("bk-persist").textContent=p?"🔒 Le navigateur ne peut pas effacer ces données tout seul.":"ℹ️ Le navigateur peut effacer ces données s'il manque de place : pense à sauvegarder."})}
+$("bk-save").onclick=function(){var now=new Date(),day=now.toISOString().slice(0,10);
+ var blob=new Blob([JSON.stringify({app:"mes-jeux-ecole",date:now.toISOString(),data:backupData()},null,1)],{type:"application/json"});
+ var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="mes-jeux-ecole-sauvegarde-"+day+".json";document.body.appendChild(a);a.click();
+ setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},1500);ls("bk_last",String(now.getTime()));renderSave();$("bk-st").textContent=""};
+$("bk-load").onclick=function(){$("bk-file").value="";$("bk-file").click()};
+$("bk-file").onchange=function(){var f=this.files&&this.files[0];if(!f)return;var r=new FileReader();
+ r.onload=function(){var o;try{o=JSON.parse(r.result)}catch(e){o=null}
+  if(!o||o.app!=="mes-jeux-ecole"||!o.data||typeof o.data!=="object"){$("bk-st").textContent="⚠️ Ce fichier n'est pas une sauvegarde de Mes jeux d'école.";return}
+  var pr=null;try{pr=JSON.parse(o.data.profiles)}catch(e){}
+  var who=pr&&pr.list?pr.list.map(function(p){return p.name||"Sans prénom"}).join(", "):"?";
+  if(!confirm("Restaurer la sauvegarde du "+new Date(o.date).toLocaleString("fr-FR")+" ?\nProfils : "+who+"\nLes données actuelles seront remplacées."))return;
+  try{localStorage.clear();Object.keys(o.data).forEach(function(k){localStorage.setItem(k,String(o.data[k]))})}catch(e){$("bk-st").textContent="⚠️ Restauration impossible : "+e.message;return}
+  location.replace(location.pathname)};
+ r.readAsText(f)};
+// Demande au navigateur de ne pas effacer les données de l'appli tout seul (manque de place)
+try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persisted().then(function(p){if(!p)navigator.storage.persist()})}catch(e){}
+
 function renderMenu(){var p=prof();$("m-prof").textContent=PR.list.length+" profil"+(PR.list.length>1?"s":"")+" · actif : "+pname(p);
- $("m-code").textContent=CFG.pin&&CFG.pin!==DEF_PIN?"Code personnel":"Code par défaut : 0000";installedVersion().then(function(v){$("m-app").textContent="Version installée : "+(v||"?")})}
+ var bt=ls("bk_last");$("m-save").textContent=bt?"Dernière sauvegarde : "+new Date(+bt).toLocaleDateString("fr-FR"):"Aucune sauvegarde pour l'instant";$("m-code").textContent=CFG.pin&&CFG.pin!==DEF_PIN?"Code personnel":"Code par défaut : 0000";installedVersion().then(function(v){$("m-app").textContent="Version installée : "+(v||"?")})}
 function renderProfils(){$("plist").innerHTML=PR.list.map(function(p){return '<button class="menuitem" data-edit="'+p.id+'"><span class="ic">👤</span><span>'+esc(pname(p))+(p.id===PR.active?'<span class="badge">actif</span>':'')+'<small>⭐ '+p.stars+(p.reward?" · récompense : "+money(p.money,p):" · sans récompense")+'</small></span></button>'}).join("")}
 $("plist").addEventListener("click",function(e){var b=e.target.closest("[data-edit]");if(!b)return;EDIT=b.dataset.edit;openPage("profil")});
 $("padd").onclick=function(){var id="p"+Date.now().toString(36);PR.list.push({id:id,name:"",reward:true,unit:"€",per:10,gain:1,stars:0,money:0});saveP();EDIT=id;openPage("profil");setTimeout(function(){$("p-name").focus()},100)};
