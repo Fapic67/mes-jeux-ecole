@@ -36,6 +36,7 @@ Paramètres → 💾 Sauvegarde : « Sauvegarder dans un fichier » télécharge
   - bouton retour Android = `back()`, quitte l'appli depuis « Qui joue ? » ;
   - « Sauvegarder dans un fichier » écrit `Documents/MesJeuxEcole/sauvegarde-AAAA-MM-JJ.json`.
 - Compiler : voir `android-natif/README.md`.
+- APK publié (public, à la demande de l'utilisateur) : `telechargement/mes-jeux-ecole.apk` → https://fapic67.github.io/mes-jeux-ecole/telechargement/mes-jeux-ecole.apk (exception dans `.gitignore`). À remplacer à chaque nouvelle version de l'APK.
 
 ## Mise à jour
 Paramètres → carte « Application » : affiche la version en cache (`jeux-ecole-vXX`) et un bouton « Mettre à jour maintenant » qui vérifie la connexion (fetch `sw.js` no-store), supprime les caches, désinscrit le service worker puis recharge. Le localStorage (étoiles, réglages) est conservé.
