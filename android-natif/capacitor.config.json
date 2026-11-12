@@ -1,0 +1,11 @@
+{
+  "appId": "io.github.fapic67.jeuxecole",
+  "appName": "Mes jeux d'école",
+  "webDir": "www",
+  "server": {
+    "url": "https://fapic67.github.io/mes-jeux-ecole/",
+    "androidScheme": "https",
+    "allowNavigation": ["fapic67.github.io"]
+  },
+  "android": { "allowMixedContent": false }
+}
