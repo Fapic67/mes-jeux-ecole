@@ -71,7 +71,7 @@ function dictate(){
  var d=target.match(/\d{1,2}/g),i=0;need=0;nextFn=null;cur="";base=0;
  (function step(){
   if(i>=d.length){if(!waitMode)timer=setTimeout(function(){msg("À toi de composer ! 📞")},delay*1000);return}
-  var g=d[i++];cur=g;base=need;say(spk(g),null,.9);
+  var g=d[i++];cur=g;numErr=false;base=need;say(spk(g),null,.9);
   if(waitMode){need+=g.length;nextFn=step}else timer=setTimeout(step,delay*1000)
  })()}
 function start(){
@@ -82,17 +82,17 @@ function repeat(){if(cur)say(spk(cur),null,.9)}
 function press(k){
  if(busy)return;dtmf(k);if(!playing)return;
  if(entry.length<15)entry+=k;render();
- if(entry===target){nextFn=null;clearTimeout(timer);say("Appuie sur téléphoner");msg("Appuie sur 📞 !");return}
+ if(entry===target){numDone();nextFn=null;clearTimeout(timer);say("Appuie sur téléphoner");msg("Appuie sur 📞 !");return}
  if(nextFn&&entry.length>=need){
-  if(entry.slice(base)===cur){var f=nextFn;nextFn=null;busy=true;timer=setTimeout(function(){busy=false;f()},delay*1000)}
-  else{busy=true;tone([220],0,.25,.2);tone([150],.3,.45,.2);setTimeout(function(){entry=entry.slice(0,base);render();say("Recommence",function(){setTimeout(function(){say(spk(cur),null,.9);busy=false},300)})},1000)}}}
+  if(entry.slice(base)===cur){numDone();var f=nextFn;nextFn=null;busy=true;timer=setTimeout(function(){busy=false;f()},delay*1000)}
+  else{if(!numErr){numErr=true;answer(false)}busy=true;tone([220],0,.25,.2);tone([150],.3,.45,.2);setTimeout(function(){entry=entry.slice(0,base);render();say("Recommence",function(){setTimeout(function(){say(spk(cur),null,.9);busy=false},300)})},1000)}}}
 function del(){if(busy||!playing)return;if(waitMode&&entry.length<=base)return;entry=entry.slice(0,-1);render()}
 function ring(){for(var i=0;i<2;i++)tone([440,480],i*2.2,1.2,.1)}
 function busyTone(){for(var i=0;i<4;i++)tone([480,620],i,.5,.1)}
 function end(m){entry="";render();busy=false;playing=false;target="";$("go").textContent="▶ Jouer";msg(m)}
 function call(){
  if(busy||!playing||!entry)return;ctx();busy=true;stopAll();msg("📞 Ça sonne…");
- if(entry===target){ring();setTimeout(function(){tone([900],0,.05,.2);wins++;ls("tel_wins",wins);stars(3);var w=wins%10===0?(window.PRENOM?"Bravo "+window.PRENOM+" !":"Bravo champion !"):WIN[Math.floor(Math.random()*WIN.length)];msg("🎉 "+w+" +3 ⭐");say("Allô ? "+w,function(){end("Rejoue avec ▶ Jouer")},.85)},4600)}
+ if(entry===target){ring();setTimeout(function(){tone([900],0,.05,.2);wins++;ls("tel_wins",wins);var w=wins%10===0?(window.PRENOM?"Bravo "+window.PRENOM+" !":"Bravo champion !"):WIN[Math.floor(Math.random()*WIN.length)];msg("🎉 "+w+" +3 ⭐");say("Allô ? "+w,function(){end("Rejoue avec ▶ Jouer")},.85)},4600)}
  else{busyTone();setTimeout(function(){msg("📵 Occupé… Essaie encore !")},200);setTimeout(function(){tone([300],0,.15,.15);end("Appuie sur ▶ Jouer")},4200)}}
 (function(){var p=$("pad"),h="";K.forEach(function(k){h+='<button data-k="'+k+'">'+k+'</button>'});h+='<button class="del" id="del">⌫</button><button class="call" id="call">📞</button>';p.innerHTML=h;
 p.addEventListener("click",function(e){var b=e.target.closest("button");if(b&&b.dataset.k)press(b.dataset.k)})})();
@@ -118,7 +118,10 @@ function setupPin(ok,why){showLock((why||"")+"Crée un code à 4 chiffres",funct
 function waCreate(ok,fail){navigator.credentials.create({publicKey:{challenge:rnd(32),rp:{name:"Téléphone magique"},user:{id:rnd(16),name:"parent",displayName:"Parent"},pubKeyCredParams:[{type:"public-key",alg:-7},{type:"public-key",alg:-257}],authenticatorSelection:{authenticatorAttachment:"platform",userVerification:"required"},timeout:60000,attestation:"none"}}).then(function(c){ls("tel_cred",b64(c.rawId));ls("tel_lock","wa");ok()}).catch(fail)}
 function waGet(ok,fail){navigator.credentials.get({publicKey:{challenge:rnd(32),allowCredentials:[{type:"public-key",id:unb64(ls("tel_cred"))}],userVerification:"required",timeout:60000}}).then(function(){ok()}).catch(fail)}
 function setupLock(ok){var why="Verrouillage du téléphone indisponible. ";if(!(window.PublicKeyCredential&&navigator.credentials&&navigator.credentials.create)){setupPin(ok,why);return}var t0=Date.now();try{waCreate(ok,function(e){if(e&&e.name==="NotAllowedError"&&Date.now()-t0>1500){if(!playing)msg("🔒 Verrouillage annulé");return}setupPin(ok,why)})}catch(e){setupPin(ok,why)}}
-function stars(n){try{if(parent!==window)parent.postMessage({type:"stars",n:n},"*")}catch(e){}}
+// Étoiles : chaque nombre composé juste du premier coup compte pour la série ; difficulté selon le nombre maximum
+var numErr=false;
+function answer(ok){var d=maxn<=30?1:maxn<=60?1.25:1.5;try{if(parent!==window)parent.postMessage({type:"answer",game:"telephone",ok:ok,diff:d},"*")}catch(e){}}
+function numDone(){if(!numErr)answer(true);numErr=true}
 // Dans l'appli, les réglages utilisent le code parent global
 function gate(ok){try{if(parent!==window&&parent.hubGate){parent.hubGate(ok);return}}catch(e){}var m=ls("tel_lock");if(m==="wa"&&ls("tel_cred")){try{waGet(ok,function(){if(!playing)msg("🔒 Accès refusé")})}catch(e){if(!playing)msg("🔒 Accès refusé")}}else if(m==="pin")askPin(ok);else setupLock(ok)}
 render();

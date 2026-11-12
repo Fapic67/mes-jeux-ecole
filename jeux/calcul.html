@@ -158,10 +158,13 @@ if(b.dataset.n!==undefined){startTimer();if(ans.length<3){ans=(ans==="0"?"":ans)
 else if(b.dataset.d){ans=ans.slice(0,-1);paint()}
 else if(b.id==="go")check()})}
 
+// Étoiles : l'accueil compte les bonnes réponses du premier coup (séries) ; la difficulté dépend du résultat maximum
+function diff(){return (S.max<=10?1:S.max<=20?1.25:S.max<=50?1.5:2)+(S.type==="mix"?.25:0)}
+function answer(ok,d){try{if(parent!==window)parent.postMessage({type:"answer",game:"calcul",ok:ok,diff:d},"*")}catch(e){}}
 function check(){
 if(ans==="")return;locked=true;var g=$("go");
-if(+ans===cur.ans){g.className="k go ok";win();score++;try{if(parent!==window)parent.postMessage({type:"stars",n:1},"*")}catch(e){};renderScore();if(score>=nextRun){runner();nextRun=score+rnd(6,8)};var nx=gen();say(textOp(true),function(){show(nx)});say(textOp(false,nx),null,nx,true)}
-else{g.className="k go ko";g.innerHTML=CROSS;lose();setTimeout(function(){ans="";paint();resetGo();locked=false},1000)}}
+if(+ans===cur.ans){g.className="k go ok";win();score++;if(!cur.err)answer(true,diff());renderScore();if(score>=nextRun){runner();nextRun=score+rnd(6,8)};var nx=gen();say(textOp(true),function(){show(nx)});say(textOp(false,nx),null,nx,true)}
+else{g.className="k go ko";g.innerHTML=CROSS;lose();if(!cur.err){cur.err=1;answer(false,diff())}setTimeout(function(){ans="";paint();resetGo();locked=false},1000)}}
 
 function settings(){
 var t=$("types"),h="";

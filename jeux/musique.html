@@ -106,7 +106,8 @@ function buzz(){var a=ctx();if(!a)return;var o=a.createOscillator(),g=a.createGa
 var voice=null;function pick(){try{voice=speechSynthesis.getVoices().filter(function(v){return /^fr/i.test(v.lang)})[0]||null}catch(e){}}
 if(window.speechSynthesis){pick();speechSynthesis.onvoiceschanged=pick}
 function say(t){try{if(!window.speechSynthesis)return;speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.lang="fr-FR";if(voice)u.voice=voice;u.rate=.9;speechSynthesis.speak(u)}catch(e){}}
-function star(n){try{if(parent!==window)parent.postMessage({type:"stars",n:n},"*")}catch(e){}}
+// Étoiles : chaque note trouvée du premier coup compte pour la série ; Moyen et clé de fa comptent plus
+function answer(ok){var d=(niv==="moyen"?1.5:1)+(cle==="fa"?.25:0);try{if(parent!==window)parent.postMessage({type:"answer",game:"note",ok:ok,diff:d},"*")}catch(e){}}
 
 /* portée (clé de sol), fenêtre de 6 notes */
 var W=360,H=150,G=12,BOT=96,X0=64,STEP=50,WIN=6;
@@ -139,11 +140,11 @@ function show(){missed=false;$("cnt").textContent=(idx+1)+" / "+song.n.length;$(
  drawStaff(song.n,Math.max(0,idx-WIN+1),idx,false);
  $("pills").innerHTML=ORDER.split("").map(function(l){return '<button data-l="'+l+'">'+NAME[l]+"</button>"}).join("")}
 $("pills").addEventListener("click",function(e){var b=e.target.closest("button");if(!b||lock||b.disabled)return;var n=song.n[idx];
- if(b.dataset.l===n.l){lock=true;b.classList.add("ok");play(freq(n),0,.6);msg("Bravo, c'est un "+NAME[n.l]+" !");var my=tk;
+ if(b.dataset.l===n.l){lock=true;if(!missed)answer(true);b.classList.add("ok");play(freq(n),0,.6);msg("Bravo, c'est un "+NAME[n.l]+" !");var my=tk;
   setTimeout(function(){if(my!==tk)return;idx++;lock=false;if(idx<song.n.length){msg("Quelle est cette note ?");show()}else finish()},750)}
- else{errs++;b.classList.add("no");b.disabled=true;buzz();msg("Essaie encore !")}});
+ else{errs++;if(!missed)answer(false);missed=true;b.classList.add("no");b.disabled=true;buzz();msg("Essaie encore !")}});
 function finish(){$("prog").style.width="100%";$("pills").hidden=true;$("end").hidden=false;$("title").textContent="🎶 "+song.t;
- msg(errs?"Tu as trouvé toutes les notes !":"Parfait, aucune erreur !");star(niv==="moyen"?(errs?5:8):(errs?3:5));
+ msg(errs?"Tu as trouvé toutes les notes !":"Parfait, aucune erreur !");
  si=(si+1)%SONGS.length;ls("mus_i",si);ls("mus_order",JSON.stringify(order));
  lockReplay(true);var my=tk;setTimeout(function(){if(my===tk)playSong()},700)} // pas de voix : le titre est seulement affiché
 // « Réécouter » est bloqué tant que le morceau joue

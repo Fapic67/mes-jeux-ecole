@@ -85,7 +85,8 @@ function tone(f,t,d,v){try{if(!ac){var C=window.AudioContext||window.webkitAudio
 var voice=null;function pick(){try{voice=speechSynthesis.getVoices().filter(function(v){return /^fr/i.test(v.lang)})[0]||null}catch(e){}}
 if(window.speechSynthesis){pick();speechSynthesis.onvoiceschanged=pick}
 function say(t){try{if(!window.speechSynthesis)return;speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.lang="fr-FR";if(voice)u.voice=voice;u.rate=.9;speechSynthesis.speak(u)}catch(e){}}
-function star(n){try{if(parent!==window)parent.postMessage({type:"stars",n:n},"*")}catch(e){}}
+// Étoiles : niveau réussi du premier coup = série ; chaque échec casse la série ; les grands niveaux comptent plus
+function answer(ok,q){var d=level<=3?1:level<=8?1.5:2;try{if(parent!==window)parent.postMessage({type:"answer",game:"robot",ok:ok,diff:d,q:q==null?1:q},"*")}catch(e){}}
 
 /* génération d'un niveau toujours faisable */
 function key(x,y){return x+","+y}
@@ -133,11 +134,11 @@ function run(){
  setTimeout(step,250)}
 function finish(ok,extra){
  if(ok){done=true;running=false;var b=$("bot");b.classList.add("win");[523,659,784,1047].forEach(function(f,k){tone(f,k*.1,.25,.22)});
-  star(fails===0?2:1);msg(fails===0?"🎉 Bravo ! Du premier coup !":"🎉 Bravo, tu as réussi !");say("Bravo !");
+  answer(true,fails===0?1:.5);msg(fails===0?"🎉 Bravo ! Du premier coup !":"🎉 Bravo, tu as réussi !");say("Bravo !");
   level++;best=Math.max(best,level);ls("robot_lvl"+PK,level);ls("robot_best"+PK,best);
   $("edit").hidden=true;$("after").hidden=false;refresh();keepVisible()}
  else{tone(260,0,.3,.18);msg("Le robot n'est pas arrivé sur l'étoile. Essaie encore !");setTimeout(reset,1300)}}
-function reset(){fails++;running=false;var b=$("bot");b.classList.remove("bump");b.style.transition="none";placeBot(start[0],start[1]);void b.offsetWidth;b.style.transition="";
+function reset(){fails++;answer(false);running=false;var b=$("bot");b.classList.remove("bump");b.style.transition="none";placeBot(start[0],start[1]);void b.offsetWidth;b.style.transition="";
  document.querySelectorAll(".c.t").forEach(function(c){c.classList.remove("t")});drawProg()}
 
 /* commandes */

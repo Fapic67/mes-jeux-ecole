@@ -70,6 +70,30 @@ body.nomoney .home-mon{display:none!important}
 #play .bar{display:flex;align-items:center;gap:10px;padding:8px 10px;border-bottom:var(--bw) solid var(--line)}
 #play .bar b{flex:1;font-size:19px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #pstars{font-weight:700;font-size:21px;color:var(--star);padding:0 6px;white-space:nowrap}
+/* série 🔥 et jauge ⭐ (barre des jeux) */
+#eco{display:flex;align-items:center;gap:6px;flex:none}
+#pstreak{display:flex;align-items:center;gap:2px;font-weight:700;font-size:19px;padding:2px 8px;border-radius:999px;background:var(--card);border:var(--bw) solid var(--line);white-space:nowrap;transition:transform .2s}
+#pstreak .x{font-size:15px;color:#fff;background:#ff8a3d;border-radius:999px;padding:0 6px;margin-left:3px}
+#pstreak.t2{border-color:#ff8a3d}#pstreak.t3{border-color:#e5484d;background:#fff1e6}
+#pstreak.off{opacity:.45}
+#pgauge{width:46px;height:14px;border-radius:7px;background:var(--line);overflow:hidden}
+#pgauge i{display:block;height:100%;width:0;background:var(--star);transition:width .3s}
+#pdiff{font-size:14px;font-weight:700;color:var(--soft);white-space:nowrap}
+#play .bar b{min-width:0}
+@media (max-width:430px){body.ecoon #ptitle{display:none}body.ecoon #eco{flex:1;justify-content:center}}
+.pop{animation:pop .5s}@keyframes pop{40%{transform:scale(1.3)}}
+/* accueil : jour / semaine */
+.purse .lines{display:flex;flex-direction:column;gap:2px;min-width:0}
+.purse .l1{font-size:19px;font-weight:700}
+.purse .l1 .st{color:var(--star)}
+.minibar{height:8px;border-radius:4px;background:var(--line);overflow:hidden;margin-top:2px}
+.minibar i{display:block;height:100%;background:var(--star)}
+/* bilan */
+.bil{width:100%;border-collapse:collapse;font-size:16px}
+.bil th,.bil td{text-align:right;padding:4px 6px;border-bottom:2px solid var(--line)}
+.bil th:first-child,.bil td:first-child{text-align:left}
+#notice .panel{text-align:center;align-items:center}
+#notice .big{font-size:40px}
 #frame{flex:1;width:100%;border:0;background:transparent}
 .toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 76px);transform:translateX(-50%);background:var(--star);color:#3a2a00;font:700 24px "Fredoka",sans-serif;padding:10px 22px;border-radius:999px;z-index:30;pointer-events:none;animation:toast 1.4s forwards;box-shadow:0 6px 18px rgba(0,0,0,.18)}
 @keyframes toast{0%{opacity:0;transform:translate(-50%,10px) scale(.8)}15%{opacity:1;transform:translate(-50%,0) scale(1.1)}25%{transform:translate(-50%,0) scale(1)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-16px)}}
@@ -161,10 +185,12 @@ body.nomoney .home-mon{display:none!important}
 
 <section class="view" id="v-home">
   <div class="top">
-    <div class="purse" id="purse"><span class="grow"><span class="st">⭐ <span class="nst">0</span></span> <span class="home-mon">&nbsp;💰 <span class="nmo">0</span></span><span class="hint home-mon" id="hint"></span></span></div>
     <button class="btn" id="whob" aria-label="Changer de profil">👤 <span id="whon"></span></button>
+    <span style="flex:1"></span>
     <button class="btn icon-btn" id="gear" aria-label="Paramètres">⚙️</button>
   </div>
+    <div class="purse" id="purse" style="flex:none"><span class="lines grow"><span class="l1"><span class="st">⭐ <span id="h-day">0</span></span> / <span id="h-goal">20</span> aujourd'hui</span><span class="minibar"><i id="h-bar"></i></span><span class="hint" id="hint"></span></span></div>
+
   <div class="mid">
     <h1 id="hello">Bonjour ! 👋</h1>
     <p class="sub">Choisis une matière</p>
@@ -223,7 +249,7 @@ body.nomoney .home-mon{display:none!important}
   </div>
 </section>
 
-<div id="play"><div class="bar"><button class="btn icon-btn" id="pback" aria-label="Retour">←</button><b id="ptitle"></b><span id="pstars">⭐ 0</span></div><iframe id="frame" allow="autoplay; publickey-credentials-get *; publickey-credentials-create *"></iframe></div>
+<div id="play"><div class="bar"><button class="btn icon-btn" id="pback" aria-label="Retour">←</button><b id="ptitle"></b><span id="eco"><span id="pdiff"></span><span id="pstreak" title="Série de bonnes réponses">🔥 0</span><span id="pgauge" title="Jauge : pleine = 1 étoile"><i></i></span></span><span id="pstars">⭐ 0</span></div><iframe id="frame" allow="autoplay; publickey-credentials-get *; publickey-credentials-create *"></iframe></div>
 
 <!-- Paramètres globaux : menu + pages thématiques -->
 <div class="sheet" id="settings" hidden><div class="panel" id="spanel">
@@ -256,11 +282,17 @@ body.nomoney .home-mon{display:none!important}
       <div class="mon pg" style="gap:12px">
         <label class="row"><span class="grow">Unité</span><input class="field" id="p-unit" maxlength="14" style="width:170px" placeholder="€"></label>
         <div class="muted">Exemples : €, points, minutes d'écran, bonbons…</div>
-        <div class="row"><input class="field num" id="p-per" type="number" inputmode="numeric" min="1" step="1"><span>⭐ =</span><input class="field num" id="p-gain" type="number" inputmode="decimal" min="0.01" step="0.5"><span id="p-unit3"></span></div>
+        <label class="row"><span class="grow">Maximum par semaine</span><input class="field num" id="p-cap" type="number" inputmode="decimal" min="0.5" step="0.5"><span id="p-unit3"></span></label>
+        <label class="row"><span class="grow">Objectif de jeu par jour</span><input class="field num" id="p-goal" type="number" inputmode="numeric" min="5" max="120" step="5"><span>min</span></label>
+        <div class="muted" id="p-rate"></div>
       </div>
     </div>
     <div class="card">
-      <h3>Étoiles</h3>
+      <h3>📊 Bilan</h3>
+      <div id="p-bilan"></div>
+    </div>
+    <div class="card">
+      <h3>Étoiles en attente</h3>
       <div class="big">⭐ <span id="p-st">0</span></div>
       <div class="row"><input class="field num" id="p-stv" type="number" inputmode="numeric" min="0" step="1" placeholder="0"><span class="grow muted">⭐</span>
         <button class="btn" id="p-stset">Définir</button><button class="btn danger" id="p-st0">Remettre à 0</button></div>
@@ -268,8 +300,7 @@ body.nomoney .home-mon{display:none!important}
     <div class="card mon">
       <h3>Récompense</h3>
       <div class="big" id="p-mo">0</div>
-      <button class="btn okb" id="p-conv">Convertir</button>
-      <div class="muted" id="p-convhint"></div>
+      <div class="muted">Chaque lundi, l'appli verse automatiquement la récompense de la semaine (dans la limite du maximum) ; les étoiles en trop sont gardées pour la semaine suivante.</div>
       <div class="row"><input class="field num" id="p-mov" type="number" inputmode="decimal" min="0" step="0.5" placeholder="0"><span class="grow muted" id="p-unit2"></span>
         <button class="btn" id="p-moset">Définir</button><button class="btn danger" id="p-mo0">Remettre à 0</button></div>
       <div class="row"><button class="btn grow" id="p-sub">− Retirer</button><button class="btn grow" id="p-add">+ Ajouter</button></div>
@@ -328,6 +359,12 @@ body.nomoney .home-mon{display:none!important}
   </div>
 </div></div>
 
+<!-- Bilan de la semaine (pour l'enfant) -->
+<div class="sheet" id="notice" hidden><div class="panel">
+  <div class="big">🎉</div><h2 id="nt-t" style="justify-content:center"></h2><div class="muted" id="nt-s" style="font-size:19px"></div>
+  <button class="btn okb" id="nt-ok" style="width:100%">Super !</button>
+</div></div>
+
 <!-- Saisie du code -->
 <div class="sheet" id="pin" hidden><div class="pinbox">
   <h3 id="pint">Code parent</h3>
@@ -338,16 +375,16 @@ body.nomoney .home-mon{display:none!important}
 
 <script>
 var GAMES={
- quique:{t:"Qui ou que ?",app:"francais",start:3,subj:"francais"},
- phrase:{t:"Complète la phrase",app:"francais",start:4,subj:"francais"},
- calcul:{t:"Calcul malin",app:"calcul",subj:"maths"},
- telephone:{t:"Le téléphone magique",app:"telephone",subj:"maths"},
- article:{t:"Der · Die · Das",app:"deutsch",start:1,subj:"allemand"},
- code:{t:"Le code secret",app:"code",subj:"logique"},
- robot:{t:"Le petit robot",app:"robot",subj:"logique"},
- note:{t:"Trouve la note",app:"musique",subj:"musique"},
+ quique:{t:"Qui ou que ?",app:"francais",start:3,subj:"francais",eco:"quique"},
+ phrase:{t:"Complète la phrase",app:"francais",start:4,subj:"francais",eco:"phrase"},
+ calcul:{t:"Calcul malin",app:"calcul",subj:"maths",eco:"calcul"},
+ telephone:{t:"Le téléphone magique",app:"telephone",subj:"maths",eco:"telephone"},
+ article:{t:"Der · Die · Das",app:"deutsch",start:1,subj:"allemand",eco:"dde"},
+ code:{t:"Le code secret",app:"code",subj:"logique",eco:"code"},
+ robot:{t:"Le petit robot",app:"robot",subj:"logique",eco:"robot"},
+ note:{t:"Trouve la note",app:"musique",subj:"musique",eco:"note"},
  morpion:{t:"Morpion",app:"morpion",subj:"jeux"},
- mot:{t:"Finde das Wort",app:"deutsch",start:2,subj:"allemand"}
+ mot:{t:"Finde das Wort",app:"deutsch",start:2,subj:"allemand",eco:"fdw"}
 };
 var $=function(i){return document.getElementById(i)};
 function ls(k,v){try{if(v===undefined)return localStorage.getItem(k)||"";localStorage.setItem(k,v)}catch(e){return ""}}
@@ -398,22 +435,70 @@ function saveCfg(){ls("rw_cfg",JSON.stringify(CFG))}
  PR={active:"p1",list:[{id:"p1",name:ls("hub_prenom")||"",reward:CFG.money!==false,unit:CFG.unit||"€",per:CFG.per||10,gain:CFG.gain||1,stars:W.stars||0,money:W.money||0}]};
  ["robot_lvl","robot_best"].forEach(function(k){var v=ls(k);if(v)ls(k+"@p1",v)});
  saveP()})();
-function prof(id){id=id||PR.active;for(var i=0;i<PR.list.length;i++)if(PR.list[i].id===id)return PR.list[i];PR.active=PR.list[0].id;return PR.list[0]}
+function prof0(id){id=id||PR.active;for(var i=0;i<PR.list.length;i++)if(PR.list[i].id===id)return PR.list[i];PR.active=PR.list[0].id;return PR.list[0]}
+function prof(id){var p=prof0(id);ensureEcon(p);return p}
 function pname(p){return p.name||"Sans prénom"}
 function r2(x){return Math.round(x*100)/100}
 function money(v,p){p=p||prof();return r2(v).toLocaleString("fr-FR")+" "+p.unit}
-function renderPurse(bump){var p=prof();
+/* ---------- Économie : séries 🔥, jauge ⭐, semaine et argent de poche ----------
+   Les jeux envoient {type:"answer", game, ok, diff, q} à chaque réponse.
+   Points = P(jeu) × difficulté × palier de série (×1, ×2 dès 5, ×3 dès 10) × qualité ; 10 points = 1 ⭐.
+   Barème : objectif (min/jour) × 7 jours ≈ autant d'étoiles = maximum €/semaine ; le surplus est reporté. */
+var ECON={P:{calcul:.7,telephone:.9,dde:.5,fdw:.5,quique:1.1,phrase:1.1,note:.5,code:7,robot:5},PTS:10};
+function tierOf(st){return st>=10?3:st>=5?2:1}
+function pad(n){return(n<10?"0":"")+n}
+function dkey(d){d=d||new Date();return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())}
+function monday(d){d=new Date(d||new Date());d.setHours(12,0,0,0);d.setDate(d.getDate()-((d.getDay()+6)%7));return dkey(d)}
+function addDays(k,n){var d=new Date(k+"T12:00:00");d.setDate(d.getDate()+n);return dkey(d)}
+function ensureEcon(p){if(p.goal==null)p.goal=20;if(p.cap==null)p.cap=3;if(!p.econ)p.econ={streak:0,gauge:0,days:{},weeks:[],wk:monday(),best:0};return p.econ}
+function target(p){return Math.max(1,Math.round(p.goal*7))}            // étoiles visées par semaine
+function eurOf(p,st){return Math.floor(Math.min(p.cap,st*p.cap/target(p))*10+1e-9)/10}
+function today(p){var E=ensureEcon(p),k=dkey();return E.days[k]||(E.days[k]={st:0,ok:0,tot:0,sec:0,best:0})}
+function weekSum(p,wk){var E=ensureEcon(p),r={st:0,ok:0,tot:0,sec:0,days:0,best:0};for(var n=0;n<7;n++){var d=E.days[addDays(wk,n)];if(d){r.st+=d.st;r.ok+=d.ok;r.tot+=d.tot;r.sec+=d.sec;if(d.tot||d.sec)r.days++;r.best=Math.max(r.best,d.best)}}return r}
+// passage à une nouvelle semaine : versement (plafonné) et report des étoiles en trop
+function rollWeek(p){var E=ensureEcon(p),now=monday();if(E.wk===now)return false;
+ var w=weekSum(p,E.wk),eur=p.reward?eurOf(p,p.stars):0,used=eur>0?Math.min(p.stars,Math.ceil(eur*target(p)/p.cap-1e-9)):0;
+ p.stars-=used;p.money=r2(p.money+eur);
+ E.weeks.unshift({w:E.wk,st:w.st,ok:w.ok,tot:w.tot,min:Math.round(w.sec/60),days:w.days,best:w.best,eur:eur,carry:p.stars});E.weeks=E.weeks.slice(0,26);
+ if(w.st||eur)E.notice={eur:eur,carry:p.stars,st:w.st,reward:p.reward};
+ E.wk=now;var lim=addDays(now,-70);Object.keys(E.days).forEach(function(k){if(k<lim)delete E.days[k]});return true}
+function rollAll(){var ch=false;PR.list.forEach(function(p){if(rollWeek(p))ch=true});if(ch)saveP()}
+function renderPurse(bump){var p=prof(),E=ensureEcon(p),d=today(p),w=weekSum(p,E.wk);
  document.body.classList.toggle("nomoney",!p.reward);
  document.querySelectorAll(".nst").forEach(function(e){e.textContent=p.stars});
- document.querySelectorAll(".nmo").forEach(function(e){e.textContent=money(p.money)});
  $("pstars").textContent="⭐ "+p.stars;
- var left=p.per-(p.stars%p.per);
- $("hint").textContent=p.stars>=p.per?"Demande à un parent de convertir tes étoiles !":"Encore "+left+" ⭐ pour gagner "+money(p.gain);
+ $("h-day").textContent=d.st;$("h-goal").textContent=p.goal;$("h-bar").style.width=Math.min(100,d.st/p.goal*100)+"%";
+ var carry=Math.max(0,p.stars-w.st);
+ $("hint").textContent=(d.st>=p.goal?"🎯 Objectif du jour atteint ! ":"")+"Semaine : ⭐ "+w.st+" / "+target(p)+(p.reward?" · ≈ "+money(eurOf(p,p.stars)):"")+(carry?" · +"+carry+" ⭐ gardées":"");
  $("whon").textContent=pname(p);
  $("hello").textContent=p.name?"Bonjour "+p.name+" ! 👋":"Bonjour ! 👋";
+ renderEco();
  if(bump){["pstars","purse"].forEach(function(id){var e=$(id);e.classList.remove("bump");void e.offsetWidth;e.classList.add("bump")})}}
-function addStars(n){n=Math.max(0,Math.min(20,parseInt(n)||0));if(!n)return;prof().stars+=n;saveP();renderPurse(true);
- var t=document.createElement("div");t.className="toast";t.textContent="+"+n+" ⭐";document.body.appendChild(t);setTimeout(function(){t.remove()},1500)}
+var lastDiff=1,lastAct=0;
+function renderEco(){var p=prof(),E=ensureEcon(p),t=tierOf(E.streak),g=GAMES[cur]&&ECON.P[GAMES[cur].eco]!=null;
+ $("eco").hidden=!g;var s=$("pstreak");
+ s.className=E.streak?(t===3?"t3":t===2?"t2":""):"off";
+ s.innerHTML=(t===3?"🔥🔥🔥":t===2?"🔥🔥":"🔥")+" "+E.streak+(t>1?'<span class="x">×'+t+"</span>":"");
+ $("pgauge").firstChild.style.width=Math.min(100,E.gauge/ECON.PTS*100)+"%";
+ $("pdiff").textContent=lastDiff>1?"⭐×"+String(r2(lastDiff)).replace(".",","):"";document.body.classList.toggle("ecoon",g)}
+function toast(txt,ms){var t=document.createElement("div");t.className="toast";t.textContent=txt;if(ms)t.style.animationDuration=ms+"ms";document.body.appendChild(t);setTimeout(function(){t.remove()},(ms||1400)+100)}
+function onAnswer(m){var p=prof(),E=ensureEcon(p),P=ECON.P[m.game];if(P==null)return;rollWeek(p);
+ var d=today(p),diff=Math.max(1,Math.min(3,+m.diff||1)),q=m.q==null?1:Math.max(0,Math.min(1,+m.q));lastDiff=diff;lastAct=Date.now();d.tot++;
+ if(m.ok){E.streak++;d.ok++;d.best=Math.max(d.best,E.streak);E.best=Math.max(E.best||0,E.streak);
+  var t=tierOf(E.streak);E.gauge=r2(E.gauge+P*diff*t*q);var n=0;while(E.gauge>=ECON.PTS){E.gauge=r2(E.gauge-ECON.PTS);n++}
+  if(E.streak===5)toast("🔥🔥 Série de 5 ! Tes étoiles vont 2 fois plus vite !",2600);
+  else if(E.streak===10)toast("🔥🔥🔥 Série de 10 ! 3 fois plus vite !",2600);
+  else if(n)toast("+"+n+" ⭐");
+  if(n){p.stars+=n;d.st+=n}saveP();renderPurse(n>0);var s=$("pstreak");s.classList.remove("pop");void s.offsetWidth;s.classList.add("pop")}
+ else{if(E.streak>=3)toast("💨 Série cassée… recommence une série !",1800);E.streak=0;saveP();renderEco()}}
+function addStars(n){onAnswer({game:"calcul",ok:true})} // ancien message {type:"stars"} (compatibilité)
+// temps de jeu : un jeu ouvert et une réponse dans les 90 dernières secondes
+setInterval(function(){if(!GAMES[cur]||document.hidden||Date.now()-lastAct>90000)return;today(prof()).sec+=15;saveP()},15000);
+// annonce du bilan à l'enfant
+function showNotice(){var p=prof(),E=ensureEcon(p),n=E.notice;if(!n||!$("notice").hidden)return;
+ $("nt-t").textContent=n.reward&&n.eur>0?"Cette semaine tu as gagné "+money(n.eur,p)+" !":"Cette semaine tu as gagné "+n.st+" ⭐ !";
+ $("nt-s").textContent=n.carry?n.carry+" ⭐ sont gardées pour la semaine prochaine.":"Bravo, continue comme ça !";
+ $("notice").hidden=false;$("nt-ok").onclick=function(){$("notice").hidden=true;delete E.notice;saveP()}}
 /* écran « Qui joue ? » : premier écran à l'ouverture */
 var AVC=["#22a861","#4a7cff","#ff5c7a","#9b6bff","#13a8a8","#ff8a3d"];
 function renderProfilScreen(){$("plist2").innerHTML=PR.list.map(function(p,i){var n=pname(p);return '<button class="ptile" data-who="'+p.id+'"><span class="av" style="background:'+AVC[i%AVC.length]+'">'+esc(n.charAt(0).toUpperCase())+'</span><span>'+esc(n)+'<small>⭐ '+p.stars+'</small></span></button>'}).join("");
@@ -496,11 +581,20 @@ function renderProfil(){var p=prof(EDIT);if(p.id!==EDIT)EDIT=p.id;
  var act=p.id===PR.active;$("p-use").hidden=act;$("p-active").hidden=!act;$("p-del").hidden=PR.list.length<2;
  $("pg-profil").classList.toggle("nomon",!p.reward);$("p-money").checked=p.reward;
  $("p-moneyst").textContent=p.reward?"Les étoiles peuvent être converties en récompense.":"Pas de récompense : ce profil gagne seulement des étoiles.";
- if(document.activeElement!==$("p-unit"))$("p-unit").value=p.unit;if(document.activeElement!==$("p-per"))$("p-per").value=p.per;if(document.activeElement!==$("p-gain"))$("p-gain").value=p.gain;
+ if(document.activeElement!==$("p-unit"))$("p-unit").value=p.unit;if(document.activeElement!==$("p-cap"))$("p-cap").value=p.cap;if(document.activeElement!==$("p-goal"))$("p-goal").value=p.goal;
+ $("p-rate").textContent=p.goal+" min/jour × 7 jours ≈ "+target(p)+" ⭐ = "+money(p.cap,p)+" par semaine (1 ⭐ ≈ "+money(p.cap/target(p),p)+"). Les séries et les niveaux difficiles font gagner plus vite.";renderBilan(p);
  $("p-unit2").textContent=$("p-unit3").textContent=p.unit;
  $("p-st").textContent=p.stars;$("p-mo").textContent=money(p.money,p);
- var lots=Math.floor(p.stars/p.per);$("p-conv").disabled=!lots;$("p-conv").textContent=lots?"Convertir "+lots*p.per+" ⭐ → "+money(lots*p.gain,p):"Convertir";
- $("p-convhint").textContent=lots?"":"Il faut au moins "+p.per+" ⭐ pour convertir.";renderPurse()}
+ renderPurse()}
+function fmtMin(sec){var m=Math.round(sec/60);return m+" min"}
+function acc(o,t){return t?Math.round(o/t*100)+" %":"—"}
+function renderBilan(p){var E=ensureEcon(p),w=weekSum(p,E.wk),d=today(p);
+ var h='<div class="muted">Aujourd\'hui : <b>'+d.st+" ⭐</b> · "+fmtMin(d.sec)+" · réussite "+acc(d.ok,d.tot)+" · meilleure série "+d.best+"</div>";
+ h+='<div class="muted">Cette semaine : <b>'+w.st+" ⭐</b> · "+w.days+" jour"+(w.days>1?"s":"")+" · "+fmtMin(w.sec)+" · réussite "+acc(w.ok,w.tot)+(p.reward?" · ≈ "+money(eurOf(p,p.stars),p)+" lundi":"")+"</div>";
+ if(E.weeks.length){h+='<table class="bil"><tr><th>Semaine du</th><th>Jours</th><th>Min</th><th>⭐</th><th>Réussite</th><th>Versé</th><th>Reportées</th></tr>';
+  E.weeks.slice(0,10).forEach(function(x){var dt=new Date(x.w+"T12:00:00");h+="<tr><td>"+dt.toLocaleDateString("fr-FR",{day:"numeric",month:"short"})+"</td><td>"+x.days+"</td><td>"+x.min+"</td><td>"+x.st+"</td><td>"+acc(x.ok,x.tot)+"</td><td>"+money(x.eur,p)+"</td><td>"+x.carry+"</td></tr>"});h+="</table>"}
+ else h+='<div class="muted">Le premier bilan arrivera lundi.</div>';
+ $("p-bilan").innerHTML=h}
 function E(){return prof(EDIT)}
 function upd(f){f(E());saveP();renderProfil()}
 $("p-name").oninput=function(){var v=this.value.trim().slice(0,20);upd(function(p){p.name=v})};
@@ -510,11 +604,10 @@ $("p-del").onclick=function(){var p=E();if(PR.list.length<2)return;if(!confirm("
 $("p-money").onchange=function(){var v=this.checked;upd(function(p){p.reward=v})};
 $("p-unit").oninput=function(){var v=this.value.trim();if(v)upd(function(p){p.unit=v})};
 $("p-unit").onblur=function(){if(!this.value.trim())this.value=E().unit};
-$("p-per").oninput=function(){var v=parseInt(this.value);if(v>=1)upd(function(p){p.per=v})};
-$("p-gain").oninput=function(){var v=parseFloat(String(this.value).replace(",","."));if(v>0)upd(function(p){p.gain=r2(v)})};
+$("p-cap").oninput=function(){var v=parseFloat(String(this.value).replace(",","."));if(v>0)upd(function(p){p.cap=r2(v)})};
+$("p-goal").oninput=function(){var v=parseInt(this.value);if(v>=5&&v<=120)upd(function(p){p.goal=v})};
 $("p-stset").onclick=function(){var v=parseInt($("p-stv").value);if(!(v>=0))return;$("p-stv").value="";upd(function(p){p.stars=Math.min(v,99999)})};
 $("p-st0").onclick=function(){if(!E().stars||!confirm("Remettre les étoiles à 0 ?"))return;upd(function(p){p.stars=0})};
-$("p-conv").onclick=function(){upd(function(p){var lots=Math.floor(p.stars/p.per);if(!lots)return;p.stars-=lots*p.per;p.money=r2(p.money+lots*p.gain)})};
 function amt(){var v=parseFloat(String($("p-mov").value).replace(",","."));return v>=0?r2(v):NaN}
 $("p-moset").onclick=function(){var v=amt();if(isNaN(v))return;$("p-mov").value="";upd(function(p){p.money=v})};
 $("p-mo0").onclick=function(){if(!E().money||!confirm("Remettre la récompense à 0 ?"))return;upd(function(p){p.money=0})};
@@ -589,11 +682,11 @@ function show(h){
  if(pendingReload&&!GAMES[h]){location.reload();return}
  document.querySelectorAll(".view").forEach(function(v){v.classList.remove("on")});
  renderPurse();
- if(GAMES[h]){var g=GAMES[h];$("v-"+g.subj).classList.add("on");$("ptitle").textContent=g.t;$("play").classList.add("on");var tok=++loadTok;setFrame(null);load(g.app).then(function(t){if(tok===loadTok)setFrame(src(g,t))},function(){if(tok===loadTok)setFrame("<p style=\"font:20px sans-serif;padding:20px\">Impossible de charger le jeu. Vérifie la connexion puis réessaie.</p>")});return}
+ if(GAMES[h]){var g=GAMES[h];ensureEcon(prof()).streak=0;lastDiff=1;$("v-"+g.subj).classList.add("on");$("ptitle").textContent=g.t;$("play").classList.add("on");var tok=++loadTok;setFrame(null);load(g.app).then(function(t){if(tok===loadTok)setFrame(src(g,t))},function(){if(tok===loadTok)setFrame("<p style=\"font:20px sans-serif;padding:20px\">Impossible de charger le jeu. Vérifie la connexion puis réessaie.</p>")});return}
  stopGame();
  ($("v-"+h)||$("v-home")).classList.add("on");
  if(h==="profil")renderProfilScreen();
- renderPurse()}
+ renderPurse();if(h==="")showNotice()}
 function go(h){if(h===cur)return;history.pushState({d:depth()+1,r:h},"",url(h));show(h)}
 function back(){if(OV.length){closeOv(OV[OV.length-1]);return}
  if(depth()>0){history.back();return}
@@ -617,9 +710,11 @@ $("pback").onclick=back;
 window.addEventListener("message",function(e){
  if(e.source!==$("frame").contentWindow)return;
  if(e.data==="hub-back")back();
+ else if(e.data&&e.data.type==="answer")onAnswer(e.data)
  else if(e.data&&e.data.type==="stars")addStars(e.data.n)});
 if(ls("bk_restored")){localStorage.removeItem("bk_restored");setTimeout(function(){var t=document.createElement("div");t.className="toast";t.style.animationDuration="4s";t.textContent="💾 Profils restaurés depuis config.json";document.body.appendChild(t);setTimeout(function(){t.remove()},4200)},400)}
 if(/[?&]maj=/.test(location.search)){try{history.replaceState(null,"",location.pathname+location.hash)}catch(e){}}
+rollAll();setInterval(function(){rollAll();if(cur==="")showNotice()},600000);
 (function init(){ // à l'ouverture : toujours l'écran « Qui joue ? » (racine de l'historique)
  history.replaceState({d:0,r:"profil"},"",url("profil"));show("profil")})();
 if("serviceWorker" in navigator){

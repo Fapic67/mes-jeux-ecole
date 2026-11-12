@@ -99,7 +99,8 @@ function loseS(){tone(330,0,.25,.18);tone(247,.25,.45,.18)}
 var voice=null;function pick(){try{voice=speechSynthesis.getVoices().filter(function(v){return /^fr/i.test(v.lang)})[0]||null}catch(e){}}
 if(window.speechSynthesis){pick();speechSynthesis.onvoiceschanged=pick}
 function say(t){try{if(!window.speechSynthesis)return;speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.lang="fr-FR";if(voice)u.voice=voice;u.rate=.9;speechSynthesis.speak(u)}catch(e){}}
-function star(n){try{if(parent!==window)parent.postMessage({type:"stars",n:n},"*")}catch(e){}}
+// Étoiles : code trouvé en 3 essais ou moins = série ; 4-5 essais = moitié moins ; difficulté selon le niveau
+function answer(ok,q){var d=[1,1.5,2][lvl]||1;try{if(parent!==window)parent.postMessage({type:"answer",game:"code",ok:ok,diff:d,q:q==null?1:q},"*")}catch(e){}}
 
 /* partie */
 function newGame(){
@@ -131,8 +132,8 @@ $("pal").addEventListener("click",function(e){var b=e.target.closest("button");i
 $("del").onclick=function(){if(over||!guess.length)return;tap();guess.pop();render()};
 $("ok").onclick=function(){
  if(over||guess.length<L.len)return;var r=score(guess);tries.push({g:guess,r:r});guess=[];
- if(r.g===L.len){over=true;winS();var n=tries.length;star(n<=3?5:3);msg("🎉 Bravo ! Trouvé en "+n+" essai"+(n>1?"s":"")+" !");say("Bravo ! Tu as trouvé le code secret !");end()}
- else if(tries.length>=MAXT){over=true;loseS();msg("Le code secret était :");say("Dommage ! Voici le code secret.");end()}
+ if(r.g===L.len){over=true;winS();var n=tries.length;if(n<=5)answer(true,n<=3?1:.6);else answer(false);msg("🎉 Bravo ! Trouvé en "+n+" essai"+(n>1?"s":"")+" !");say("Bravo ! Tu as trouvé le code secret !");end()}
+ else if(tries.length>=MAXT){over=true;answer(false);loseS();msg("Le code secret était :");say("Dommage ! Voici le code secret.");end()}
  else{tone(520,0,.12,.15);msg(r.g?"Continue, tu chauffes !":r.y?"Il y a de bons chiffres, mais pas à la bonne place.":"Aucun de ces chiffres. Essaie d'autres chiffres !")}
  render()};
 function end(){$("play").hidden=true;$("after").hidden=false}
