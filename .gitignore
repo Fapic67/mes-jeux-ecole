@@ -3,3 +3,8 @@
 *.jks
 *.apk
 *.aab
+android-natif/node_modules/
+android-natif/android/app/build/
+android-natif/android/build/
+android-natif/android/.gradle/
+android-natif/android/local.properties
