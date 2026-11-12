@@ -41,6 +41,7 @@ header{display:flex;justify-content:space-between;align-items:center;font-weight
 .opt{min-height:72px;border:3px solid var(--bd);background:var(--card);color:var(--fg);border-radius:20px;padding:10px 16px;text-align:left;font-size:22px;font-weight:700}
 .opt small{display:block;font-size:16px;font-weight:500;color:var(--mut)}
 .opt.on{border-color:var(--mu);background:var(--mu);color:#fff}.opt.on small{color:#fff}
+.btn:disabled{opacity:.5}
 [hidden]{display:none!important}
 </style>
 </head>
@@ -130,13 +131,15 @@ $("pills").addEventListener("click",function(e){var b=e.target.closest("button")
 function finish(){$("prog").style.width="100%";$("pills").hidden=true;$("end").hidden=false;$("title").textContent="🎶 "+song.t;
  msg(errs?"Tu as trouvé toutes les notes !":"Parfait, aucune erreur !");star(errs?3:5);
  si=(si+1)%SONGS.length;ls("mus_i",si);ls("mus_order",JSON.stringify(order));
- say("C'était "+song.t+" !");setTimeout(playSong,1600)}
-function playSong(){var my=++tk,beat=.5,t=0,k=0;playing=true;
+ say("C'était "+song.t+" !");lockReplay(true);var my=tk;setTimeout(function(){if(my===tk)playSong()},1600)}
+// « Réécouter » est bloqué tant que le morceau joue
+function lockReplay(on){var b=$("replay");b.disabled=on;b.textContent=on?"🎵 Écoute…":"▶ Réécouter"}
+function playSong(){if(playing&&tk)return;var my=++tk,beat=.5,t=0,k=0;playing=true;lockReplay(true);
  song.n.forEach(function(n){play(freq(n),t,n.d*beat*.95);t+=n.d*beat});
- (function hl(){if(my!==tk||k>=song.n.length){if(my===tk){playing=false;drawStaff(song.n,Math.max(0,song.n.length-WIN),-1,true)}return}
+ (function hl(){if(my!==tk||k>=song.n.length){if(my===tk){playing=false;lockReplay(false);drawStaff(song.n,Math.max(0,song.n.length-WIN),-1,true)}return}
   drawStaff(song.n,Math.max(0,k-WIN+1),k,true);var d=song.n[k].d*beat*1000;k++;setTimeout(hl,d)})()}
-$("replay").onclick=function(){ctx();playSong()};
-$("next").onclick=function(){tk++;startSong()};
+$("replay").onclick=function(){if(playing||this.disabled)return;ctx();playSong()};
+$("next").onclick=function(){tk++;playing=false;lockReplay(false);startSong()};
 /* réglages : clé principale */
 var CLE_TXT={sol:["Clé de sol","Notes aiguës"],fa:["Clé de fa","Notes graves"]};
 function opts(){$("opts").innerHTML=["sol","fa"].map(function(c){return '<button class="opt'+(c===cle?" on":"")+'" data-c="'+c+'">'+CLE_TXT[c][0]+"<small>"+CLE_TXT[c][1]+"</small></button>"}).join("")}

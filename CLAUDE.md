@@ -63,7 +63,7 @@ Cibles >= 56px, bordures 3px, textes secondaires >= 16px, menus centrés vertica
 
 ### Musique (`musique.html`)
 - **Trouve la note** : portée en clé de sol (SVG dessiné à la main), une note à la fois (fenêtre de 6 notes, notes trouvées en vert avec leur nom). L'enfant choisit parmi 7 pastilles do ré mi fa sol la si ; bonne réponse → la note est jouée (synthé façon piano WebAudio) ; mauvaise → pastille barrée.
-  Les notes forment un « morceau mystère » ; à la fin : titre révélé, voix « C'était … », morceau joué en entier avec la note en cours surlignée, boutons Réécouter / Morceau suivant.
+  Les notes forment un « morceau mystère » ; à la fin : titre révélé, voix « C'était … », morceau joué en entier avec la note en cours surlignée, boutons Réécouter / Morceau suivant (« Réécouter » désactivé, libellé « 🎵 Écoute… », tant que le morceau joue).
   Airs du domaine public uniquement (`SONGS`) : Au clair de la lune, Frère Jacques, Ah ! vous dirai-je maman, Joyeux anniversaire, Ode à la joie (do4 à ré5). Ordre aléatoire mémorisé (`mus_order`, `mus_i`). +5 ⭐ sans erreur, sinon +3 ⭐.
   Réglages ⚙️ dans le jeu : clé principale (clé `mus_cle` = `sol` par défaut ou `fa`). En clé de fa, les airs sont transposés d'une octave plus bas (do3 à ré4, affichage et son) ; `pos(n)` est relatif à la ligne du bas de la clé active (mi4 en sol, sol2 en fa). `window.hubBack` ferme les réglages.
 
