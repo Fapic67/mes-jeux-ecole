@@ -8,3 +8,4 @@ android-natif/android/app/build/
 android-natif/android/build/
 android-natif/android/.gradle/
 android-natif/android/local.properties
+!telechargement/mes-jeux-ecole.apk
