@@ -103,7 +103,13 @@ body.nomoney .home-mon{display:none!important}
 .menuitem::after{content:"›";margin-left:auto;font-size:30px;color:var(--soft)}
 .badge{display:inline-block;font-size:14px;font-weight:700;color:#fff;background:var(--ok);border-radius:999px;padding:2px 10px;margin-left:6px;vertical-align:middle}
 .pg{display:flex;flex-direction:column;gap:14px}
-#who .panel{gap:10px}
+/* Écran « Qui joue ? » */
+.ptile{display:flex;align-items:center;gap:16px;width:100%;min-height:92px;border:var(--bw) solid var(--line);background:var(--card);color:var(--ink);border-radius:26px;padding:12px 18px;font:700 26px "Fredoka",sans-serif;text-align:left;cursor:pointer;box-shadow:0 5px 0 var(--line)}
+.ptile:active{transform:translateY(3px);box-shadow:0 2px 0 var(--line)}
+.ptile small{display:block;font-size:18px;font-weight:600;color:var(--star)}
+.av{flex:none;width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:30px;font-weight:700}
+.ptile.new{border-style:dashed;box-shadow:none;color:var(--soft)}
+.ptile.new .av{background:var(--line);color:var(--ink)}
 #spanel{min-height:75%}
 #spanel h2{font-size:24px}
 #stitle{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -125,10 +131,24 @@ body.nomoney .home-mon{display:none!important}
 </head>
 <body>
 
+<section class="view" id="v-profil">
+  <div class="top"><span style="flex:1"></span><button class="btn icon-btn" id="gear2" aria-label="Paramètres">⚙️</button></div>
+  <div class="mid">
+    <h1>Qui joue ? 👋</h1>
+    <div id="plist2" class="pg"></div>
+    <button class="ptile new" id="pnew"><span class="av">+</span><span>Nouveau profil</span></button>
+    <div class="card" id="pform" hidden>
+      <h3>Nouveau profil</h3>
+      <input class="field" id="pfname" maxlength="20" placeholder="Prénom" autocomplete="off">
+      <div class="row"><button class="btn grow" id="pfcancel">Annuler</button><button class="btn okb grow" id="pfok">Créer</button></div>
+    </div>
+  </div>
+</section>
+
 <section class="view" id="v-home">
   <div class="top">
     <div class="purse" id="purse"><span class="grow"><span class="st">⭐ <span class="nst">0</span></span> <span class="home-mon">&nbsp;💰 <span class="nmo">0</span></span><span class="hint home-mon" id="hint"></span></span></div>
-    <button class="btn" id="whob" hidden aria-label="Changer de profil">👤 <span id="whon"></span></button>
+    <button class="btn" id="whob" aria-label="Changer de profil">👤 <span id="whon"></span></button>
     <button class="btn icon-btn" id="gear" aria-label="Paramètres">⚙️</button>
   </div>
   <div class="mid">
@@ -262,12 +282,6 @@ body.nomoney .home-mon{display:none!important}
   </div>
 </div></div>
 
-<!-- Choix du profil (accueil) -->
-<div class="sheet" id="who" hidden><div class="panel">
-  <h2>Qui joue ?</h2>
-  <div id="wholist" class="pg"></div>
-</div></div>
-
 <!-- Saisie du code -->
 <div class="sheet" id="pin" hidden><div class="pinbox">
   <h3 id="pint">Code parent</h3>
@@ -316,15 +330,24 @@ function renderPurse(bump){var p=prof();
  $("pstars").textContent="⭐ "+p.stars;
  var left=p.per-(p.stars%p.per);
  $("hint").textContent=p.stars>=p.per?"Demande à un parent de convertir tes étoiles !":"Encore "+left+" ⭐ pour gagner "+money(p.gain);
- $("whob").hidden=PR.list.length<2;$("whon").textContent=pname(p);
+ $("whon").textContent=pname(p);
  $("hello").textContent=p.name?"Bonjour "+p.name+" ! 👋":"Bonjour ! 👋";
  if(bump){["pstars","purse"].forEach(function(id){var e=$(id);e.classList.remove("bump");void e.offsetWidth;e.classList.add("bump")})}}
 function addStars(n){n=Math.max(0,Math.min(20,parseInt(n)||0));if(!n)return;prof().stars+=n;saveP();renderPurse(true);
  var t=document.createElement("div");t.className="toast";t.textContent="+"+n+" ⭐";document.body.appendChild(t);setTimeout(function(){t.remove()},1500)}
-/* choix du profil depuis l'accueil (sans code) */
-function renderWho(){$("wholist").innerHTML=PR.list.map(function(p){return '<button class="menuitem" data-who="'+p.id+'"><span class="ic">👤</span><span>'+esc(pname(p))+(p.id===PR.active?'<span class="badge">en ce moment</span>':'')+'<small>⭐ '+p.stars+(p.reward?" · 💰 "+money(p.money,p):"")+'</small></span></button>'}).join("")}
-$("whob").onclick=function(){renderWho();openOv("who")};
-$("wholist").addEventListener("click",function(e){var b=e.target.closest("[data-who]");if(!b)return;PR.active=b.dataset.who;saveP();renderPurse();closeOv("who")});
+/* écran « Qui joue ? » : premier écran à l'ouverture */
+var AVC=["#22a861","#4a7cff","#ff5c7a","#9b6bff","#13a8a8","#ff8a3d"];
+function renderProfilScreen(){$("plist2").innerHTML=PR.list.map(function(p,i){var n=pname(p);return '<button class="ptile" data-who="'+p.id+'"><span class="av" style="background:'+AVC[i%AVC.length]+'">'+esc(n.charAt(0).toUpperCase())+'</span><span>'+esc(n)+'<small>⭐ '+p.stars+'</small></span></button>'}).join("");
+ $("pform").hidden=true;$("pnew").hidden=false}
+$("plist2").addEventListener("click",function(e){var b=e.target.closest("[data-who]");if(!b)return;PR.active=b.dataset.who;saveP();go("")});
+$("pnew").onclick=function(){$("pnew").hidden=true;$("pform").hidden=false;$("pfname").value="";setTimeout(function(){$("pfname").focus()},50)};
+$("pfcancel").onclick=function(){$("pform").hidden=true;$("pnew").hidden=false};
+function createProfile(){var n=$("pfname").value.trim().slice(0,20);if(!n){$("pfname").focus();return}
+ var id="p"+Date.now().toString(36);PR.list.push({id:id,name:n,reward:true,unit:"€",per:10,gain:1,stars:0,money:0});PR.active=id;saveP();go("")}
+$("pfok").onclick=createProfile;
+$("pfname").addEventListener("keydown",function(e){if(e.key==="Enter")createProfile()});
+// bouton « 👤 Prénom » de l'accueil : retour à l'écran « Qui joue ? »
+$("whob").onclick=function(){if(depth()>0)history.go(-depth());else{history.replaceState({d:0,r:"profil"},"",url("profil"));show("profil")}};
 function esc(t){return String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;")}
 
 /* ---------- Code parent ---------- */
@@ -413,7 +436,7 @@ $("s-upd").onclick=function(){var b=this,st=$("s-updst");b.disabled=true;st.text
   return Promise.all(jobs).then(function(){location.replace(location.pathname+"?maj="+Date.now())})
  }).catch(function(){b.disabled=false;st.textContent="⚠️ Pas de connexion internet : réessaie quand tu es en ligne."})};
 function openSettings(already){PG=[];renderPage();if(!already)openOv("settings")}
-$("gear").onclick=function(){checkCode(openSettings)};
+$("gear").onclick=$("gear2").onclick=function(){checkCode(openSettings)};
 $("sclose").onclick=function(){var i=OV.indexOf("settings");if(i<0)return;var n=OV.length-i;
  if(history.state&&history.state.ov===OV[OV.length-1]){history.go(-n)}else{while(OV.length>i)hideOv(OV.pop())}};
 $("s-pin").onclick=function(){newCode(renderCode)};
@@ -430,7 +453,7 @@ function setFrame(html){var old=$("frame"),f=document.createElement("iframe");f.
 function stopGame(){loadTok++;var f=$("frame");try{f.contentWindow&&f.contentWindow.speechSynthesis&&f.contentWindow.speechSynthesis.cancel()}catch(e){}if(f.hasAttribute("srcdoc"))setFrame(null);$("play").classList.remove("on")}
 /* ---------- Navigation (historique : bouton retour du téléphone = bouton retour de l'appli) ---------- */
 var cur=null,pendingReload=false;
-function parentOf(h){return GAMES[h]?GAMES[h].subj:""}
+function parentOf(h){return GAMES[h]?GAMES[h].subj:h===""||h==="profil"?"profil":""}
 function depth(){return(history.state&&history.state.d)||0}
 function url(h){return h?"#"+h:location.pathname+location.search}
 function show(h){
@@ -441,13 +464,14 @@ function show(h){
  if(GAMES[h]){var g=GAMES[h];$("v-"+g.subj).classList.add("on");$("ptitle").textContent=g.t;$("play").classList.add("on");var tok=++loadTok;setFrame(null);load(g.app).then(function(t){if(tok===loadTok)setFrame(src(g,t))},function(){if(tok===loadTok)setFrame("<p style=\"font:20px sans-serif;padding:20px\">Impossible de charger le jeu. Vérifie la connexion puis réessaie.</p>")});return}
  stopGame();
  ($("v-"+h)||$("v-home")).classList.add("on");
+ if(h==="profil")renderProfilScreen();
  renderPurse()}
 function go(h){if(h===cur)return;history.pushState({d:depth()+1,r:h},"",url(h));show(h)}
 function back(){if(OV.length){closeOv(OV[OV.length-1]);return}
  if(depth()>0){history.back();return}
- var p=parentOf(cur);if(p===cur||cur===""){return}history.replaceState({d:0,r:p},"",url(p));show(p)}
+ var p=parentOf(cur);if(p===cur){return}history.replaceState({d:0,r:p},"",url(p));show(p)}
 /* fenêtres (paramètres, code) : le retour les ferme d'abord */
-var OV=[],ovCb=null,OVEL={settings:"settings",pin:"pin",who:"who"};
+var OV=[],ovCb=null,OVEL={settings:"settings",pin:"pin"};
 function hideOv(n){if(n.indexOf("pg")===0){PG.pop();renderPage();return}$(OVEL[n]).hidden=true;if(n==="settings")renderPurse();if(n==="pin")pinCb=null}
 function openOv(n){$(OVEL[n]).hidden=false;OV.push(n);history.pushState({d:depth()+1,r:cur,ov:n},"",location.href)}
 function closeOv(n,cb){if(OV[OV.length-1]===n&&history.state&&history.state.ov===n){ovCb=cb||null;history.back()}else{OV=OV.filter(function(x){return x!==n});hideOv(n);cb&&cb()}}
@@ -467,10 +491,8 @@ window.addEventListener("message",function(e){
  if(e.data==="hub-back")back();
  else if(e.data&&e.data.type==="stars")addStars(e.data.n)});
 if(/[?&]maj=/.test(location.search)){try{history.replaceState(null,"",location.pathname+location.hash)}catch(e){}}
-(function init(){ // reconstruit Accueil → Matière → Jeu si l'appli est ouverte sur un lien profond
- var h=location.hash.replace("#",""),chain=[""];if(GAMES[h])chain.push(GAMES[h].subj,h);else if(h&&$("v-"+h))chain.push(h);
- history.replaceState({d:0,r:""},"",url(""));for(var k=1;k<chain.length;k++)history.pushState({d:k,r:chain[k]},"",url(chain[k]));
- show(chain[chain.length-1])})();
+(function init(){ // à l'ouverture : toujours l'écran « Qui joue ? » (racine de l'historique)
+ history.replaceState({d:0,r:"profil"},"",url("profil"));show("profil")})();
 if("serviceWorker" in navigator){
  // Nouvelle version installée : on recharge une fois, sauf pendant une partie
  var hadSW=!!navigator.serviceWorker.controller,reloaded=false;
