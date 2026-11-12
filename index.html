@@ -316,6 +316,7 @@ body.nomoney .home-mon{display:none!important}
       <div class="muted" id="bk-st"></div>
     </div>
     <div class="muted" id="bk-persist"></div>
+    <div class="card" id="bk-autocard" hidden><h3>Sauvegarde automatique</h3><div class="muted" id="bk-auto"></div></div>
   </div>
 
   <div class="pg" id="pg-app" hidden>
@@ -353,9 +354,42 @@ function ls(k,v){try{if(v===undefined)return localStorage.getItem(k)||"";localSt
 function lj(k,d){try{return JSON.parse(localStorage.getItem(k))||d}catch(e){return d}}
 
 /* ---------- Profils et récompenses ---------- */
+/* ---------- Appli Android (Capacitor) : voix, sauvegarde automatique, bouton retour ----------
+   Ne s'active que dans l'appli Android ; dans Brave/Chrome rien ne change. */
+var NATIVE=!!(window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform());
+function plug(n){try{return(Capacitor.Plugins&&Capacitor.Plugins[n])||Capacitor.registerPlugin(n)}catch(e){return null}}
+var FS=NATIVE?plug("Filesystem"):null,CAPP=NATIVE?plug("App"):null,CFG_FILE="MesJeuxEcole/config.json";
+var FRESH=!localStorage.getItem("profiles");   // données vides au démarrage (premier lancement ou données effacées)
+if(NATIVE)(function(){ // synthèse vocale d'Android à la place de speechSynthesis (absent des WebView)
+ var T=plug("TextToSpeech");if(!T)return;var q=[],curU=null;
+ function Utt(t){this.text=t==null?"":String(t);this.lang="";this.rate=1;this.pitch=1;this.volume=1;this.voice=null;this.onstart=this.onend=this.onerror=this.onboundary=null}
+ var VO=[{name:"Android Deutsch",lang:"de-DE",voiceURI:"de-DE",localService:true,default:false},{name:"Android Français",lang:"fr-FR",voiceURI:"fr-FR",localService:true,default:true}];
+ var S={speaking:false,pending:false,paused:false,onvoiceschanged:null,getVoices:function(){return VO.slice()},
+  speak:function(u){q.push(u);S.pending=!!curU;next()},
+  cancel:function(){var c=curU;q=[];curU=null;S.speaking=S.pending=false;if(c){c._x=1;try{T.stop()}catch(e){}try{c.onerror&&c.onerror({error:"interrupted",utterance:c})}catch(e){}}},
+  pause:function(){},resume:function(){},addEventListener:function(){},removeEventListener:function(){}};
+ function next(){if(curU||!q.length)return;var u=curU=q.shift();S.speaking=true;S.pending=q.length>0;
+  try{u.onstart&&u.onstart({utterance:u})}catch(e){}
+  T.speak({text:u.text,lang:u.lang||(u.voice&&u.voice.lang)||"fr-FR",rate:Math.max(.2,Math.min(2,u.rate||1)),pitch:u.pitch||1,volume:u.volume==null?1:u.volume,category:"playback"})
+   .then(function(){if(u._x)return;curU=null;S.speaking=false;try{u.onend&&u.onend({utterance:u})}catch(e){}next()},
+         function(){if(u._x)return;curU=null;S.speaking=false;try{u.onerror&&u.onerror({error:"synthesis-failed",utterance:u})}catch(e){}next()})}
+ window.NATIVE_TTS={synth:S,Utt:Utt};
+ try{Object.defineProperty(window,"speechSynthesis",{value:S,configurable:true,writable:true})}catch(e){}window.SpeechSynthesisUtterance=Utt})();
+// sauvegarde automatique : Documents/MesJeuxEcole/config.json, réécrit dès qu'une donnée change
+var lastAuto="";
+function autoData(){var d={};for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k.indexOf("bk_")!==0)d[k]=localStorage.getItem(k)}return d}
+function autoSave(){if(!FS)return;var d=autoData(),cmp=JSON.stringify(d);if(cmp===lastAuto||!d.profiles)return;lastAuto=cmp;
+ FS.writeFile({path:CFG_FILE,data:JSON.stringify({app:"mes-jeux-ecole",date:new Date().toISOString(),data:d}),directory:"DOCUMENTS",encoding:"utf8",recursive:true})
+  .then(function(){localStorage.setItem("bk_auto",String(Date.now()));localStorage.removeItem("bk_auto_err")},function(e){lastAuto="";localStorage.setItem("bk_auto_err",String((e&&e.message)||e))})}
+if(FS){
+ try{FS.checkPermissions().then(function(p){if(p&&p.publicStorage!=="granted")return FS.requestPermissions()}).catch(function(){})}catch(e){}
+ if(FRESH){ // données vides : on relit le fichier de configuration s'il existe
+  FS.readFile({path:CFG_FILE,directory:"DOCUMENTS",encoding:"utf8"}).then(function(r){var o=JSON.parse(r.data);
+   if(o&&o.app==="mes-jeux-ecole"&&o.data&&o.data.profiles){localStorage.clear();Object.keys(o.data).forEach(function(k){localStorage.setItem(k,String(o.data[k]))});localStorage.setItem("bk_restored",o.date||"1");location.reload()}}).catch(function(){})}
+ setInterval(autoSave,10000);document.addEventListener("visibilitychange",function(){if(document.hidden)autoSave()});window.addEventListener("pagehide",autoSave)}
 var CFG=lj("rw_cfg",{});CFG.pin=CFG.pin||"";            // réglages globaux : code parent
 var PR=lj("profiles",null);
-function saveP(){ls("profiles",JSON.stringify(PR))}
+function saveP(){ls("profiles",JSON.stringify(PR));if(FS)setTimeout(autoSave,500)}
 function saveCfg(){ls("rw_cfg",JSON.stringify(CFG))}
 (function migrate(){ // ancienne cagnotte unique (rw, rw_cfg, hub_prenom) -> premier profil
  if(PR&&PR.list&&PR.list.length)return;
@@ -429,9 +463,11 @@ $("sback").onclick=function(){back()};
 /* ---------- Sauvegarde dans un fichier ---------- */
 // Toutes les données de l'appli sont dans le localStorage du site : on les exporte telles quelles.
 function backupData(){var d={};for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);d[k]=localStorage.getItem(k)}return d}
-function renderSave(){var t=ls("bk_last");$("bk-last").textContent=t?"Dernière sauvegarde : "+new Date(+t).toLocaleString("fr-FR"):"Aucune sauvegarde pour l'instant.";$("bk-st").textContent="";
+function renderSave(){$("bk-autocard").hidden=!NATIVE;if(NATIVE){var a=ls("bk_auto"),er=ls("bk_auto_err");$("bk-auto").textContent="✅ Activée : fichier Documents/MesJeuxEcole/config.json, mis à jour tout seul à chaque changement et relu si les données de l'appli sont effacées. "+(a?"Dernière écriture : "+new Date(+a).toLocaleString("fr-FR")+".":"")+(er?" ⚠️ Erreur : "+er:"")}
+var t=ls("bk_last");$("bk-last").textContent=t?"Dernière sauvegarde : "+new Date(+t).toLocaleString("fr-FR"):"Aucune sauvegarde pour l'instant.";$("bk-st").textContent="";
  $("bk-persist").textContent="";if(navigator.storage&&navigator.storage.persisted)navigator.storage.persisted().then(function(p){$("bk-persist").textContent=p?"🔒 Le navigateur ne peut pas effacer ces données tout seul.":"ℹ️ Le navigateur peut effacer ces données s'il manque de place : pense à sauvegarder."})}
 $("bk-save").onclick=function(){var now=new Date(),day=now.toISOString().slice(0,10);
+ if(FS){var nm="MesJeuxEcole/sauvegarde-"+day+".json";FS.writeFile({path:nm,data:JSON.stringify({app:"mes-jeux-ecole",date:now.toISOString(),data:backupData()},null,1),directory:"DOCUMENTS",encoding:"utf8",recursive:true}).then(function(){ls("bk_last",String(now.getTime()));renderSave();$("bk-st").textContent="✅ Enregistré : Documents/"+nm},function(e){$("bk-st").textContent="⚠️ "+((e&&e.message)||e)});return}
  var blob=new Blob([JSON.stringify({app:"mes-jeux-ecole",date:now.toISOString(),data:backupData()},null,1)],{type:"application/json"});
  var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="mes-jeux-ecole-sauvegarde-"+day+".json";document.body.appendChild(a);a.click();
  setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},1500);ls("bk_last",String(now.getTime()));renderSave();$("bk-st").textContent=""};
@@ -445,6 +481,8 @@ $("bk-file").onchange=function(){var f=this.files&&this.files[0];if(!f)return;va
   try{localStorage.clear();Object.keys(o.data).forEach(function(k){localStorage.setItem(k,String(o.data[k]))})}catch(e){$("bk-st").textContent="⚠️ Restauration impossible : "+e.message;return}
   location.replace(location.pathname)};
  r.readAsText(f)};
+// bouton retour d'Android dans l'appli : même comportement que la flèche ←, quitte depuis « Qui joue ? »
+if(CAPP)try{CAPP.addListener("backButton",function(){if(!OV.length&&depth()===0&&cur==="profil")CAPP.exitApp();else back()})}catch(e){}
 // Demande au navigateur de ne pas effacer les données de l'appli tout seul (manque de place)
 try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persisted().then(function(p){if(!p)navigator.storage.persist()})}catch(e){}
 
@@ -536,7 +574,7 @@ $("s-nopin").onclick=function(){if(confirm("Remettre le code par défaut 0000 ?"
 var cache={},loadTok=0;
 function load(app){return cache[app]||(cache[app]=fetch("jeux/"+app+".html").then(function(r){if(!r.ok)throw new Error(r.status);return r.text()}).catch(function(e){delete cache[app];throw e}))}
 function src(g,h){
- var pre="<script>window.START="+(g.start||0)+";window.PRENOM="+JSON.stringify(prof().name).replace(/</g,"\\u003c")+";window.PROFILE="+JSON.stringify(prof().id)+"<\/script>";
+ var pre="<script>window.START="+(g.start||0)+";window.PRENOM="+JSON.stringify(prof().name).replace(/</g,"\\u003c")+";window.PROFILE="+JSON.stringify(prof().id)+";if(parent.NATIVE_TTS){try{Object.defineProperty(window,\"speechSynthesis\",{value:parent.NATIVE_TTS.synth,configurable:true,writable:true})}catch(e){}window.SpeechSynthesisUtterance=parent.NATIVE_TTS.Utt}<\/script>";
  return h.replace("<head>","<head>"+pre)}
 // Un nouvel iframe à chaque fois : modifier src/srcdoc d'un iframe existant ajouterait une entrée d'historique
 function setFrame(html){var old=$("frame"),f=document.createElement("iframe");f.id="frame";f.setAttribute("allow",old.getAttribute("allow"));if(html!=null)f.srcdoc=html;old.replaceWith(f);return f}
@@ -580,6 +618,7 @@ window.addEventListener("message",function(e){
  if(e.source!==$("frame").contentWindow)return;
  if(e.data==="hub-back")back();
  else if(e.data&&e.data.type==="stars")addStars(e.data.n)});
+if(ls("bk_restored")){localStorage.removeItem("bk_restored");setTimeout(function(){var t=document.createElement("div");t.className="toast";t.style.animationDuration="4s";t.textContent="💾 Profils restaurés depuis config.json";document.body.appendChild(t);setTimeout(function(){t.remove()},4200)},400)}
 if(/[?&]maj=/.test(location.search)){try{history.replaceState(null,"",location.pathname+location.hash)}catch(e){}}
 (function init(){ // à l'ouverture : toujours l'écran « Qui joue ? » (racine de l'historique)
  history.replaceState({d:0,r:"profil"},"",url("profil"));show("profil")})();

@@ -28,6 +28,15 @@ Historique géré dans `index.html` (`go` = pushState, `back` = history.back si 
 ## Sauvegarde
 Paramètres → 💾 Sauvegarde : « Sauvegarder dans un fichier » télécharge `mes-jeux-ecole-sauvegarde-AAAA-MM-JJ.json` = `{app:"mes-jeux-ecole", date, data:{tout le localStorage}}` ; « Restaurer » relit ce fichier (vérifie `app`, confirmation avec les prénoms), vide le localStorage, réécrit les clés puis recharge. `bk_last` = date de la dernière sauvegarde. Au démarrage, `navigator.storage.persist()` est demandé pour éviter l'effacement automatique. Une appli web ne peut pas écrire seule dans les fichiers du téléphone : la sauvegarde est toujours à la demande.
 
+## Appli Android native (Capacitor)
+- Projet dans `android-natif/` (Capacitor 8, `server.url` = le site GitHub Pages : les jeux se mettent à jour sans nouvel APK). Paquet `io.github.fapic67.jeuxecole`, version 2.0.0 (versionCode 2), signé avec la même clé que l'ancien APK TWA (clé privée NON versionnée).
+- Plugins : `@capacitor/filesystem`, `@capacitor/app`, `@capacitor-community/text-to-speech`. Dans `index.html`, bloc « Appli Android » actif seulement si `Capacitor.isNativePlatform()` :
+  - remplace `speechSynthesis`/`SpeechSynthesisUtterance` par la synthèse d'Android (`window.NATIVE_TTS`, injecté aussi dans chaque jeu via le script de démarrage de l'iframe) ;
+  - sauvegarde automatique `Documents/MesJeuxEcole/config.json` (toutes les clés sauf `bk_*`), réécrite à chaque changement (toutes les 10 s, à la mise en arrière-plan, après chaque `saveP`) ; si `profiles` est absent au démarrage, relit ce fichier, restaure et recharge (toast « Profils restaurés ») ;
+  - bouton retour Android = `back()`, quitte l'appli depuis « Qui joue ? » ;
+  - « Sauvegarder dans un fichier » écrit `Documents/MesJeuxEcole/sauvegarde-AAAA-MM-JJ.json`.
+- Compiler : voir `android-natif/README.md`.
+
 ## Mise à jour
 Paramètres → carte « Application » : affiche la version en cache (`jeux-ecole-vXX`) et un bouton « Mettre à jour maintenant » qui vérifie la connexion (fetch `sw.js` no-store), supprime les caches, désinscrit le service worker puis recharge. Le localStorage (étoiles, réglages) est conservé.
 
