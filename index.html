@@ -284,7 +284,8 @@ body.nomoney .home-mon{display:none!important}
         <div class="muted">Exemples : €, points, minutes d'écran, bonbons…</div>
         <label class="row"><span class="grow">Maximum par semaine</span><input class="field num" id="p-cap" type="number" inputmode="decimal" min="0.5" step="0.5"><span id="p-unit3"></span></label>
         <label class="row"><span class="grow">Objectif de jeu par jour</span><input class="field num" id="p-goal" type="number" inputmode="numeric" min="5" max="120" step="5"><span>min</span></label>
-        <div class="muted" id="p-rate"></div>
+        <label class="row"><span class="grow">Étoiles pour 1 <span id="p-unit4">€</span></span><input class="field num" id="p-rate" type="number" inputmode="numeric" min="5" max="500" step="5"></label>
+        <div class="muted" id="p-ratetxt"></div>
       </div>
     </div>
     <div class="card">
@@ -439,7 +440,7 @@ function prof0(id){id=id||PR.active;for(var i=0;i<PR.list.length;i++)if(PR.list[
 function prof(id){var p=prof0(id);ensureEcon(p);return p}
 function pname(p){return p.name||"Sans prénom"}
 function r2(x){return Math.round(x*100)/100}
-function money(v,p){p=p||prof();return r2(v).toLocaleString("fr-FR")+" "+p.unit}
+function money(v,p){p=p||prof();v=r2(v);return v.toLocaleString("fr-FR",v%1?{minimumFractionDigits:2,maximumFractionDigits:2}:{})+" "+p.unit}
 /* ---------- Économie : séries 🔥, jauge ⭐, semaine et argent de poche ----------
    Les jeux envoient {type:"answer", game, ok, diff, q} à chaque réponse.
    Points = P(jeu) × difficulté × palier de série (×1, ×2 dès 5, ×3 dès 10) × qualité ; 10 points = 1 ⭐.
@@ -450,14 +451,14 @@ function pad(n){return(n<10?"0":"")+n}
 function dkey(d){d=d||new Date();return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())}
 function monday(d){d=new Date(d||new Date());d.setHours(12,0,0,0);d.setDate(d.getDate()-((d.getDay()+6)%7));return dkey(d)}
 function addDays(k,n){var d=new Date(k+"T12:00:00");d.setDate(d.getDate()+n);return dkey(d)}
-function ensureEcon(p){if(p.goal==null)p.goal=20;if(p.cap==null)p.cap=3;if(!p.econ)p.econ={streak:0,gauge:0,days:{},weeks:[],wk:monday(),best:0};return p.econ}
-function target(p){return Math.max(1,Math.round(p.goal*7))}            // étoiles visées par semaine
-function eurOf(p,st){return Math.floor(Math.min(p.cap,st*p.cap/target(p))*10+1e-9)/10}
+function ensureEcon(p){if(p.goal==null)p.goal=20;if(p.cap==null)p.cap=3;if(p.rate==null)p.rate=50;if(!p.econ)p.econ={streak:0,gauge:0,days:{},weeks:[],wk:monday(),best:0};return p.econ}
+function target(p){return Math.max(1,Math.round(p.rate*p.cap))}          // étoiles pour atteindre le maximum de la semaine (taux × maximum)
+function eurOf(p,st){return Math.floor(Math.min(p.cap,st/p.rate)*10+1e-9)/10}
 function today(p){var E=ensureEcon(p),k=dkey();return E.days[k]||(E.days[k]={st:0,ok:0,tot:0,sec:0,best:0})}
 function weekSum(p,wk){var E=ensureEcon(p),r={st:0,ok:0,tot:0,sec:0,days:0,best:0};for(var n=0;n<7;n++){var d=E.days[addDays(wk,n)];if(d){r.st+=d.st;r.ok+=d.ok;r.tot+=d.tot;r.sec+=d.sec;if(d.tot||d.sec)r.days++;r.best=Math.max(r.best,d.best)}}return r}
 // passage à une nouvelle semaine : versement (plafonné) et report des étoiles en trop
 function rollWeek(p){var E=ensureEcon(p),now=monday();if(E.wk===now)return false;
- var w=weekSum(p,E.wk),eur=p.reward?eurOf(p,p.stars):0,used=eur>0?Math.min(p.stars,Math.ceil(eur*target(p)/p.cap-1e-9)):0;
+ var w=weekSum(p,E.wk),eur=p.reward?eurOf(p,p.stars):0,used=eur>0?Math.min(p.stars,Math.ceil(eur*p.rate-1e-9)):0;
  p.stars-=used;p.money=r2(p.money+eur);
  E.weeks.unshift({w:E.wk,st:w.st,ok:w.ok,tot:w.tot,min:Math.round(w.sec/60),days:w.days,best:w.best,eur:eur,carry:p.stars});E.weeks=E.weeks.slice(0,26);
  if(w.st||eur)E.notice={eur:eur,carry:p.stars,st:w.st,reward:p.reward};
@@ -582,7 +583,8 @@ function renderProfil(){var p=prof(EDIT);if(p.id!==EDIT)EDIT=p.id;
  $("pg-profil").classList.toggle("nomon",!p.reward);$("p-money").checked=p.reward;
  $("p-moneyst").textContent=p.reward?"Les étoiles peuvent être converties en récompense.":"Pas de récompense : ce profil gagne seulement des étoiles.";
  if(document.activeElement!==$("p-unit"))$("p-unit").value=p.unit;if(document.activeElement!==$("p-cap"))$("p-cap").value=p.cap;if(document.activeElement!==$("p-goal"))$("p-goal").value=p.goal;
- $("p-rate").textContent=p.goal+" min/jour × 7 jours ≈ "+target(p)+" ⭐ = "+money(p.cap,p)+" par semaine (1 ⭐ ≈ "+money(p.cap/target(p),p)+"). Les séries et les niveaux difficiles font gagner plus vite.";renderBilan(p);
+ if(document.activeElement!==$("p-rate"))$("p-rate").value=p.rate;$("p-unit4").textContent=p.unit;
+ $("p-ratetxt").textContent=p.rate+" ⭐ = 1 "+p.unit+" · maximum "+money(p.cap,p)+" par semaine, atteint avec "+target(p)+" ⭐ (≈ "+Math.round(target(p)/7)+" ⭐ par jour). Les séries et les niveaux difficiles font gagner plus vite ; les étoiles en trop sont reportées.";renderBilan(p);
  $("p-unit2").textContent=$("p-unit3").textContent=p.unit;
  $("p-st").textContent=p.stars;$("p-mo").textContent=money(p.money,p);
  renderPurse()}
@@ -606,6 +608,7 @@ $("p-unit").oninput=function(){var v=this.value.trim();if(v)upd(function(p){p.un
 $("p-unit").onblur=function(){if(!this.value.trim())this.value=E().unit};
 $("p-cap").oninput=function(){var v=parseFloat(String(this.value).replace(",","."));if(v>0)upd(function(p){p.cap=r2(v)})};
 $("p-goal").oninput=function(){var v=parseInt(this.value);if(v>=5&&v<=120)upd(function(p){p.goal=v})};
+$("p-rate").oninput=function(){var v=parseInt(this.value);if(v>=5&&v<=500)upd(function(p){p.rate=v})};
 $("p-stset").onclick=function(){var v=parseInt($("p-stv").value);if(!(v>=0))return;$("p-stv").value="";upd(function(p){p.stars=Math.min(v,99999)})};
 $("p-st0").onclick=function(){if(!E().stars||!confirm("Remettre les étoiles à 0 ?"))return;upd(function(p){p.stars=0})};
 function amt(){var v=parseFloat(String($("p-mov").value).replace(",","."));return v>=0?r2(v):NaN}
