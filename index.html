@@ -277,7 +277,6 @@ body.nomoney .home-mon{display:none!important}
 
   <div class="pg" id="pg-menu">
     <button class="menuitem" data-page="profils"><span class="ic">👤</span><span>Profils et récompenses<small id="m-prof"></small></span></button>
-    <button class="menuitem" data-page="results"><span class="ic">📈</span><span>Résultats<small>Exercice par exercice : bien acquis ou à travailler</small></span></button>
     <button class="menuitem" data-page="jeux"><span class="ic">🎮</span><span>Réglages des jeux<small>Choisir ce que chaque jeu propose</small></span></button>
     <button class="menuitem" data-page="progress"><span class="ic">🔄</span><span>Progression<small>Remettre à zéro les niveaux</small></span></button>
     <button class="menuitem" data-page="code"><span class="ic">🔒</span><span>Code parent<small id="m-code"></small></span></button>
@@ -323,6 +322,7 @@ body.nomoney .home-mon{display:none!important}
     <div class="card">
       <h3>📊 Bilan</h3>
       <div id="p-bilan"></div>
+      <button class="menuitem" data-page="results"><span class="ic">📈</span><span>Résultats par exercice<small>Bien acquis ou à travailler, exercice par exercice</small></span></button>
     </div>
     <div class="card">
       <h3>Étoiles en attente</h3>
@@ -354,7 +354,6 @@ body.nomoney .home-mon{display:none!important}
   </div>
 
   <div class="pg" id="pg-results" hidden>
-    <div class="pills2" id="rs-who"></div>
     <div class="pills2" id="rs-per"></div>
     <div id="rs-body" class="pg"></div>
   </div>
@@ -568,8 +567,8 @@ function rVerdict(o,t){if(t<10)return'<span class="rs-v n">Peu de réponses</spa
 function dayOff(n){var d=new Date();d.setDate(d.getDate()-n);return dkey(d)}
 function rSum(G,from,to){var r={ok:0,tot:0,sec:0,days:0,k:{}};Object.keys(G.d).forEach(function(k){if(k<from||k>to)return;var x=G.d[k];r.ok+=x.ok;r.tot+=x.tot;r.sec+=x.sec;if(x.tot||x.sec>=30)r.days++;
  Object.keys(x.k||{}).forEach(function(c){var a=r.k[c]||(r.k[c]=[0,0]);a[0]+=x.k[c][0];a[1]+=x.k[c][1]})});return r}
-function renderResults(){if(!RS.pid||!PR.list.some(function(p){return p.id===RS.pid}))RS.pid=PR.active;var p=prof(RS.pid),S=st(p.id),per=RS.per;
- $("rs-who").innerHTML=PR.list.length<2?"":PR.list.map(function(q){return '<button data-pid="'+q.id+'" class="'+(q.id===RS.pid?"on":"")+'">👤 '+esc(pname(q))+"</button>"}).join("");
+function renderResults(){RS.pid=prof(EDIT).id;var p=prof(RS.pid),S=st(p.id),per=RS.per;
+ 
  $("rs-per").innerHTML=[[7,"7 jours"],[30,"30 jours"],[0,"Depuis le début"]].map(function(x){return '<button data-per="'+x[0]+'" class="'+(x[0]===per?"on":"")+'">'+x[1]+"</button>"}).join("");
  var to=dkey(),from=per?dayOff(per-1):"0000",pf=per?dayOff(2*per-1):"",pt=per?dayOff(per):"";
  var h='<div class="muted">Résultats de <b>'+esc(pname(p))+"</b>, enregistrés depuis le "+new Date(S.since+"T12:00:00").toLocaleDateString("fr-FR")+". La réussite compte les réponses justes <b>du premier coup</b>.</div>",n=0,sum={g:[],y:[],r:[]};
@@ -588,7 +587,6 @@ function renderResults(){if(!RS.pid||!PR.list.some(function(p){return p.id===RS.
  if(sum.g.length+sum.y.length+sum.r.length)h=h.replace("</div>","</div>"+'<div class="card"><h3>En bref</h3>'+[["g","👍 Bien acquis"],["y","🙂 À travailler"],["r","💪 Difficile"]].filter(function(x){return sum[x[0]].length}).map(function(x){return'<div><b>'+x[1]+"</b> : "+sum[x[0]].map(esc).join(", ")+"</div>"}).join("")+"</div>");
  if(!n)h+='<div class="card"><div class="muted">Pas encore de résultats sur cette période. Ils s\'afficheront dès que '+esc(pname(p))+" aura joué.</div></div>";
  $("rs-body").innerHTML=h}
-$("rs-who").addEventListener("click",function(e){var b=e.target.closest("[data-pid]");if(!b)return;RS.pid=b.dataset.pid;renderResults()});
 $("rs-per").addEventListener("click",function(e){var b=e.target.closest("[data-per]");if(!b)return;RS.per=+b.dataset.per;renderResults()});
 function addStars(n){onAnswer({game:"calcul",ok:true})} // ancien message {type:"stars"} (compatibilité)
 // temps de jeu : un jeu ouvert et une réponse dans les 90 dernières secondes
