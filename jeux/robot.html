@@ -136,7 +136,7 @@ function finish(ok,extra){
  if(ok){done=true;running=false;var b=$("bot");b.classList.add("win");[523,659,784,1047].forEach(function(f,k){tone(f,k*.1,.25,.22)});
   answer(true,fails===0?1:.5);msg(fails===0?"🎉 Bravo ! Du premier coup !":"🎉 Bravo, tu as réussi !");say("Bravo !");
   level++;best=Math.max(best,level);ls("robot_lvl"+PK,level);ls("robot_best"+PK,best);
-  $("edit").hidden=true;$("after").hidden=false;refresh();keepVisible()}
+  $("edit").hidden=true;$("after").hidden=false;refresh();keepVisible();try{if(parent!==window)parent.postMessage({type:"roundEnd"},"*")}catch(e){}}
  else{tone(260,0,.3,.18);msg("Le robot n'est pas arrivé sur l'étoile. Essaie encore !");setTimeout(reset,1300)}}
 function reset(){fails++;answer(false);running=false;var b=$("bot");b.classList.remove("bump");b.style.transition="none";placeBot(start[0],start[1]);void b.offsetWidth;b.style.transition="";
  document.querySelectorAll(".c.t").forEach(function(c){c.classList.remove("t")});drawProg()}

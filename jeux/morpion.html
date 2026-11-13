@@ -54,7 +54,7 @@ $("board").addEventListener("click",function(e){var b=e.target.closest("button")
   $("turn").innerHTML='🎉 <span style="color:var(--'+turn+')">'+SYM[turn]+"</span> a gagné !";[523,659,784,1047].forEach(function(f,k){tone(f,k*.1,.25,.22)})}
  else if(cells.every(Boolean)){over=true;score.d++;$("turn").textContent="🤝 Égalité !";tone(440,0,.3,.15)}
  else turn=turn==="x"?"o":"x";
- if(over){[].forEach.call($("board").children,function(c){c.disabled=true});$("again").hidden=false}
+ if(over){try{if(parent!==window)parent.postMessage({type:"roundEnd"},"*")}catch(e){}[].forEach.call($("board").children,function(c){c.disabled=true});$("again").hidden=false}
  show()});
 $("again").onclick=start;
 start();

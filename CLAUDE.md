@@ -28,6 +28,12 @@ Le but est d'en faire une **appli Android installable (APK)** et partageable à 
 - Code parent global (`rw_cfg.pin`) : 4 chiffres, SHA-256 (préfixe `tm:`), **par défaut 0000**. `window.hubGate(ok)` est exposé aux jeux.
 - Migrations : ancienne cagnotte `rw`/`rw_cfg`/`hub_prenom` → premier profil `p1` ; ancienne cagnotte du Téléphone (`rw_mig`) ; `robot_lvl` → `robot_lvl@p1`.
 
+## Temps de jeu limité (dans `index.html`)
+- Par profil `p.play = {on, ratio, games, bonus:{d,sec}}` (défaut : activé, 25 %, jeux limités `morpion`, `code`, `robot`). Compteurs du jour `econ.days[d].learn` / `.play` (secondes actives : jeu ouvert, visible, appui ou réponse dans les 60 s ; les appuis dans l'iframe sont écoutés via `setFrame`).
+- Jeu autorisé = `learn × r / (1 − r)` + bonus parent − déjà joué (`playLeft`). Sous 30 s, les jeux limités sont grisés (`.locked`, `renderLocks`) avec « 🔒 apprends d'abord » ; sinon badge « ⏳ N min de jeu ». Toucher un jeu grisé → fenêtre `#lockinfo` (minutes d'apprentissage restantes, « 🔑 Un parent peut débloquer 15 min » via le code parent).
+- Pendant un jeu limité : chip `#ptime` (décompte, orange < 1 min). À 0 : « Termine ta partie ! » ; écran `#timeup` à la fin de la manche (les jeux envoient `{type:"roundEnd"}` : manche du Morpion, fin du Code secret, niveau du Robot réussi) ou après 3 min de grâce.
+- Fiche profil → carte « ⏳ Temps de jeu » : interrupteur, ratio 20/25/33/50 %, jeux limités (n'importe quel jeu). Le 📊 Bilan affiche apprentissage / jeux du jour.
+
 ## Navigation et bouton retour
 Historique géré dans `index.html` (`go` = pushState, `back` = history.back si possible, sinon parent). Le bouton retour du téléphone (popstate) = bouton « ← » de l'appli : ferme d'abord une fenêtre du hub (pile `OV` : `settings`, `pin`), puis demande au jeu via `window.hubBack()` (renvoie true s'il a fermé sa propre fenêtre : réglages Calcul/Téléphone, choix du niveau code/robot), sinon remonte d'un niveau. Au lancement, l'historique repart de « Qui joue ? » (d=0).
 
