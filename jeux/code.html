@@ -82,9 +82,9 @@ header{display:flex;align-items:center;gap:10px}
 (function(){
 var D10=["0","1","2","3","4","5","6","7","8","9"];
 var LV=[
- {n:"Facile",d:"3 chiffres à trouver, de 1 à 4",len:3,sym:["1","2","3","4"],rep:false},
- {n:"Moyen",d:"4 chiffres à trouver, de 1 à 5",len:4,sym:["1","2","3","4","5"],rep:false},
- {n:"Difficile",d:"4 chiffres de 0 à 9, le même chiffre peut revenir",len:4,sym:D10,rep:true}];
+ {n:"Facile",d:"3 chiffres de 1 à 4 · entraînement, sans étoiles",len:3,sym:["1","2","3","4"],rep:false},
+ {n:"Moyen",d:"4 chiffres de 1 à 5 · entraînement, sans étoiles",len:4,sym:["1","2","3","4","5"],rep:false},
+ {n:"Difficile",d:"4 chiffres de 0 à 9 (répétitions possibles) · ⭐ fait gagner des étoiles",len:4,sym:D10,rep:true}];
 var MAXT=8;
 var $=function(i){return document.getElementById(i)};
 var lvl=0;try{lvl=Math.min(2,Math.max(0,parseInt(localStorage.getItem("code_lvl"))||0))}catch(e){}
@@ -100,10 +100,12 @@ var voice=null;function pick(){try{voice=speechSynthesis.getVoices().filter(func
 if(window.speechSynthesis){pick();speechSynthesis.onvoiceschanged=pick}
 function say(t){try{if(!window.speechSynthesis)return;speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.lang="fr-FR";if(voice)u.voice=voice;u.rate=.9;speechSynthesis.speak(u)}catch(e){}}
 // Étoiles : code trouvé en 3 essais ou moins = série ; 4-5 essais = moitié moins ; difficulté selon le niveau
-function answer(ok,q){var d=[1,1.5,2][lvl]||1;try{if(parent!==window)parent.postMessage({type:"answer",game:"code",ok:ok,diff:d,q:q==null?1:q},"*")}catch(e){}}
+// Étoiles seulement en Difficile (Facile et Moyen = entraînement) ; on prévient l'accueil pour masquer la série
+function ecoMode(){try{if(parent!==window)parent.postMessage({type:"eco",on:lvl===2},"*")}catch(e){}}
+function answer(ok,q){if(lvl!==2)return;var d=2;try{if(parent!==window)parent.postMessage({type:"answer",game:"code",ok:ok,diff:d,q:q==null?1:q},"*")}catch(e){}}
 
 /* partie */
-function newGame(){
+function newGame(){ecoMode();
  L=LV[lvl];secret=[];guess=[];tries=[];over=false;
  var pool=L.sym.slice();
  for(var i=0;i<L.len;i++){if(L.rep)secret.push(pool[Math.floor(Math.random()*pool.length)]);else{var j=Math.floor(Math.random()*pool.length);secret.push(pool.splice(j,1)[0])}}
