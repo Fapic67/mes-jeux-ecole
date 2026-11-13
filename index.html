@@ -51,6 +51,8 @@ h1{margin:0;font-size:34px;font-weight:700;line-height:1.15}
 .btn.danger{color:var(--ko);border-color:var(--ko)}
 .btn:disabled{opacity:.4}
 .icon-btn{width:var(--tap);padding:0;font-size:26px}
+/* flèche retour : gros chevron centré dans le bouton */
+.icon-btn .chev{width:30px;height:30px;display:block;fill:none;stroke:currentColor;stroke-width:3.6;stroke-linecap:round;stroke-linejoin:round}
 
 /* Cagnotte */
 .purse{flex:1;display:flex;align-items:center;gap:14px;min-height:var(--tap);background:var(--card);border:var(--bw) solid var(--line);border-radius:18px;padding:6px 14px;font-weight:700;font-size:22px}
@@ -204,7 +206,7 @@ body.nomoney .home-mon{display:none!important}
 </section>
 
 <section class="view" id="v-francais">
-  <div class="top"><button class="btn icon-btn" data-back="1" aria-label="Retour">←</button><h2 class="ttl">📚 Français</h2><span class="purse" style="flex:none"><span class="st">⭐ <span class="nst">0</span></span></span></div>
+  <div class="top"><button class="btn icon-btn" data-back="1" aria-label="Retour"><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 4.5 8.5 12l7 7.5"/></svg></button><h2 class="ttl">📚 Français</h2><span class="purse" style="flex:none"><span class="st">⭐ <span class="nst">0</span></span></span></div>
   <div class="mid">
     <button class="game" data-play="phrase"><span class="ic">✏️</span><span>Complète la phrase<small>Écoute et écris le mot manquant</small></span></button>
     <button class="game" data-play="quique"><span class="ic">⌨️</span><span>Complète la phrase : qui ou que ?<small>Écoute et écris le mot manquant</small></span></button>
@@ -212,7 +214,7 @@ body.nomoney .home-mon{display:none!important}
 </section>
 
 <section class="view" id="v-maths">
-  <div class="top"><button class="btn icon-btn" data-back="1" aria-label="Retour">←</button><h2 class="ttl">🧮 Mathématiques</h2><span class="purse" style="flex:none"><span class="st">⭐ <span class="nst">0</span></span></span></div>
+  <div class="top"><button class="btn icon-btn" data-back="1" aria-label="Retour"><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 4.5 8.5 12l7 7.5"/></svg></button><h2 class="ttl">🧮 Mathématiques</h2><span class="purse" style="flex:none"><span class="st">⭐ <span class="nst">0</span></span></span></div>
   <div class="mid">
     <button class="game" data-play="calcul"><span class="ic">➕</span><span>Calcul malin<small>Additions, soustractions, compléments · voix en allemand</small></span></button>
     <button class="game" data-play="telephone"><span class="ic">📞</span><span>Le téléphone magique<small>Écoute les nombres et compose le numéro</small></span></button>
@@ -220,7 +222,7 @@ body.nomoney .home-mon{display:none!important}
 </section>
 
 <section class="view" id="v-allemand">
-  <div class="top"><button class="btn icon-btn" data-back="1" aria-label="Retour">←</button><h2 class="ttl">🇩🇪 Allemand</h2><span class="purse" style="flex:none"><span class="st">⭐ <span class="nst">0</span></span></span></div>
+  <div class="top"><button class="btn icon-btn" data-back="1" aria-label="Retour"><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 4.5 8.5 12l7 7.5"/></svg></button><h2 class="ttl">🇩🇪 Allemand</h2><span class="purse" style="flex:none"><span class="st">⭐ <span class="nst">0</span></span></span></div>
   <div class="mid">
     <button class="game" data-play="article"><span class="ic">🔤</span><span>Der · Die · Das<small>Trouve le bon article</small></span></button>
     <button class="game" data-play="mot"><span class="ic">🖼️</span><span>Finde das Wort<small>Une image, trois mots</small></span></button>
@@ -228,7 +230,7 @@ body.nomoney .home-mon{display:none!important}
 </section>
 
 <section class="view" id="v-logique">
-  <div class="top"><button class="btn icon-btn" data-back="1" aria-label="Retour">←</button><h2 class="ttl">🧩 Logique</h2><span class="purse" style="flex:none"><span class="st">⭐ <span class="nst">0</span></span></span></div>
+  <div class="top"><button class="btn icon-btn" data-back="1" aria-label="Retour"><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 4.5 8.5 12l7 7.5"/></svg></button><h2 class="ttl">🧩 Logique</h2><span class="purse" style="flex:none"><span class="st">⭐ <span class="nst">0</span></span></span></div>
   <div class="mid">
     <button class="game" data-play="code"><span class="ic">🔐</span><span>Le code secret<small>Devine le code de chiffres caché</small></span></button>
     <button class="game" data-play="robot"><span class="ic">🤖</span><span>Le petit robot<small>Programme le chemin avec des flèches</small></span></button>
@@ -236,24 +238,24 @@ body.nomoney .home-mon{display:none!important}
 </section>
 
 <section class="view" id="v-musique">
-  <div class="top"><button class="btn icon-btn" data-back="1" aria-label="Retour">←</button><h2 class="ttl">🎵 Musique</h2><span class="purse" style="flex:none"><span class="st">⭐ <span class="nst">0</span></span></span></div>
+  <div class="top"><button class="btn icon-btn" data-back="1" aria-label="Retour"><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 4.5 8.5 12l7 7.5"/></svg></button><h2 class="ttl">🎵 Musique</h2><span class="purse" style="flex:none"><span class="st">⭐ <span class="nst">0</span></span></span></div>
   <div class="mid">
     <button class="game" data-play="note"><span class="ic">🎼</span><span>Trouve la note<small>Lis les notes et découvre le morceau</small></span></button>
   </div>
 </section>
 
 <section class="view" id="v-jeux">
-  <div class="top"><button class="btn icon-btn" data-back="1" aria-label="Retour">←</button><h2 class="ttl">🎲 Jeux</h2></div>
+  <div class="top"><button class="btn icon-btn" data-back="1" aria-label="Retour"><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 4.5 8.5 12l7 7.5"/></svg></button><h2 class="ttl">🎲 Jeux</h2></div>
   <div class="mid">
     <button class="game" data-play="morpion"><span class="ic">⭕</span><span>Morpion<small>À deux joueurs, chacun son tour</small></span></button>
   </div>
 </section>
 
-<div id="play"><div class="bar"><button class="btn icon-btn" id="pback" aria-label="Retour">←</button><b id="ptitle"></b><span id="eco"><span id="pdiff"></span><span id="pstreak" title="Série de bonnes réponses">🔥 0</span><span id="pgauge" title="Jauge : pleine = 1 étoile"><i></i></span></span><span id="pstars">⭐ 0</span></div><iframe id="frame" allow="autoplay; publickey-credentials-get *; publickey-credentials-create *"></iframe></div>
+<div id="play"><div class="bar"><button class="btn icon-btn" id="pback" aria-label="Retour"><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 4.5 8.5 12l7 7.5"/></svg></button><b id="ptitle"></b><span id="eco"><span id="pdiff"></span><span id="pstreak" title="Série de bonnes réponses">🔥 0</span><span id="pgauge" title="Jauge : pleine = 1 étoile"><i></i></span></span><span id="pstars">⭐ 0</span></div><iframe id="frame" allow="autoplay; publickey-credentials-get *; publickey-credentials-create *"></iframe></div>
 
 <!-- Paramètres globaux : menu + pages thématiques -->
 <div class="sheet" id="settings" hidden><div class="panel" id="spanel">
-  <h2><button class="btn icon-btn" id="sback" aria-label="Retour" hidden>←</button><span id="stitle" style="flex:1;margin-left:8px">⚙️ Paramètres</span><button class="btn" id="sclose">Fermer</button></h2>
+  <h2><button class="btn icon-btn" id="sback" aria-label="Retour" hidden><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 4.5 8.5 12l7 7.5"/></svg></button><span id="stitle" style="flex:1;margin-left:8px">⚙️ Paramètres</span><button class="btn" id="sclose">Fermer</button></h2>
 
   <div class="pg" id="pg-menu">
     <button class="menuitem" data-page="profils"><span class="ic">👤</span><span>Profils et récompenses<small id="m-prof"></small></span></button>

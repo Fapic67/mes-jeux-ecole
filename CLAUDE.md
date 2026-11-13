@@ -48,7 +48,7 @@ Paramètres → 💾 Sauvegarde : « Sauvegarder dans un fichier » télécharge
 Paramètres → carte « Application » : affiche la version en cache (`jeux-ecole-vXX`) et un bouton « Mettre à jour maintenant » qui vérifie la connexion (fetch `sw.js` no-store), supprime les caches, désinscrit le service worker puis recharge. Le localStorage (étoiles, réglages) est conservé.
 
 ## Design system tactile
-Cibles >= 56px, bordures 3px, textes secondaires >= 16px, menus centrés verticalement (`.mid`). En-tête des matières et des jeux : flèche ← à gauche puis le titre (`.ttl`).
+Cibles >= 56px, bordures 3px, textes secondaires >= 16px, menus centrés verticalement (`.mid`). En-tête des matières et des jeux : bouton retour à gauche (gros chevron SVG `.chev` centré dans `.icon-btn`) puis le titre (`.ttl`).
 
 ### Français (`francais.html`)
 - **Complète la phrase** (qui / que) : 32 phrases (`QQ`, mot manquant entre `{}`), 15 par partie. L'enfant tape « qui » ou « que » avec le clavier virtuel maison (`jeux/clavier.js` : AZERTY minuscules + ligne é è ê à ç, ⌫ et ✓, clic sonore, pas de voix ; clavier physique accepté ; le clavier Android ne s'ouvre jamais) ; la voix lit la phrase entière (mot compris) à l'affichage et après la bonne réponse. Le titre affiche « Complète la phrase : qui ou que ? » (barre du jeu : « Qui ou que ? »), à la demande de l'utilisateur ; sinon aucun indice : pas de placeholder, pas de réponse donnée après une erreur. Après 2 erreurs, la phrase est relue. Hash `#quique` (START=3).
