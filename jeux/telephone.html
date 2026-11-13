@@ -120,7 +120,7 @@ function waGet(ok,fail){navigator.credentials.get({publicKey:{challenge:rnd(32),
 function setupLock(ok){var why="Verrouillage du téléphone indisponible. ";if(!(window.PublicKeyCredential&&navigator.credentials&&navigator.credentials.create)){setupPin(ok,why);return}var t0=Date.now();try{waCreate(ok,function(e){if(e&&e.name==="NotAllowedError"&&Date.now()-t0>1500){if(!playing)msg("🔒 Verrouillage annulé");return}setupPin(ok,why)})}catch(e){setupPin(ok,why)}}
 // Étoiles : chaque nombre composé juste du premier coup compte pour la série ; difficulté selon le nombre maximum
 var numErr=false;
-function answer(ok){var d=maxn<=30?1:maxn<=60?1.25:1.5;try{if(parent!==window)parent.postMessage({type:"answer",game:"telephone",ok:ok,diff:d},"*")}catch(e){}}
+function answer(ok){var d=maxn<=30?1:maxn<=60?1.25:1.5;try{if(parent!==window)parent.postMessage({type:"answer",game:"telephone",ok:ok,diff:d,k:Math.floor(cur/10)*10,item:String(cur)},"*")}catch(e){}}
 function numDone(){if(!numErr)answer(true);numErr=true}
 // Dans l'appli, les réglages utilisent le code parent global
 function gate(ok){try{if(parent!==window&&parent.hubGate){parent.hubGate(ok);return}}catch(e){}var m=ls("tel_lock");if(m==="wa"&&ls("tel_cred")){try{waGet(ok,function(){if(!playing)msg("🔒 Accès refusé")})}catch(e){if(!playing)msg("🔒 Accès refusé")}}else if(m==="pin")askPin(ok);else setupLock(ok)}

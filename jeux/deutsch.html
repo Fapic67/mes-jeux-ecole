@@ -52,7 +52,7 @@ function pickVoice(){var v=(window.speechSynthesis&&speechSynthesis.getVoices())
 if(window.speechSynthesis){pickVoice();speechSynthesis.onvoiceschanged=pickVoice}
 function say(t){try{if(!window.speechSynthesis){msg.textContent="Synthèse vocale indisponible : ouvre le lien dans le navigateur du téléphone";return}pickVoice();speechSynthesis.cancel();setTimeout(function(){var u=new SpeechSynthesisUtterance(t);u.lang="de-DE";if(voice)u.voice=voice;u.rate=.9;u.onerror=function(e){msg.textContent="Erreur voix : "+e.error};speechSynthesis.resume();speechSynthesis.speak(u)},60)}catch(e){msg.textContent="Erreur voix : "+e}}
 // Étoiles : bonne réponse du premier coup = série ; un peu plus de difficulté si beaucoup de leçons sont cochées
-function star(ok){var g=mode===2?"fdw":"dde",d=deSelected(g,window.PROFILE).length>8?1.25:1;try{if(parent!==window)parent.postMessage({type:"answer",game:g,ok:ok!==false,diff:d},"*")}catch(e){}}
+function star(ok,w){var g=mode===2?"fdw":"dde",d=deSelected(g,window.PROFILE).length>8?1.25:1;try{if(parent!==window)parent.postMessage({type:"answer",game:g,ok:ok!==false,diff:d,k:w?(mode===2?"L"+w.n:w.a):null,item:w?(w.a?w.a+" ":"")+w.w:null},"*")}catch(e){}}
 function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
 function bar(){return '<div class="cnt">'+(i+1)+' / '+deck.length+'</div><div class="bar"><i style="width:'+(i/deck.length*100)+'%"></i></div>'}
 var deck,i,good,missed,mode=0;
@@ -68,8 +68,8 @@ function showWord(){
   document.getElementById("ear").onclick=function(){say(w.w)};
   say(w.w);
   app.querySelectorAll(".pill").forEach(function(p){p.onclick=function(){
-    if(p.dataset.a===w.a){if(!missed){good++;star()}app.querySelectorAll(".pill").forEach(function(x){x.disabled=true});p.classList.add("ok");say(w.a+" "+w.w);setTimeout(function(){i++;i<deck.length?showWord():end()},1500)}
-    else{if(!missed)star(false);missed=true;p.classList.add("no","shake");p.disabled=true}}});
+    if(p.dataset.a===w.a){if(!missed){good++;star(true,w)}app.querySelectorAll(".pill").forEach(function(x){x.disabled=true});p.classList.add("ok");say(w.a+" "+w.w);setTimeout(function(){i++;i<deck.length?showWord():end()},1500)}
+    else{if(!missed)star(false,w);missed=true;p.classList.add("no","shake");p.disabled=true}}});
 }
 // Exercice 2 : trouve le mot
 var POOL2=[];
@@ -82,8 +82,8 @@ function show2(){
   var ch=shuffle([w].concat(others));
   app.innerHTML=bar()+'<div class="pic">'+w.e+'</div><div class="pills col">'+ch.map(function(c){return '<button class="pill" data-w="'+c.w+'">'+(c.a?c.a+' ':'')+c.w+'</button>'}).join("")+'</div>';
   app.querySelectorAll(".pill").forEach(function(p){p.onclick=function(){
-    if(p.dataset.w===w.w){if(!missed){good++;star()}app.querySelectorAll(".pill").forEach(function(x){x.disabled=true});p.classList.add("ok");say((w.a?w.a+" ":"")+w.w);setTimeout(function(){i++;i<deck.length?show2():end()},1500)}
-    else{if(!missed)star(false);missed=true;p.classList.add("no","shake");p.disabled=true}}});
+    if(p.dataset.w===w.w){if(!missed){good++;star(true,w)}app.querySelectorAll(".pill").forEach(function(x){x.disabled=true});p.classList.add("ok");say((w.a?w.a+" ":"")+w.w);setTimeout(function(){i++;i<deck.length?show2():end()},1500)}
+    else{if(!missed)star(false,w);missed=true;p.classList.add("no","shake");p.disabled=true}}});
 }
 function end(){
   var n=Math.round(good/deck.length*10*2)/2,s=String(n).replace(".",",");

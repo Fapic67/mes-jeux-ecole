@@ -84,6 +84,16 @@ body.nomoney .home-mon{display:none!important}
 #play .bar b{min-width:0}
 @media (max-width:430px){body.ecoon #ptitle{display:none}body.ecoon #eco{flex:1;justify-content:center}}
 .pop{animation:pop .5s}@keyframes pop{40%{transform:scale(1.3)}}
+/* résultats par exercice */
+.rs-g{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.rs-g h3{margin:0;flex:1}
+.rs-v{font-weight:700;font-size:17px;padding:2px 12px;border-radius:999px;color:#fff;white-space:nowrap}
+.rs-v.g{background:#22a861}.rs-v.y{background:#e8920c}.rs-v.r{background:#e5484d}.rs-v.n{background:var(--soft)}
+.rs-pct{font-size:30px;font-weight:700}
+.d14{display:flex;gap:3px}.d14 i{flex:1;height:22px;border-radius:5px;background:var(--line)}
+.d14 i.g{background:#22a861}.d14 i.y{background:#e8920c}.d14 i.r{background:#e5484d}
+.rs-k{display:flex;flex-wrap:wrap;gap:6px}.rs-k span{border:2px solid var(--line);border-radius:999px;padding:2px 10px;font-size:16px;font-weight:600}
+.rs-k span.g{border-color:#22a861}.rs-k span.y{border-color:#e8920c}.rs-k span.r{border-color:#e5484d}
+.rs-it{margin:0;padding-left:20px;font-size:16px;color:var(--soft)}.rs-it b{color:var(--ink)}
 /* temps de jeu limité */
 .game.locked,.tile.locked{filter:grayscale(1);opacity:.55}
 .game .pt{display:inline-block;margin-left:8px;font-size:15px;font-weight:700;color:#fff;background:var(--lo);border-radius:999px;padding:1px 8px;vertical-align:middle}
@@ -267,6 +277,7 @@ body.nomoney .home-mon{display:none!important}
 
   <div class="pg" id="pg-menu">
     <button class="menuitem" data-page="profils"><span class="ic">👤</span><span>Profils et récompenses<small id="m-prof"></small></span></button>
+    <button class="menuitem" data-page="results"><span class="ic">📈</span><span>Résultats<small>Exercice par exercice : bien acquis ou à travailler</small></span></button>
     <button class="menuitem" data-page="jeux"><span class="ic">🎮</span><span>Réglages des jeux<small>Choisir ce que chaque jeu propose</small></span></button>
     <button class="menuitem" data-page="progress"><span class="ic">🔄</span><span>Progression<small>Remettre à zéro les niveaux</small></span></button>
     <button class="menuitem" data-page="code"><span class="ic">🔒</span><span>Code parent<small id="m-code"></small></span></button>
@@ -340,6 +351,12 @@ body.nomoney .home-mon{display:none!important}
     <div class="pills2" id="lc-who"></div>
     <div class="row"><button class="btn grow" id="lc-all">Tout cocher</button><button class="btn grow" id="lc-none">Tout décocher</button></div>
     <div id="lc-list" class="pg"></div>
+  </div>
+
+  <div class="pg" id="pg-results" hidden>
+    <div class="pills2" id="rs-who"></div>
+    <div class="pills2" id="rs-per"></div>
+    <div id="rs-body" class="pg"></div>
   </div>
 
   <div class="pg" id="pg-progress" hidden>
@@ -530,6 +547,49 @@ function onAnswer(m){if(noStars())return;var p=prof(),E=ensureEcon(p),P=ECON.P[m
   else if(n)toast("+"+n+" ⭐");
   if(n){p.stars+=n;d.st+=n}saveP();renderPurse(n>0);var s=$("pstreak");s.classList.remove("pop");void s.offsetWidth;s.classList.add("pop")}
  else{if(E.streak>=3)toast("💨 Série cassée… recommence une série !",1800);E.streak=0;saveP();renderEco()}}
+/* ---------- Résultats par exercice et par profil (clé stats@<profil>) ----------
+   g[jeu].d[jour] = {ok, tot, sec, k:{catégorie:[ok,tot]}} ; g[jeu].it[question] = [ok, tot, dernier jour] */
+var STC={};
+function st(pid){return STC[pid]||(STC[pid]=lj("stats@"+pid,{since:dkey(),g:{}}))}
+function stSave(pid){if(STC[pid])ls("stats@"+pid,JSON.stringify(STC[pid]))}
+function stG(pid,g){var S=st(pid);return S.g[g]||(S.g[g]={d:{},it:{}})}
+function stDay(G){var k=dkey();return G.d[k]||(G.d[k]={ok:0,tot:0,sec:0,k:{}})}
+function recordStat(m){if(!GAMES[cur])return;var p=prof(),G=stG(p.id,cur),D=stDay(G),ok=m.ok?1:0;D.tot++;D.ok+=ok;
+ if(m.k!=null){var a=D.k[m.k]||(D.k[m.k]=[0,0]);a[0]+=ok;a[1]++}
+ if(m.item){var it=G.it[m.item]||(G.it[m.item]=[0,0,""]);it[0]+=ok;it[1]++;it[2]=dkey();
+  var ks=Object.keys(G.it);if(ks.length>400){ks.sort(function(a,b){return G.it[a][2]<G.it[b][2]?-1:1});ks.slice(0,ks.length-400).forEach(function(x){delete G.it[x]})}}
+ stSave(p.id)}
+var RS={pid:null,per:7};
+var RDESC={quique:"phrases justes du premier coup",phrase:"mots bien écrits du premier coup",calcul:"opérations justes du premier coup",telephone:"nombres composés justes du premier coup",article:"articles justes du premier coup",mot:"mots trouvés du premier coup",code:"codes trouvés en 5 essais ou moins",robot:"programmes réussis (chaque essai raté compte)",note:"notes reconnues du premier coup"};
+function rKind(g,k){if(g==="calcul")return{add:"Additions",sub:"Soustractions",comp:"Compléments"}[k]||k;if(g==="telephone")return k+" à "+(+k+9);if(g==="mot")return"Leçon "+String(k).slice(1);return k}
+function rCls(o,t){if(!t)return"";var x=o/t;return x>=.9?"g":x>=.75?"g":x>=.6?"y":"r"}
+function rVerdict(o,t){if(t<10)return'<span class="rs-v n">Peu de réponses</span>';var x=o/t;
+ return x>=.9?'<span class="rs-v g">🌟 Très bien</span>':x>=.75?'<span class="rs-v g">👍 Bien</span>':x>=.6?'<span class="rs-v y">🙂 À travailler</span>':'<span class="rs-v r">💪 Difficile</span>'}
+function dayOff(n){var d=new Date();d.setDate(d.getDate()-n);return dkey(d)}
+function rSum(G,from,to){var r={ok:0,tot:0,sec:0,days:0,k:{}};Object.keys(G.d).forEach(function(k){if(k<from||k>to)return;var x=G.d[k];r.ok+=x.ok;r.tot+=x.tot;r.sec+=x.sec;if(x.tot||x.sec>=30)r.days++;
+ Object.keys(x.k||{}).forEach(function(c){var a=r.k[c]||(r.k[c]=[0,0]);a[0]+=x.k[c][0];a[1]+=x.k[c][1]})});return r}
+function renderResults(){if(!RS.pid||!PR.list.some(function(p){return p.id===RS.pid}))RS.pid=PR.active;var p=prof(RS.pid),S=st(p.id),per=RS.per;
+ $("rs-who").innerHTML=PR.list.length<2?"":PR.list.map(function(q){return '<button data-pid="'+q.id+'" class="'+(q.id===RS.pid?"on":"")+'">👤 '+esc(pname(q))+"</button>"}).join("");
+ $("rs-per").innerHTML=[[7,"7 jours"],[30,"30 jours"],[0,"Depuis le début"]].map(function(x){return '<button data-per="'+x[0]+'" class="'+(x[0]===per?"on":"")+'">'+x[1]+"</button>"}).join("");
+ var to=dkey(),from=per?dayOff(per-1):"0000",pf=per?dayOff(2*per-1):"",pt=per?dayOff(per):"";
+ var h='<div class="muted">Résultats de <b>'+esc(pname(p))+"</b>, enregistrés depuis le "+new Date(S.since+"T12:00:00").toLocaleDateString("fr-FR")+". La réussite compte les réponses justes <b>du premier coup</b>.</div>",n=0,sum={g:[],y:[],r:[]};
+ Object.keys(GAMES).forEach(function(g){var G=S.g[g];if(!G)return;var r=rSum(G,from,to);if(!r.tot&&r.sec<30)return;n++;if(RDESC[g]&&r.tot>=10){var x=r.ok/r.tot;sum[x>=.75?"g":x>=.6?"y":"r"].push(GAMES[g].t)}
+  var c='<div class="card"><div class="rs-g"><h3>'+esc(GAMES[g].t)+"</h3>"+(RDESC[g]?rVerdict(r.ok,r.tot):"")+"</div>";
+  if(RDESC[g]&&r.tot){c+='<div><span class="rs-pct">'+Math.round(r.ok/r.tot*100)+' %</span> <span class="muted">'+r.ok+" / "+r.tot+" "+RDESC[g]+"</span></div>";
+   if(per){var pr=rSum(G,pf,pt);if(pr.tot>=5){var dl=Math.round(r.ok/r.tot*100)-Math.round(pr.ok/pr.tot*100);c+='<div class="muted">'+(dl>=3?"↗️ En progrès : +"+dl:dl<=-3?"↘️ En baisse : "+dl:"➡️ Stable : "+(dl>0?"+":"")+dl)+" points par rapport aux "+per+" jours d'avant</div>"}}}
+  c+='<div class="muted">⏱️ '+fmtMin(r.sec)+" · "+r.days+" jour"+(r.days>1?"s":"")+" d'activité</div>";
+  if(RDESC[g]){var b="";for(var i=13;i>=0;i--){var x=G.d[dayOff(i)];b+='<i class="'+(x&&x.tot?rCls(x.ok,x.tot):"")+'" title="'+dayOff(i)+(x&&x.tot?" : "+x.ok+"/"+x.tot:"")+'"></i>'}
+   c+='<div class="muted">14 derniers jours (vert = bien, orange = moyen, rouge = difficile, gris = pas joué)</div><div class="d14">'+b+"</div>"}
+  var ks=Object.keys(r.k).sort(function(a,b){return isNaN(a)||isNaN(b)?(a<b?-1:1):a-b});
+  if(ks.length>1||(ks.length&&g!=="note"))c+='<div class="rs-k">'+ks.map(function(k){var a=r.k[k];return '<span class="'+rCls(a[0],a[1])+'">'+esc(rKind(g,k))+" : "+Math.round(a[0]/a[1]*100)+" % <small>("+a[1]+")</small></span>"}).join("")+"</div>";
+  var its=Object.keys(G.it).filter(function(k){var a=G.it[k];return a[2]>=from&&a[1]-a[0]>0}).sort(function(a,b){var x=G.it[a],y=G.it[b];return(y[1]-y[0])-(x[1]-x[0])||(y[1]-y[0])/y[1]-(x[1]-x[0])/x[1]}).slice(0,6);
+  if(its.length)c+='<div class="muted">À revoir :</div><ul class="rs-it">'+its.map(function(k){var a=G.it[k];return"<li><b>"+esc(k)+"</b> — "+(a[1]-a[0])+" erreur"+(a[1]-a[0]>1?"s":"")+" sur "+a[1]+"</li>"}).join("")+"</ul>";
+  h+=c+"</div>"});
+ if(sum.g.length+sum.y.length+sum.r.length)h=h.replace("</div>","</div>"+'<div class="card"><h3>En bref</h3>'+[["g","👍 Bien acquis"],["y","🙂 À travailler"],["r","💪 Difficile"]].filter(function(x){return sum[x[0]].length}).map(function(x){return'<div><b>'+x[1]+"</b> : "+sum[x[0]].map(esc).join(", ")+"</div>"}).join("")+"</div>");
+ if(!n)h+='<div class="card"><div class="muted">Pas encore de résultats sur cette période. Ils s\'afficheront dès que '+esc(pname(p))+" aura joué.</div></div>";
+ $("rs-body").innerHTML=h}
+$("rs-who").addEventListener("click",function(e){var b=e.target.closest("[data-pid]");if(!b)return;RS.pid=b.dataset.pid;renderResults()});
+$("rs-per").addEventListener("click",function(e){var b=e.target.closest("[data-per]");if(!b)return;RS.per=+b.dataset.per;renderResults()});
 function addStars(n){onAnswer({game:"calcul",ok:true})} // ancien message {type:"stars"} (compatibilité)
 // temps de jeu : un jeu ouvert et une réponse dans les 90 dernières secondes
 /* ---------- Temps de jeu limité par rapport à l'apprentissage ----------
@@ -551,8 +611,8 @@ var timeUp=false,graceT=null,tick=0;
 function fmtClock(s){s=Math.max(0,Math.round(s));return Math.floor(s/60)+":"+pad(s%60)}
 function renderTime(){var lim=GAMES[cur]&&isPlay(cur),t=$("ptime");t.hidden=!lim;if(!lim)return;var l=playLeft();
  t.className=timeUp?"up":l<60?"warn":"";t.textContent=timeUp?"⏳ Termine ta partie !":"⏳ "+fmtClock(l)}
-setInterval(function(){if(!GAMES[cur]||document.hidden||Date.now()-lastAct>60000)return;var p=prof(),d=today(p);d.sec++;if(isPlay(cur,p))d.play++;else d.learn++;
- if(++tick%15===0)saveP();
+setInterval(function(){if(!GAMES[cur]||document.hidden||Date.now()-lastAct>60000)return;var p=prof(),d=today(p);d.sec++;if(isPlay(cur,p))d.play++;else d.learn++;stDay(stG(p.id,cur)).sec++;
+ if(++tick%15===0){saveP();stSave(p.id)}
  if(isPlay(cur,p)){if(!timeUp&&playLeft(p)<=0){timeUp=true;toast("⏳ Le temps de jeu est fini : termine ta partie !",3500);graceT=setTimeout(endPlay,180000)}renderTime()}},1000);
 function endPlay(){clearTimeout(graceT);graceT=null;if(!GAMES[cur]||!isPlay(cur))return;saveP();$("tu-txt").textContent="Tu pourras rejouer après "+mins(learnNeeded(prof()))+" min d'apprentissage.";$("timeup").hidden=false}
 $("tu-ok").onclick=function(){$("timeup").hidden=true;timeUp=false;back()};
@@ -602,11 +662,11 @@ function newCode(ok,why){askCode((why||"")+"Choisis un code à 4 chiffres",funct
 window.hubGate=function(ok){checkCode(ok)};
 
 /* ---------- Paramètres : menu et pages ---------- */
-var PG=[],EDIT=null,PTITLE={menu:"⚙️ Paramètres",profils:"👤 Profils",profil:"👤 Profil",progress:"🔄 Progression",jeux:"🎮 Réglages des jeux",lecons:"Leçons",save:"💾 Sauvegarde",code:"🔒 Code parent",app:"📱 Application"};
+var PG=[],EDIT=null,PTITLE={menu:"⚙️ Paramètres",profils:"👤 Profils",profil:"👤 Profil",progress:"🔄 Progression",results:"📈 Résultats",jeux:"🎮 Réglages des jeux",lecons:"Leçons",save:"💾 Sauvegarde",code:"🔒 Code parent",app:"📱 Application"};
 function renderPage(){var top=PG[PG.length-1]||"menu";
  document.querySelectorAll("#spanel .pg[id^=pg-]").forEach(function(d){d.hidden=d.id!=="pg-"+top});
  $("stitle").textContent=PTITLE[top];$("sback").hidden=!PG.length;
- ({menu:renderMenu,profils:renderProfils,profil:renderProfil,progress:renderProgress,code:renderCode,app:showVersion,save:renderSave,jeux:renderJeux,lecons:renderLecons})[top]();
+ ({menu:renderMenu,profils:renderProfils,profil:renderProfil,progress:renderProgress,results:renderResults,code:renderCode,app:showVersion,save:renderSave,jeux:renderJeux,lecons:renderLecons})[top]();
  $("spanel").scrollTop=0}
 function openPage(n){PG.push(n);var k="pg"+PG.length;OV.push(k);history.pushState({d:depth()+1,r:cur,ov:k},"",location.href);renderPage()}
 $("spanel").addEventListener("click",function(e){var b=e.target.closest("[data-page]");if(b)openPage(b.dataset.page)});
@@ -676,7 +736,7 @@ function upd(f){f(E());saveP();renderProfil()}
 $("p-name").oninput=function(){var v=this.value.trim().slice(0,20);upd(function(p){p.name=v})};
 $("p-use").onclick=function(){PR.active=EDIT;saveP();renderProfil()};
 $("p-del").onclick=function(){var p=E();if(PR.list.length<2)return;if(!confirm("Supprimer le profil « "+pname(p)+" » et ses étoiles ?"))return;
- PR.list=PR.list.filter(function(x){return x.id!==p.id});if(PR.active===p.id)PR.active=PR.list[0].id;["robot_lvl","robot_best"].forEach(function(k){try{localStorage.removeItem(k+"@"+p.id)}catch(e){}});saveP();back()};
+ PR.list=PR.list.filter(function(x){return x.id!==p.id});if(PR.active===p.id)PR.active=PR.list[0].id;["robot_lvl","robot_best","stats"].forEach(function(k){try{localStorage.removeItem(k+"@"+p.id)}catch(e){}});delete STC[p.id];saveP();back()};
 $("p-money").onchange=function(){var v=this.checked;upd(function(p){p.reward=v})};
 $("p-unit").oninput=function(){var v=this.value.trim();if(v)upd(function(p){p.unit=v})};
 $("p-unit").onblur=function(){if(!this.value.trim())this.value=E().unit};
@@ -791,7 +851,7 @@ window.addEventListener("message",function(e){
  if(e.data==="hub-back")back();
  else if(e.data&&e.data.type==="eco"){ecoOff=!e.data.on;renderEco()}
  else if(e.data&&e.data.type==="roundEnd"){if(timeUp){clearTimeout(graceT);graceT=setTimeout(endPlay,2500)}}
- else if(e.data&&e.data.type==="answer")onAnswer(e.data)
+ else if(e.data&&e.data.type==="answer"){recordStat(e.data);onAnswer(e.data)}
  else if(e.data&&e.data.type==="stars")addStars(e.data.n)});
 if(ls("bk_restored")){localStorage.removeItem("bk_restored");setTimeout(function(){var t=document.createElement("div");t.className="toast";t.style.animationDuration="4s";t.textContent="💾 Profils restaurés depuis config.json";document.body.appendChild(t);setTimeout(function(){t.remove()},4200)},400)}
 if(/[?&]maj=/.test(location.search)){try{history.replaceState(null,"",location.pathname+location.hash)}catch(e){}}

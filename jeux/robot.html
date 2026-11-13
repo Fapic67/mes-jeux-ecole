@@ -86,7 +86,7 @@ var voice=null;function pick(){try{voice=speechSynthesis.getVoices().filter(func
 if(window.speechSynthesis){pick();speechSynthesis.onvoiceschanged=pick}
 function say(t){try{if(!window.speechSynthesis)return;speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.lang="fr-FR";if(voice)u.voice=voice;u.rate=.9;speechSynthesis.speak(u)}catch(e){}}
 // Étoiles : niveau réussi du premier coup = série ; chaque échec casse la série ; les grands niveaux comptent plus
-function answer(ok,q){var d=level<=3?1:level<=8?1.5:2;try{if(parent!==window)parent.postMessage({type:"answer",game:"robot",ok:ok,diff:d,q:q==null?1:q},"*")}catch(e){}}
+function answer(ok,q){var d=level<=3?1:level<=8?1.5:2;try{if(parent!==window)parent.postMessage({type:"answer",game:"robot",ok:ok,diff:d,q:q==null?1:q,k:level<=3?"Niveaux 1 à 3":level<=8?"Niveaux 4 à 8":"Niveaux 9 et +"},"*")}catch(e){}}
 
 /* génération d'un niveau toujours faisable */
 function key(x,y){return x+","+y}

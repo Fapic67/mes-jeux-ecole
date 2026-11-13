@@ -102,7 +102,7 @@ function say(t){try{if(!window.speechSynthesis)return;speechSynthesis.cancel();v
 // Étoiles : code trouvé en 3 essais ou moins = série ; 4-5 essais = moitié moins ; difficulté selon le niveau
 // Étoiles seulement en Difficile (Facile et Moyen = entraînement) ; on prévient l'accueil pour masquer la série
 function ecoMode(){try{if(parent!==window)parent.postMessage({type:"eco",on:lvl===2},"*")}catch(e){}}
-function answer(ok,q){if(lvl!==2)return;var d=2;try{if(parent!==window)parent.postMessage({type:"answer",game:"code",ok:ok,diff:d,q:q==null?1:q},"*")}catch(e){}}
+function answer(ok,q){var d=2;try{if(parent!==window)parent.postMessage({type:"answer",game:"code",ok:ok,diff:d,q:q==null?1:q,k:LV[lvl].n},"*")}catch(e){}}
 
 /* partie */
 function newGame(){ecoMode();

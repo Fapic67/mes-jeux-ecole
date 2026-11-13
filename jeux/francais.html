@@ -48,7 +48,7 @@ function pickVoice(){var v=(window.speechSynthesis&&speechSynthesis.getVoices())
 if(window.speechSynthesis){pickVoice();speechSynthesis.onvoiceschanged=pickVoice}
 function say(t,cb){var done=false,fin=function(){if(!done){done=true;cb&&cb()}};setTimeout(fin,1200+t.length*90);try{if(!window.speechSynthesis)return;pickVoice();speechSynthesis.cancel();setTimeout(function(){var u=new SpeechSynthesisUtterance(t);u.lang="fr-FR";if(voice)u.voice=voice;u.rate=.85;u.onend=function(){setTimeout(fin,500)};speechSynthesis.resume();speechSynthesis.speak(u)},60)}catch(e){}}
 // Étoiles : phrase juste du premier coup = série ; les mots simples (plus longs à écrire) comptent un peu plus
-function star(ok){var g=cur===4?"phrase":"quique";try{if(parent!==window)parent.postMessage({type:"answer",game:g,ok:ok!==false,diff:cur===4?1.25:1},"*")}catch(e){}}
+function star(ok,q){var g=cur===4?"phrase":"quique";try{if(parent!==window)parent.postMessage({type:"answer",game:g,ok:ok!==false,diff:cur===4?1.25:1,k:q&&cur!==4?q.w:null,item:q?(cur===4?q.w:q.full):null},"*")}catch(e){}}
 function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
 function bar(){return '<div class="cnt">'+(i+1)+' / '+deck.length+'</div><div class="bar"><i style="width:'+(i/deck.length*100)+'%"></i></div>'}
 var deck,i,good,missed,cur=3;
@@ -70,9 +70,9 @@ function show3(){
     onKey:function(k){if(lock||val.length>=12)return;val+=k;hint.textContent="";paint()},
     onDel:function(){if(lock)return;val=val.slice(0,-1);paint()},
     onOk:function(){if(lock||!val)return;
-      if(val===q.w){lock=true;KB.enable(false);if(!missed){good++;star()}gap.className="gap ok";gap.textContent=q.w;hint.textContent="Bravo !";
+      if(val===q.w){lock=true;KB.enable(false);if(!missed){good++;star(true,q)}gap.className="gap ok";gap.textContent=q.w;hint.textContent="Bravo !";
         say(q.full,function(){i++;i<deck.length?show3():end()})}
-      else{if(!missed)star(false);missed=true;tries++;lock=true;gap.className="gap ko shake";hint.textContent="Essaie encore ! Écoute bien la phrase.";if(tries>=2)say(q.full);
+      else{if(!missed)star(false,q);missed=true;tries++;lock=true;gap.className="gap ko shake";hint.textContent="Essaie encore ! Écoute bien la phrase.";if(tries>=2)say(q.full);
         setTimeout(function(){val="";paint();lock=false},700)}}
   });
   say(q.full);
