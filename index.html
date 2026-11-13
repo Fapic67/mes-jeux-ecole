@@ -477,13 +477,15 @@ function renderPurse(bump){var p=prof(),E=ensureEcon(p),d=today(p),w=weekSum(p,E
  if(bump){["pstars","purse"].forEach(function(id){var e=$(id);e.classList.remove("bump");void e.offsetWidth;e.classList.add("bump")})}}
 var lastDiff=1,lastAct=0;
 function renderEco(){var p=prof(),E=ensureEcon(p),t=tierOf(E.streak),g=GAMES[cur]&&ECON.P[GAMES[cur].eco]!=null;
- $("eco").hidden=!g;var s=$("pstreak");
+ $("eco").hidden=!g||noStars();$("pstars").hidden=noStars();var s=$("pstreak");
  s.className=E.streak?(t===3?"t3":t===2?"t2":""):"off";
  s.innerHTML=(t===3?"🔥🔥🔥":t===2?"🔥🔥":"🔥")+" "+E.streak+(t>1?'<span class="x">×'+t+"</span>":"");
  $("pgauge").firstChild.style.width=Math.min(100,E.gauge/ECON.PTS*100)+"%";
  $("pdiff").textContent=lastDiff>1?"⭐×"+String(r2(lastDiff)).replace(".",","):"";document.body.classList.toggle("ecoon",g)}
 function toast(txt,ms){var t=document.createElement("div");t.className="toast";t.textContent=txt;if(ms)t.style.animationDuration=ms+"ms";document.body.appendChild(t);setTimeout(function(){t.remove()},(ms||1400)+100)}
-function onAnswer(m){var p=prof(),E=ensureEcon(p),P=ECON.P[m.game];if(P==null)return;rollWeek(p);
+// Matière « Jeux » : jamais d'étoiles, quel que soit le jeu
+function noStars(){return !!(GAMES[cur]&&GAMES[cur].subj==="jeux")}
+function onAnswer(m){if(noStars())return;var p=prof(),E=ensureEcon(p),P=ECON.P[m.game];if(P==null)return;rollWeek(p);
  var d=today(p),diff=Math.max(1,Math.min(3,+m.diff||1)),q=m.q==null?1:Math.max(0,Math.min(1,+m.q));lastDiff=diff;lastAct=Date.now();d.tot++;
  if(m.ok){E.streak++;d.ok++;d.best=Math.max(d.best,E.streak);E.best=Math.max(E.best||0,E.streak);
   var t=tierOf(E.streak);E.gauge=r2(E.gauge+P*diff*t*q);var n=0;while(E.gauge>=ECON.PTS){E.gauge=r2(E.gauge-ECON.PTS);n++}

@@ -87,6 +87,7 @@ Cibles >= 56px, bordures 3px, textes secondaires >= 16px, menus centrés vertica
   Réglages ⚙️ dans le jeu : clé principale (clé `mus_cle` = `sol` par défaut ou `fa`). En clé de fa, les airs sont transposés d'une octave plus bas (do3 à ré4, affichage et son) ; `pos(n)` est relatif à la ligne du bas de la clé active (mi4 en sol, sol2 en fa). `window.hubBack` ferme les réglages.
 
 ### Jeux (`morpion.html`)
+- **Règle : aucune étoile pour toute la matière Jeux** (`noStars()` dans `index.html` ignore les réponses et masque `#pstars`/`#eco` quand `subj === "jeux"`).
 - **Morpion** : 3×3, deux joueurs sur le même appareil (✕ rouge / ◯ bleu), uniquement à deux. **Aucune étoile.** Le premier joueur alterne à chaque manche ; score de la séance (✕, ◯, égalités) non sauvegardé ; ligne gagnante surlignée, bouton « Rejouer ».
 
 ## Point technique important : la voix
