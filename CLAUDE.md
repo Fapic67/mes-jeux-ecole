@@ -7,17 +7,17 @@ Dépôt : https://github.com/Fapic67/mes-jeux-ecole · site : https://fapic67.gi
 Le but est d'en faire une **appli Android installable (APK)** et partageable à des amis.
 
 ## Structure actuelle
-- `index.html` = accueil par matière (Français, Mathématiques, Allemand, Logique, Musique, Jeux). Chaque jeu est un fichier de `jeux/` (`francais.html`, `calcul.html`, `telephone.html`, `deutsch.html`), récupéré par `fetch` puis chargé dans une iframe `srcdoc` (même origine que l'accueil, donc même localStorage).
+- `index.html` = accueil par matière (Français, Mathématiques, Allemand, Logique, Mémoire, Musique, Jeux). Chaque jeu est un fichier de `jeux/` (`francais.html`, `calcul.html`, `telephone.html`, `deutsch.html`), récupéré par `fetch` puis chargé dans une iframe `srcdoc` (même origine que l'accueil, donc même localStorage).
   Avant le chargement, l'accueil injecte `window.START` (mode du jeu) et `window.PRENOM` (prénom saisi sur l'accueil).
 - `manifest.webmanifest`, `sw.js` (hors-ligne, **changer `VERSION` à chaque mise à jour**), `icons/`.
-- Navigation par hash : `#francais`, `#quique`, `#phrase`, `#maths`, `#allemand`, `#calcul`, `#telephone`, `#article`, `#mot`, `#logique`, `#chenille`, `#code`, `#robot`, `#boucles`, `#reparateur`, `#musique`, `#note`, `#jeux`, `#morpion`.
+- Navigation par hash : `#francais`, `#quique`, `#phrase`, `#maths`, `#allemand`, `#calcul`, `#telephone`, `#article`, `#mot`, `#logique`, `#chenille`, `#code`, `#robot`, `#boucles`, `#reparateur`, `#memoire`, `#memory`, `#courses`, `#musique`, `#note`, `#jeux`, `#morpion`.
 - Les jeux enregistrent leurs données en localStorage (clés `calcul`, `tel_*`, `hub_prenom`). Le prénom se règle dans les Paramètres globaux (carte « Enfant »).
 
 ## Profils et récompenses (dans `index.html`)
 - Clé `profiles` = `{active, list:[{id, name, reward, unit, per, gain, stars, money}]}`. Chaque profil a son prénom (injecté dans les jeux en `window.PRENOM`), son système de récompense (`reward` on/off, unité, taux « per ⭐ = gain »), ses étoiles et sa récompense. `window.PROFILE` = id du profil actif.
 - **Économie (argent de poche juste)** : les jeux n'attribuent plus d'étoiles ; à chaque réponse ils envoient `parent.postMessage({type:"answer", game, ok, diff, q}, "*")` (`ok` = juste **du premier coup** ; une bonne réponse après une erreur n'envoie rien ; `diff` = difficulté du jeu ; `q` = qualité 0-1, optionnelle). L'accueil (`onAnswer`, objet `ECON`) gère :
   - **série 🔥** (bonnes réponses d'affilée du 1er coup, remise à 0 par une erreur et à chaque lancement de jeu) avec paliers ×1 (0-4), ×2 (5-9), ×3 (10+), annonces à 5 et 10 ;
-  - **jauge ⭐** : points = `ECON.P[jeu] × diff × palier × q`, 10 points = 1 ⭐ (P : calcul .7, telephone .9, dde/fdw .5, quique/phrase 1.1, note .5, code 7, robot 5, boucles 6, reparateur 4, chenille .8 — calibrés par simulation : 20 min/jour à 90 % ≈ 140 ⭐/semaine) ;
+  - **jauge ⭐** : points = `ECON.P[jeu] × diff × palier × q`, 10 points = 1 ⭐ (P : calcul .7, telephone .9, dde/fdw .5, quique/phrase 1.1, note .5, code 7, robot 5, boucles 6, reparateur 4, chenille .8, memory .6, courses 2.5 — calibrés par simulation : 20 min/jour à 90 % ≈ 140 ⭐/semaine) ;
   - par profil `goal` (min/jour, 20, objectif affiché « ⭐ x / goal aujourd'hui »), `cap` (€/semaine, 3) et `rate` (⭐ pour 1 €, **50**) : `target = rate × cap` (150 ⭐ pour 3 €) ; `econ = {streak, gauge, days:{AAAA-MM-JJ:{st,ok,tot,sec,best}}, weeks:[…], wk (lundi), notice}` ;
   - **bilan hebdomadaire** (`rollWeek`, au démarrage et toutes les 10 min) : versement `min(cap, étoiles / rate)` arrondi aux 10 c, **étoiles en trop reportées** (jamais perdues), historique, annonce à l'enfant (`#notice`) ;
   - temps de jeu (jeu ouvert + réponse dans les 90 s) pour le bilan.
@@ -96,6 +96,11 @@ Cibles >= 56px, bordures 3px, textes secondaires >= 16px, menus centrés vertica
   Dans `robot.html`, le programme est une liste de briques `{d, n}` ; `MODE` = robot / boucles / reparateur (= nom envoyé dans `answer`).
 - **La chenille des couleurs** (`chenille.html`, hash `#chenille`, clés `chenille_lvl@`/`chenille_best@`) : suites de perles (couleurs puis formes) dont il faut trouver la perle suivante parmi 3-4. 8 niveaux : AB ; AAB/ABB ; ABC ; motifs de 4 ; formes et couleurs ; perle cachée au milieu ; deux règles (couleur et forme à périodes différentes) ; deux perles cachées. 5 réussites du premier coup = niveau suivant ; choix parmi les niveaux atteints. 🎨 « Invente ton motif » (2 à 4 perles, la chenille le répète, sans étoiles). Difficulté ×1 / ×1,25 / ×1,5 / ×2.
 - Ces 3 jeux ne sont pas dans les jeux limités par défaut (réglable dans la fiche profil).
+
+### Mémoire (couleur `--me`)
+- **Memory** (`memory.html`, hash `#memory`) : cartes à retourner par deux. Réglage dans le jeu (bouton Niveau) : cartes « Images » (paires identiques) ou « Image ↔ mot allemand » (par défaut : emoji ↔ « der Apfel », mot prononcé en allemand ; mots avec image des leçons cochées `de_sel_mem@<profil>`, complétés par les leçons 1-14) ; clé `memory_mode@`. 5 niveaux : 3, 4, 6, 8, 10 paires (`memory_lvl@`, `memory_best@`). Étoiles : paire trouvée = bonne réponse ; **erreur de mémoire** = paire ratée alors que la jumelle d'une des deux cartes avait déjà été vue (sinon rien, c'est le hasard). Difficulté ×1 (3-4 paires) / ×1,25 / ×1,5 / ×2 (+0,25 en allemand).
+- **Die Einkaufsliste** (`courses.html`, hash `#courses`) : la voix allemande dit « Ich kaufe einen Apfel, ein Brot und eine Kerze. » (accusatif einen/eine/ein) ; l'enfant met les objets dans le panier 🧺 (re-toucher = retirer), vérification automatique quand le panier est plein, puis solution affichée. Objets = noms de `DE_BUY` (dans `allemand-mots.js`) des leçons cochées `de_sel_courses@<profil>` (complétés si trop peu). 8 niveaux : 2/6, 3/6, 3/9, 4/9, 3/9 dans l'ordre, 4/9 dans l'ordre, 5/12, 5/12 dans l'ordre ; 3 listes réussies d'affilée = niveau suivant (`courses_lvl@`, `courses_best@`). Une réponse par liste (q .7 si réécoutée), item = mots oubliés.
+- Paramètres → 🎮 Réglages des jeux : leçons cochées aussi pour Memory et Die Einkaufsliste.
 
 ### Musique (`musique.html`)
 - **Trouve la note** : portée en clé de sol (SVG dessiné à la main), une note à la fois (fenêtre de 6 notes, notes trouvées en vert avec leur nom). L'enfant choisit parmi 7 pastilles do ré mi fa sol la si ; bonne réponse → la note est jouée (synthé façon piano WebAudio) ; mauvaise → pastille barrée.

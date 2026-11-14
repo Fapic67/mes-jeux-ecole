@@ -59,3 +59,5 @@ var DE_DEFAULT=[1,2,3,4,5,6,7,8,9,10]; // leçons cochées par défaut (les mots
 // Leçons cochées pour un jeu ("dde" = Der · Die · Das, "fdw" = Finde das Wort) et un profil
 function deSelected(game,pid){try{var v=JSON.parse(localStorage.getItem("de_sel_"+game+"@"+(pid||"p1")));if(Array.isArray(v))return v}catch(e){}return DE_DEFAULT.slice()}
 function deSave(game,pid,list){try{localStorage.setItem("de_sel_"+game+"@"+(pid||"p1"),JSON.stringify(list))}catch(e){}}
+// Mots « qu'on peut acheter » pour la Liste des courses (noms avec article et image)
+var DE_BUY=["Apfel","Brot","Orangensaft","Traube","Butter","Keks","Kerze","Ball","Bleistift","Puppe","Pinsel","Lineal","Korb","Blume","Aprikose","Dose","Ei","Buch","Koffer","Besen","Mantel","Schulranzen","Kürbis","Laterne","Uhr","Gabel","Kiste","Obst","Tannenbaum"];

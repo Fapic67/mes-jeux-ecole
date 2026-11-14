@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Memory</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+<script src="jeux/allemand-mots.js"></script>
+<style>
+:root{--bg:#fdf1fb;--fg:#3a1f3a;--mut:#7c5f7a;--card:#fff;--bd:#f0d3ea;--me:#d94fc4;--ok:#22a861;--bad:#e5484d;box-sizing:border-box}
+@media (prefers-color-scheme:dark){:root{--bg:#22142a;--fg:#fbeefa;--mut:#c9a9c6;--card:#33213b;--bd:#4e3557}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--fg);font-family:"Fredoka",system-ui,sans-serif;user-select:none}
+button{font-family:inherit;touch-action:manipulation;cursor:pointer}
+#wrap{position:fixed;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y}
+#inner{max-width:520px;min-height:100%;margin:0 auto;padding:10px 12px calc(16px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px}
+header{display:flex;align-items:center;gap:8px}
+#hint{flex:1;font-size:17px;color:var(--mut);font-weight:600}
+.hb{min-height:56px;padding:0 14px;border:3px solid var(--bd);background:var(--card);color:var(--fg);border-radius:16px;font-weight:700;font-size:18px;white-space:nowrap}
+#board{display:grid;gap:8px;margin:auto 0;width:100%}
+.cd{aspect-ratio:3/4;perspective:600px;border:0;padding:0;background:none}
+.cd .in{position:relative;width:100%;height:100%;transition:transform .35s;transform-style:preserve-3d}
+.cd.up .in,.cd.ok .in{transform:rotateY(180deg)}
+.cd .f,.cd .b{position:absolute;inset:0;border-radius:14px;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;align-items:center;justify-content:center}
+.cd .b{background:var(--me);background-image:radial-gradient(circle at 30% 30%,rgba(255,255,255,.35) 0 12%,transparent 13%),radial-gradient(circle at 70% 70%,rgba(255,255,255,.25) 0 10%,transparent 11%);box-shadow:0 4px 0 #a8329a;font-size:30px}
+.cd .f{transform:rotateY(180deg);background:var(--card);border:3px solid var(--bd);padding:4px;text-align:center}
+.cd .f .e{font-size:var(--es,40px);line-height:1}
+.cd .f .w{font-size:var(--ws,16px);font-weight:700;line-height:1.15;overflow-wrap:anywhere;hyphens:auto}
+.cd .f .w i{display:block;font-style:normal;font-weight:600;color:var(--mut);font-size:.85em}
+.cd.ok .f{border-color:var(--ok);background:#e8f8ee}
+@media (prefers-color-scheme:dark){.cd.ok .f{background:#1d3a28}}
+.cd.ko .f{border-color:var(--bad)}
+.cd.ok{animation:pop .4s}
+@keyframes pop{50%{transform:scale(1.08)}}
+#msg{min-height:28px;text-align:center;font-size:21px;font-weight:700}
+#stat{text-align:center;color:var(--mut);font-size:18px;font-weight:600}
+.acts{display:flex;gap:8px}
+.acts button{flex:1;height:64px;border:0;border-radius:18px;font-size:21px;font-weight:700;color:#fff;background:var(--me);box-shadow:0 5px 0 #a8329a}
+.acts button.g{background:var(--ok);box-shadow:0 5px 0 #17804a}
+.sheet{position:fixed;inset:0;background:rgba(30,8,30,.55);display:flex;align-items:flex-end;justify-content:center;z-index:5}
+.panel{background:var(--bg);width:100%;max-width:520px;max-height:90%;overflow:auto;border-radius:28px 28px 0 0;padding:20px 18px calc(22px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px}
+.panel h2{margin:0;font-size:24px}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opts button{min-height:58px;border:3px solid var(--bd);border-radius:16px;background:var(--card);color:var(--fg);font-size:19px;font-weight:700;text-align:left;padding:6px 14px}
+.opts button.on{background:var(--me);border-color:var(--me);color:#fff}
+.opts small{display:block;font-weight:500;font-size:16px;opacity:.85}
+.big{height:64px;border:0;border-radius:18px;background:var(--me);color:#fff;font-size:22px;font-weight:700}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div id="wrap"><div id="inner">
+<header><div id="hint">Retrouve les paires !</div><button class="hb" id="setb">Niveau 1</button></header>
+<div id="stat"></div>
+<div id="board"></div>
+<div id="msg"></div>
+<div class="acts" id="after" hidden><button id="again">Rejouer</button><button class="g" id="next">Niveau suivant ➜</button></div>
+</div></div>
+
+<div class="sheet" id="sheet" hidden><div class="panel">
+  <h2>Cartes</h2>
+  <div class="opts" id="modes"></div>
+  <h2>Niveau</h2>
+  <div class="opts" id="lvls"></div>
+  <button class="big" id="close">Fermer</button>
+</div></div>
+
+<script>
+(function(){
+var $=function(i){return document.getElementById(i)};
+var PK=window.PROFILE?"@"+window.PROFILE:"";
+function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
+function rnd(n){return Math.floor(Math.random()*n)}
+function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=rnd(i+1),t=a[i];a[i]=a[j];a[j]=t}return a}
+
+// niveaux : nombre de paires et colonnes
+var LV=[null,{p:3,c:3},{p:4,c:4},{p:6,c:4},{p:8,c:4},{p:10,c:4}],MAXL=5;
+var MODES={img:{t:"Images",d:"deux images identiques"},de:{t:"Image ↔ mot allemand",d:"🍎 avec « der Apfel » (leçons cochées par un parent)"}};
+var level=Math.min(MAXL,Math.max(1,parseInt(ls("memory_lvl"+PK))||1)),mode=ls("memory_mode"+PK)==="img"?"img":"de";
+var IMGS=["🐶","🐱","🐰","🦊","🐻","🐼","🐸","🐵","🦁","🐯","🐮","🐷","🐔","🦄","🐙","🦋","🐢","🐳","🌻","🍓","🍉","🚗","🚀","⚽","🎈","🍦","🌈","⭐","🎁","🍕"];
+
+/* sons et voix */
+var ac=null;
+function tone(f,t,d,v){try{if(!ac){var C=window.AudioContext||window.webkitAudioContext;if(!C)return;ac=new C()}if(ac.state==="suspended")ac.resume();var o=ac.createOscillator(),g=ac.createGain(),s=ac.currentTime+t;o.type="triangle";o.frequency.value=f;g.gain.setValueAtTime(.0001,s);g.gain.exponentialRampToValueAtTime(v||.2,s+.02);g.gain.exponentialRampToValueAtTime(.0001,s+d);o.connect(g);g.connect(ac.destination);o.start(s);o.stop(s+d+.05)}catch(e){}}
+function voiceFor(l){try{return speechSynthesis.getVoices().filter(function(v){return v.lang&&v.lang.indexOf(l)===0})[0]||null}catch(e){return null}}
+function say(t,l){try{if(!window.speechSynthesis)return;speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.lang=l==="de"?"de-DE":"fr-FR";var v=voiceFor(l||"fr");if(v)u.voice=v;u.rate=.9;speechSynthesis.speak(u)}catch(e){}}
+if(window.speechSynthesis)speechSynthesis.onvoiceschanged=function(){};
+
+// Étoiles : paire trouvée = bonne réponse ; erreur de mémoire = la carte jumelle avait déjà été vue
+function diff(){return (LV[level].p<=4?1:LV[level].p===6?1.25:LV[level].p===8?1.5:2)+(mode==="de"?.25:0)}
+function answer(ok){try{if(parent!==window)parent.postMessage({type:"answer",game:"memory",ok:ok,diff:diff(),k:LV[level].p+" paires"+(mode==="de"?" · allemand":"")},"*")}catch(e){}}
+
+var cards,open=[],lock=false,moves=0,found=0,seen={};
+function wordsPool(){var sel=typeof deSelected==="function"?deSelected("mem",window.PROFILE):[];
+ var w=DE_WORDS.filter(function(x){return x.e&&sel.indexOf(x.n)>=0});
+ if(w.length<LV[level].p)w=w.concat(DE_WORDS.filter(function(x){return x.e&&sel.indexOf(x.n)<0&&x.n<=14}));
+ // pas deux fois la même image
+ var u={},r=[];shuffle(w).forEach(function(x){if(!u[x.e]){u[x.e]=1;r.push(x)}});return r}
+function deal(){var P=LV[level].p,c=[];
+ if(mode==="img")shuffle(IMGS).slice(0,P).forEach(function(e,i){c.push({id:i,h:'<span class="e">'+e+"</span>"});c.push({id:i,h:'<span class="e">'+e+"</span>"})});
+ else wordsPool().slice(0,P).forEach(function(w,i){var full=(w.a?w.a+" ":"")+w.w;c.push({id:i,say:full,h:'<span class="e">'+w.e+"</span>"});c.push({id:i,say:full,h:'<span class="w">'+(w.a?"<i>"+w.a+"</i>":"")+w.w+"</span>"})});
+ cards=shuffle(c);cards.forEach(function(x,i){x.i=i});open=[];lock=false;moves=0;found=0;seen={};
+ var b=$("board"),C=LV[level].c;b.style.gridTemplateColumns="repeat("+C+",1fr)";var W=Math.min(520,innerWidth)-24,cw=(W-(C-1)*8)/C;
+ b.style.setProperty("--es",Math.round(cw*.48)+"px");b.style.setProperty("--ws",Math.max(13,Math.min(19,Math.round(cw*.17)))+"px");
+ b.innerHTML=cards.map(function(x){return '<button class="cd" data-i="'+x.i+'" aria-label="carte"><div class="in"><div class="b">?</div><div class="f">'+x.h+"</div></div></button>"}).join("");
+ $("after").hidden=true;$("msg").textContent="";$("setb").textContent="Niveau "+level;$("hint").textContent=mode==="de"?"Trouve l'image et son mot allemand !":"Retrouve les paires !";stat()}
+function stat(){$("stat").textContent="Paires : "+found+" / "+LV[level].p+" · Coups : "+moves}
+function el(i){return document.querySelector('.cd[data-i="'+i+'"]')}
+$("board").addEventListener("click",function(e){var b=e.target.closest(".cd");if(!b||lock)return;var c=cards[+b.dataset.i];if(c.done||open.indexOf(c)>=0)return;
+ b.classList.add("up");tone(520,0,.06,.1);open.push(c);
+ if(mode==="de"&&/class="w"/.test(c.h))say(c.say,"de");
+ if(open.length<2)return;
+ moves++;lock=true;var a=open[0],d=open[1];
+ if(a.id===d.id){a.done=d.done=true;found++;answer(true);
+  setTimeout(function(){[a,d].forEach(function(x){var q=el(x.i);q.classList.remove("up");q.classList.add("ok")});tone(660,0,.12,.2);tone(880,.1,.18,.2);if(mode==="de")say(a.say,"de");open=[];lock=false;stat();if(found===LV[level].p)win()},450)}
+ else{
+  // erreur de mémoire : la jumelle d'une des deux cartes avait déjà été retournée
+  var twin=function(x){return cards.some(function(y){return y!==x&&y.id===x.id&&seen[y.i]})};
+  if(twin(a)||twin(d))answer(false);
+  seen[a.i]=seen[d.i]=1;
+  setTimeout(function(){[a,d].forEach(function(x){el(x.i).classList.add("ko")})},350);
+  setTimeout(function(){[a,d].forEach(function(x){var q=el(x.i);q.classList.remove("up","ko")});open=[];lock=false;stat()},1300)}
+ seen[c.i]=1;stat()});
+function win(){var P=LV[level].p,good=moves<=Math.round(P*1.6)+1;
+ $("msg").textContent=good?"🎉 Bravo ! Super mémoire : "+moves+" coups !":"🎉 Bravo ! Trouvé en "+moves+" coups.";say(good?"Super mémoire !":"Bravo !");
+ [523,659,784,1047].forEach(function(f,k){tone(f,k*.1,.25,.22)});
+ if(level<MAXL){var best=Math.max(parseInt(ls("memory_best"+PK))||1,level+1);ls("memory_best"+PK,best)}
+ $("next").hidden=level>=MAXL;$("after").hidden=false;
+ setTimeout(function(){var w=$("wrap");w.scrollTo({top:w.scrollHeight,behavior:"smooth"})},100)}
+$("again").onclick=deal;
+$("next").onclick=function(){if(level<MAXL)level++;ls("memory_lvl"+PK,level);deal()};
+
+/* réglages : cartes et niveau */
+function opts(){$("modes").innerHTML=Object.keys(MODES).map(function(k){return '<button data-m="'+k+'" class="'+(k===mode?"on":"")+'">'+MODES[k].t+"<small>"+MODES[k].d+"</small></button>"}).join("");
+ var best=Math.max(level,parseInt(ls("memory_best"+PK))||1),h="";for(var i=1;i<=best;i++)h+='<button data-l="'+i+'" class="'+(i===level?"on":"")+'">Niveau '+i+"<small>"+LV[i].p+" paires ("+LV[i].p*2+" cartes)</small></button>";$("lvls").innerHTML=h}
+$("setb").onclick=function(){opts();$("sheet").hidden=false};
+$("modes").addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;mode=b.dataset.m;ls("memory_mode"+PK,mode);$("sheet").hidden=true;deal()});
+$("lvls").addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;level=+b.dataset.l;ls("memory_lvl"+PK,level);$("sheet").hidden=true;deal()});
+$("close").onclick=function(){$("sheet").hidden=true};
+window.hubBack=function(){if(!$("sheet").hidden){$("sheet").hidden=true;return true}return false};
+deal();
+})();
+</script>
+</body>
+</html>

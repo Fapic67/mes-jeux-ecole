@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Die Einkaufsliste</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+<script src="jeux/allemand-mots.js"></script>
+<style>
+:root{--bg:#fdf1fb;--fg:#3a1f3a;--mut:#7c5f7a;--card:#fff;--bd:#f0d3ea;--me:#d94fc4;--ok:#22a861;--bad:#e5484d;box-sizing:border-box}
+@media (prefers-color-scheme:dark){:root{--bg:#22142a;--fg:#fbeefa;--mut:#c9a9c6;--card:#33213b;--bd:#4e3557}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--fg);font-family:"Fredoka",system-ui,sans-serif;user-select:none}
+button{font-family:inherit;touch-action:manipulation;cursor:pointer}
+#wrap{position:fixed;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y}
+#inner{max-width:480px;min-height:100%;margin:0 auto;padding:10px 12px calc(16px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:14px}
+header{display:flex;align-items:center;gap:8px}
+#hint{flex:1;font-size:17px;color:var(--mut);font-weight:600}
+.hb{min-height:56px;padding:0 14px;border:3px solid var(--bd);background:var(--card);color:var(--fg);border-radius:16px;font-weight:700;font-size:18px;white-space:nowrap}
+#ear{align-self:center;width:96px;height:96px;border-radius:50%;border:0;background:var(--me);color:#fff;font-size:44px;box-shadow:0 6px 0 #a8329a}
+#ear:disabled{opacity:.5}
+#ear.talk{animation:pulse .8s infinite}
+@keyframes pulse{50%{transform:scale(1.08)}}
+#basket{display:flex;align-items:center;gap:6px;min-height:76px;background:var(--card);border:3px dashed var(--me);border-radius:20px;padding:8px 12px;flex-wrap:wrap}
+#basket .ic{font-size:34px}
+#basket .it{width:54px;height:54px;border-radius:14px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:34px;position:relative}
+#basket .it.ok{background:#d6f5e1}#basket .it.ko{background:#fde0e1}
+#basket .it small{position:absolute;top:-6px;left:-6px;background:var(--me);color:#fff;font-size:13px;font-weight:700;border-radius:999px;min-width:20px;height:20px;display:flex;align-items:center;justify-content:center}
+#shelf{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+#shelf button{aspect-ratio:1;border:3px solid var(--bd);border-radius:20px;background:var(--card);font-size:46px;display:flex;align-items:center;justify-content:center}
+#shelf button.in{opacity:.3}
+#shelf button:disabled{cursor:default}
+#msg{min-height:28px;text-align:center;font-size:21px;font-weight:700}
+#sol{text-align:center;font-size:19px;color:var(--mut);font-weight:600;min-height:24px}
+#sol b{color:var(--fg)}
+#score{display:flex;justify-content:center;gap:6px;font-size:24px}
+#score i{font-style:normal;opacity:.25}#score i.on{opacity:1}
+.acts{display:flex;gap:8px}
+.acts button{flex:1;height:64px;border:0;border-radius:18px;font-size:21px;font-weight:700;color:#fff;background:var(--me);box-shadow:0 5px 0 #a8329a}
+.sheet{position:fixed;inset:0;background:rgba(30,8,30,.55);display:flex;align-items:flex-end;justify-content:center;z-index:5}
+.panel{background:var(--bg);width:100%;max-width:520px;max-height:90%;overflow:auto;border-radius:28px 28px 0 0;padding:20px 18px calc(22px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px}
+.panel h2{margin:0;font-size:24px}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opts button{min-height:58px;border:3px solid var(--bd);border-radius:16px;background:var(--card);color:var(--fg);font-size:19px;font-weight:700;text-align:left;padding:6px 14px}
+.opts button.on{background:var(--me);border-color:var(--me);color:#fff}
+.opts small{display:block;font-weight:500;font-size:16px;opacity:.85}
+.big{height:64px;border:0;border-radius:18px;background:var(--me);color:#fff;font-size:22px;font-weight:700}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div id="wrap"><div id="inner">
+<header><div id="hint">Écoute la liste et remplis le panier</div><button class="hb" id="lvlb">Niveau 1</button></header>
+<button id="ear" aria-label="Écouter la liste">🔊</button>
+<div id="basket"><span class="ic">🧺</span></div>
+<div id="msg"></div>
+<div id="sol"></div>
+<div id="shelf"></div>
+<div class="acts" id="after" hidden><button id="next">Weiter ➜</button></div>
+<div id="score"></div>
+</div></div>
+
+<div class="sheet" id="sheet" hidden><div class="panel">
+  <h2>Choisis un niveau</h2>
+  <div class="opts" id="lvls"></div>
+  <button class="big" id="close">Fermer</button>
+</div></div>
+
+<script>
+(function(){
+var $=function(i){return document.getElementById(i)};
+var PK=window.PROFILE?"@"+window.PROFILE:"";
+function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
+function rnd(n){return Math.floor(Math.random()*n)}
+function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=rnd(i+1),t=a[i];a[i]=a[j];a[j]=t}return a}
+
+// n = nombre d'objets à retenir, s = objets proposés, o = dans l'ordre
+var LV=[null,{n:2,s:6},{n:3,s:6},{n:3,s:9},{n:4,s:9},{n:3,s:9,o:1},{n:4,s:9,o:1},{n:5,s:12},{n:5,s:12,o:1}],MAXL=LV.length-1,GOAL=3;
+var level=Math.min(MAXL,Math.max(1,parseInt(ls("courses_lvl"+PK))||1)),best=Math.min(MAXL,Math.max(level,parseInt(ls("courses_best"+PK))||1));
+function desc(L){var x=LV[L];return x.n+" objets parmi "+x.s+(x.o?" · dans l'ordre !":"")}
+
+/* objets : mots du manuel qu'on peut acheter, pris dans les leçons cochées par un parent */
+var BUY=DE_WORDS.filter(function(w){return w.a&&w.e&&DE_BUY.indexOf(w.w)>=0});
+function pool(){var sel=typeof deSelected==="function"?deSelected("courses",window.PROFILE):[],p=BUY.filter(function(w){return sel.indexOf(w.n)>=0});
+ if(p.length<LV[level].s)p=p.concat(shuffle(BUY.filter(function(w){return sel.indexOf(w.n)<0})).slice(0,LV[level].s-p.length));return p}
+function acc(w){return(w.a==="der"?"einen ":w.a==="die"?"eine ":"ein ")+w.w}
+
+/* sons et voix */
+var ac=null;
+function tone(f,t,d,v){try{if(!ac){var C=window.AudioContext||window.webkitAudioContext;if(!C)return;ac=new C()}if(ac.state==="suspended")ac.resume();var o=ac.createOscillator(),g=ac.createGain(),s=ac.currentTime+t;o.type="triangle";o.frequency.value=f;g.gain.setValueAtTime(.0001,s);g.gain.exponentialRampToValueAtTime(v||.2,s+.02);g.gain.exponentialRampToValueAtTime(.0001,s+d);o.connect(g);g.connect(ac.destination);o.start(s);o.stop(s+d+.05)}catch(e){}}
+function voiceFor(l){try{return speechSynthesis.getVoices().filter(function(v){return v.lang&&v.lang.indexOf(l)===0})[0]||null}catch(e){return null}}
+function say(t,l,cb){var done=false,fin=function(){if(!done){done=true;cb&&cb()}};setTimeout(fin,1500+t.length*85);
+ try{if(!window.speechSynthesis)return;speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.lang=l==="fr"?"fr-FR":"de-DE";var v=voiceFor(l||"de");if(v)u.voice=v;u.rate=.8;u.onend=function(){setTimeout(fin,300)};speechSynthesis.speak(u)}catch(e){}}
+if(window.speechSynthesis)speechSynthesis.onvoiceschanged=function(){};
+
+function diff(){return level<=1?1:level<=3?1.25:level<=5?1.5:2}
+function answer(ok,item,q){try{if(parent!==window)parent.postMessage({type:"answer",game:"courses",ok:ok,diff:diff(),q:q,k:"Niveau "+level,item:item},"*")}catch(e){}}
+
+var list,shelf,picked,lock,okCount=0,replays=0;
+function sentence(){var w=list.map(acc),s=w.length>1?w.slice(0,-1).join(", ")+" und "+w[w.length-1]:w[0];return "Ich kaufe "+s+"."}
+function listen(){if(lock)return;var e=$("ear");e.disabled=true;e.classList.add("talk");
+ say(sentence(),"de",function(){e.classList.remove("talk");e.disabled=lock;enableShelf(true)})}
+function enableShelf(on){document.querySelectorAll("#shelf button").forEach(function(b){b.disabled=!on||lock})}
+function round(){var L=LV[level],p=shuffle(pool());list=p.slice(0,L.n);shelf=shuffle(p.slice(0,L.s));picked=[];lock=false;replays=0;
+ $("shelf").style.gridTemplateColumns="repeat("+(L.s>9?4:3)+",1fr)";
+ $("shelf").innerHTML=shelf.map(function(w,i){return '<button data-i="'+i+'" aria-label="'+w.w+'" disabled>'+w.e+"</button>"}).join("");
+ $("hint").textContent=L.o?"Écoute et remplis le panier dans l'ordre !":"Écoute la liste et remplis le panier";
+ $("after").hidden=true;$("msg").textContent="";$("sol").textContent="";drawBasket();drawScore();setTimeout(listen,500)}
+function drawBasket(marks){$("basket").innerHTML='<span class="ic">🧺</span>'+picked.map(function(w,i){return '<span class="it'+(marks?" "+marks[i]:"")+'">'+(LV[level].o?"<small>"+(i+1)+"</small>":"")+w.e+"</span>"}).join("")}
+function drawScore(){var h="";for(var i=0;i<GOAL;i++)h+='<i class="'+(i<okCount?"on":"")+'">⭐</i>';$("score").innerHTML=h;$("lvlb").textContent="Niveau "+level}
+$("ear").onclick=function(){replays++;listen()};
+$("shelf").addEventListener("click",function(e){var b=e.target.closest("button");if(!b||b.disabled||lock)return;var w=shelf[+b.dataset.i],k=picked.indexOf(w);
+ if(k>=0){picked.splice(k,1);b.classList.remove("in")}else{picked.push(w);b.classList.add("in");tone(600+picked.length*60,0,.08,.12)}
+ drawBasket();if(picked.length===list.length)check()});
+function check(){lock=true;enableShelf(false);$("ear").disabled=true;var L=LV[level],marks,all;
+ if(L.o)marks=picked.map(function(w,i){return w===list[i]?"ok":"ko"});
+ else marks=picked.map(function(w){return list.indexOf(w)>=0?"ok":"ko"});
+ all=marks.every(function(m){return m==="ok"});drawBasket(marks);
+ var missed=list.filter(function(w,i){return L.o?picked[i]!==w:picked.indexOf(w)<0});
+ answer(all,all?"":missed.map(function(w){return w.a+" "+w.w}).join(", "),replays?.7:1);
+ var bs=list.map(function(w){return "<b>"+w.e+" "+acc(w)+"</b>"});$("sol").innerHTML="Ich kaufe "+(bs.length>1?bs.slice(0,-1).join(", ")+" und "+bs[bs.length-1]:bs[0]);
+ if(all){okCount++;$("msg").textContent=["Super !","Bravo !","Prima !","Toll !"][rnd(4)];[523,659,784,1047].forEach(function(f,k){tone(f,k*.1,.25,.22)});say("Prima!","de")}
+ else{okCount=0;$("msg").textContent=L.o&&list.every(function(w){return picked.indexOf(w)>=0})?"Les bons objets, mais pas dans l'ordre !":"Presque ! Voici la liste :";tone(200,0,.3,.2)}
+ drawScore();
+ if(okCount>=GOAL&&level<MAXL){okCount=0;level++;best=Math.max(best,level);ls("courses_lvl"+PK,level);ls("courses_best"+PK,best);
+  setTimeout(function(){$("msg").textContent="🎉 Niveau "+level+" : "+desc(level);say("Bravo ! Niveau "+level,"fr");drawScore()},1200)}
+ $("after").hidden=false;setTimeout(function(){var w=$("wrap");w.scrollTo({top:w.scrollHeight,behavior:"smooth"})},100)}
+$("next").onclick=round;
+
+function lvls(){var h="";for(var i=1;i<=best;i++)h+='<button data-l="'+i+'" class="'+(i===level?"on":"")+'">Niveau '+i+"<small>"+desc(i)+"</small></button>";$("lvls").innerHTML=h}
+$("lvlb").onclick=function(){lvls();$("sheet").hidden=false};
+$("lvls").addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;level=+b.dataset.l;ls("courses_lvl"+PK,level);okCount=0;$("sheet").hidden=true;round()});
+$("close").onclick=function(){$("sheet").hidden=true};
+window.hubBack=function(){if(!$("sheet").hidden){$("sheet").hidden=true;return true}return false};
+round();
+})();
+</script>
+</body>
+</html>
