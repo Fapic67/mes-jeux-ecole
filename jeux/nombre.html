@@ -96,17 +96,26 @@ var MAXS=[[10,"10","pour commencer"],[20,"20","les nombres de 11 à 16 sont pié
 var max=parseInt(ls("nb_max"+PK))||20;if(!MAXS.some(function(m){return m[0]===max}))max=20;
 
 /* ---------- lecture d'un nombre français dans une phrase entendue ---------- */
-var W={zero:0,"zéro":0,un:1,une:1,hein:1,deux:2,trois:3,quatre:4,cinq:5,six:6,sept:7,set:7,cette:7,huit:8,neuf:9,dix:10,dis:10,onze:11,douze:12,treize:13,quatorze:14,quinze:15,seize:16,
- vingt:20,vingts:20,vin:20,vain:20,trente:30,quarante:40,cinquante:50,soixante:60,septante:70,huitante:80,octante:80,nonante:90,cent:100,cents:100,sans:100,sang:100};
-function parseFr(t){t=String(t).toLowerCase();var d=t.match(/\d+/);if(d)return parseInt(d[0],10);
- var toks=t.replace(/[-’']/g," ").split(/\s+/),cur=0,seen=false;
- for(var i=0;i<toks.length;i++){var w=toks[i];if(w==="et"&&seen)continue;if(!(w in W)){if(seen)break;continue}var v=W[w];seen=true;
-  if(v===100)cur=(cur||1)*100;
-  else if(v===20&&cur%100===4)cur=cur-4+80;          // quatre-vingt(s)
-  else if(v===10&&(cur%100===60||cur%100===80))cur+=10; // soixante-dix, quatre-vingt-dix
-  else if(v<10&&(cur%100===70||cur%100===90)&&toks[i-1]==="dix")cur+=v; // dix-sept après 70/90 (déjà compté)
-  else cur+=v}
- return seen?cur:null}
+// mots-nombres + sons proches que la reconnaissance renvoie souvent à la place
+var W={zero:0,"zéro":0,un:1,une:1,hein:1,deux:2,deu:2,"d'eux":2,trois:3,troi:3,quatre:4,quatres:4,katre:4,cinq:5,cinque:5,sinq:5,six:6,scie:6,cis:6,sis:6,
+ sept:7,set:7,cette:7,"sète":7,huit:8,neuf:9,"œuf":9,oeuf:9,neuve:9,dix:10,dis:10,onze:11,once:11,douze:12,douce:12,treize:13,"trèze":13,quatorze:14,quinze:15,seize:16,
+ vingt:20,vingts:20,vin:20,vain:20,vint:20,trente:30,trante:30,quarante:40,cinquante:50,soixante:60,septante:70,huitante:80,octante:80,nonante:90,cent:100,cents:100,sans:100,sang:100};
+// tous les nombres d'une phrase (mots, chiffres ou mélange : « 60 11 » = 71, « 4 20 » = 80, « vingt et un », « soixante-dix-sept »)
+function parseAll(t){t=String(t).toLowerCase().replace(/(\d)\s+(?=\d{3})/g,"$1");
+ var toks=t.replace(/[-’']/g," ").replace(/(\d+)/g," $1 ").split(/[\s,.!?]+/),out=[],cur=null;
+ function val(w){if(/^\d+$/.test(w))return parseInt(w,10);return w in W?W[w]:null}
+ for(var i=0;i<toks.length;i++){var w=toks[i];if(!w)continue;if(w==="et"&&cur!=null)continue;var v=val(w);
+  if(v==null){if(cur!=null){out.push(cur);cur=null}continue}
+  if(cur==null)cur=v;
+  else if(v===100&&cur<100)cur=(cur||1)*100;                       // deux cents
+  else if(v===20&&cur%100===4)cur+=76;                               // quatre-vingt(s)
+  else if(cur>=100&&cur%100===0&&v<100)cur+=v;                       // cent trois
+  else if(v<20&&cur%10===0&&cur%100>=20)cur+=v;                      // vingt et un, soixante-dix, soixante-onze, quatre-vingt-dix-sept
+  else if(cur%100===10&&v>0&&v<10&&cur<100)cur+=v;                   // dix-sept
+  else if(cur%100>=70&&cur%100<80&&cur%10===0&&v<10)cur+=v;
+  else{out.push(cur);cur=v}}
+ if(cur!=null)out.push(cur);return out}
+function parseFr(t){var a=parseAll(t);return a.length?a[0]:null}
 
 /* ---------- sons et voix ---------- */
 var ac=null;
@@ -117,15 +126,15 @@ function say(t,cb){var done=false,fin=function(){if(!done){done=true;cb&&cb()}};
 function diff(){return max<=20?1:max<=69?1.25:1.5}
 function answer(ok){try{if(parent!==window)parent.postMessage({type:"answer",game:"nombre",ok:ok,diff:diff(),k:n<10?"0 à 9":Math.floor(n/10)*10,item:String(n)},"*")}catch(e){}}
 
-var n=-1,recent=[],missed=false,fails=0,busy=false,count=0,sel=null,lis=false,silent=0;
+var n=-1,recent=[],missed=false,wrongs=0,fails=0,busy=false,count=0,sel=null,lis=false,silent=0;
 function next(){var x,t=0;do{x=rnd(max+1)}while((recent.indexOf(x)>=0||(max>20&&x<10&&Math.random()<.7))&&++t<50);
- n=x;recent.push(x);if(recent.length>Math.min(8,max-2))recent.shift();missed=false;fails=0;busy=false;sel=null;
+ n=x;recent.push(x);if(recent.length>Math.min(8,max-2))recent.shift();missed=false;wrongs=0;fails=0;busy=false;sel=null;
  $("num").textContent=n;$("num").className="";$("msg").innerHTML="";$("help").hidden=true;$("mic").hidden=false;$("mic").disabled=false;silent=0;setTimeout(listen,350)}
 function good(){$("st").className="";$("st").textContent="";try{if(parent!==window)parent.postMessage({type:"roundEnd"},"*")}catch(e){}busy=true;$("num").className="ok";$("mic").disabled=true;$("mic").className="";$("help").hidden=true;if(!missed)answer(true);count++;
  [660,880].forEach(function(f,k){tone(f,k*.1,.18,.2)});$("msg").innerHTML=["Bravo !","Super !","Génial !","Oui !"][rnd(4)];
  say(n,function(){setTimeout(next,300)})}
 function wrong(heard){tone(200,0,.3,.2);var e=$("num");e.className="";void e.offsetWidth;e.className="ko";
- $("msg").innerHTML=heard==null?"Je n'ai pas bien compris…<small>Dis le nombre bien fort</small>":"J'ai entendu « "+heard+" »<small>Essaie encore !</small>";
+ $("msg").innerHTML=heard==null?"Je n'ai pas bien compris…<small>Dis le nombre bien fort</small>":"J'ai entendu « "+heard+" »<small>"+(wrongs<2?"Redis-le bien fort et bien articulé":"Essaie encore !")+"</small>";
  if(++fails>=3)showHelp();else setTimeout(listen,1400)}
 // aide si le micro ne comprend pas : 3 nombres à écouter, on choisit le bon
 function showHelp(){stopMic();micState("off");$("st").textContent="";var c=[n],t=0;while(c.length<3&&t++<99){var x=n+[-11,-10,-1,1,10,11,20,-20][rnd(8)];if(x>=0&&x<=Math.max(max,10)&&c.indexOf(x)<0)c.push(x)}
@@ -155,9 +164,11 @@ function listen(){if(busy||lis||!$("help").hidden||document.hidden||!$("sheet").
    if(err==="denied"){micState("off");$("st").textContent="";$("msg").innerHTML="Le micro n'est pas autorisé.<small>Autorise le micro pour Mes jeux d'école dans les réglages du téléphone</small>";return}
    heard([])})}
 function heard(alts){lis=false;clearTimeout(readyT);if(busy)return;micState("think");
- var vals=alts.map(parseFr);if(vals.indexOf(n)>=0){good();return}
+ if(alts.some(function(a){return parseAll(a).indexOf(n)>=0})){good();return}
+ var vals=alts.map(parseFr);
  var h=vals.filter(function(v){return v!=null})[0];
- if(h!=null){silent=0;if(!missed)answer(false);missed=true;wrong(h);return}
+ // le téléphone peut mal entendre : le 1er mauvais nombre ne compte pas comme une erreur, le 2e oui
+ if(h!=null){silent=0;if(++wrongs>=2&&!missed){answer(false);missed=true}wrong(h);return}
  if(alts.length){silent=0;wrong(null);return}          // des mots, mais pas un nombre
  if(++silent>=2){micState("off");$("msg").innerHTML="";return}
  listen()}
@@ -177,7 +188,7 @@ if(st!=="ok"){$("warn").style.display="block";$("stage").hidden=true;$("hint").t
  $("warn").innerHTML=st==="old-apk"?"🎤 Ce jeu a besoin du micro, qui n'est pas dans cette version de l'appli.<br><br>Un parent peut installer la nouvelle version : ouvrir dans Chrome<br><b>fapic67.github.io/mes-jeux-ecole/telechargement/mes-jeux-ecole.apk</b><br><small>Elle s'installe par-dessus : les étoiles et les profils sont gardés.</small>"
   :"🎤 La reconnaissance de la voix n'est pas disponible dans ce navigateur. Ouvre l'appli dans Chrome ou installe l'appli Android."}
 else next();
-window.__parse=parseFr;
+window.__parse=parseFr;window.__parseAll=parseAll;
 })();
 </script>
 </body>
