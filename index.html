@@ -225,6 +225,15 @@ body.rw-gifts #purse{display:none!important}
 .ptile:active{transform:translateY(3px);box-shadow:0 2px 0 var(--line)}
 .ptile small{display:block;font-size:18px;font-weight:600;color:var(--star)}
 .av{flex:none;width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:30px;font-weight:700}
+.av.ph{background-size:cover!important;background-position:center!important;color:transparent}
+.mini-av{display:inline-block;width:30px;height:30px;border-radius:50%;background-size:cover;background-position:center;vertical-align:middle;margin-right:4px}
+.p-avrow{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.p-avrow .av{width:84px;height:84px;font-size:40px;background:var(--math)}
+#phedit .panel{align-items:center;text-align:center}
+#ph-box{position:relative;width:280px;height:280px;border-radius:20px;overflow:hidden;touch-action:none;background:#000;cursor:grab}
+#ph-box canvas{position:absolute;inset:0}
+#ph-box::after{content:"";position:absolute;inset:0;border-radius:50%;box-shadow:0 0 0 400px rgba(0,0,0,.55);border:3px solid #fff;pointer-events:none}
+#ph-zoom{width:280px;accent-color:var(--math)}
 .ptile.new{border-style:dashed;box-shadow:none;color:var(--soft)}
 .ptile.new .av{background:var(--line);color:var(--ink)}
 #spanel{min-height:75%}
@@ -264,7 +273,7 @@ body.rw-gifts #purse{display:none!important}
 
 <section class="view" id="v-home">
   <div class="top">
-    <button class="btn" id="whob" aria-label="Changer de profil">👤 <span id="whon"></span></button>
+    <button class="btn" id="whob" aria-label="Changer de profil"><span id="whoi">👤</span> <span id="whon"></span></button>
     <span style="flex:1"></span>
     <button class="btn icon-btn" id="gear" aria-label="Paramètres">⚙️</button>
   </div>
@@ -369,6 +378,9 @@ body.rw-gifts #purse{display:none!important}
   <div class="pg" id="pg-profil" hidden>
     <div class="card">
       <h3>Profil</h3>
+      <div class="p-avrow"><span class="av" id="p-av"></span>
+        <span class="pg" style="gap:8px;flex:1"><label class="btn" style="text-align:center;cursor:pointer">📷 Choisir une photo<input type="file" id="p-photo" accept="image/*" hidden></label>
+        <button class="btn danger" id="p-phdel">Retirer la photo</button></span></div>
       <label class="row"><span>Prénom</span><input class="field grow" id="p-name" maxlength="20" autocomplete="off"></label>
       <div class="row"><button class="btn okb grow" id="p-use">Utiliser ce profil</button><span class="muted grow" id="p-active">✅ Profil utilisé en ce moment</span><button class="btn danger" id="p-del">Supprimer</button></div>
     </div>
@@ -519,6 +531,15 @@ body.rw-gifts #purse{display:none!important}
   <div class="big">⏰</div><h2 style="justify-content:center">C'est l'heure d'apprendre !</h2>
   <div class="muted" id="tu-txt" style="font-size:19px"></div>
   <button class="btn okb" id="tu-ok" style="width:100%">Retour au menu</button>
+</div></div>
+
+<!-- Recadrage de la photo du profil -->
+<div class="sheet" id="phedit" hidden><div class="panel">
+  <h2 style="justify-content:center">📷 Ta photo</h2>
+  <div class="muted">Fais glisser la photo et zoome pour bien placer le visage dans le rond.</div>
+  <div id="ph-box"><canvas id="ph-cv" width="560" height="560" style="width:280px;height:280px"></canvas></div>
+  <input type="range" id="ph-zoom" min="1" max="4" step="0.01" value="1" aria-label="Zoom">
+  <div class="row" style="width:100%"><button class="btn grow" id="ph-no">Annuler</button><button class="btn okb grow" id="ph-ok">Valider</button></div>
 </div></div>
 
 <!-- Ouverture d'un cadeau -->
@@ -685,7 +706,7 @@ function renderPurse(bump){var p=prof(),E=ensureEcon(p),d=today(p),w=weekSum(p,E
  $("h-day").textContent=d.st;$("h-goal").textContent=p.goal;$("h-bar").style.width=Math.min(100,d.st/p.goal*100)+"%";
  var carry=Math.max(0,p.stars-w.st);
  $("hint").textContent=(d.st>=p.goal?"🎯 Objectif du jour atteint ! ":"")+"Cette semaine : ⭐ "+w.st;
- $("whon").textContent=pname(p);
+ $("whon").textContent=pname(p);$("whoi").innerHTML=p.photo?'<span class="mini-av" style="background-image:url('+p.photo+')"></span>':"👤";
  $("hello").textContent=p.name?"Bonjour "+p.name+" ! 👋":"Bonjour ! 👋";
  renderEco();renderLocks();renderTime();renderGbar();
  if(bump){["pstars","purse"].forEach(function(id){var e=$(id);e.classList.remove("bump");void e.offsetWidth;e.classList.add("bump")})}}
@@ -918,7 +939,7 @@ function showNotice(){var p=prof(),E=ensureEcon(p),n=E.notice;if(!n||!$("notice"
  $("notice").hidden=false;$("nt-ok").onclick=function(){$("notice").hidden=true;delete E.notice;saveP()}}
 /* écran « Qui joue ? » : premier écran à l'ouverture */
 var AVC=["#22a861","#4a7cff","#ff5c7a","#9b6bff","#13a8a8","#ff8a3d"];
-function renderProfilScreen(){$("plist2").innerHTML=PR.list.map(function(p,i){var n=pname(p);return '<button class="ptile" data-who="'+p.id+'"><span class="av" style="background:'+AVC[i%AVC.length]+'">'+esc(n.charAt(0).toUpperCase())+'</span><span>'+esc(n)+'<small>⭐ '+p.stars+'</small></span></button>'}).join("");
+function renderProfilScreen(){$("plist2").innerHTML=PR.list.map(function(p,i){var n=pname(p);return '<button class="ptile" data-who="'+p.id+'"><span class="av'+(p.photo?" ph":"")+'" style="'+avStyle(p,i)+'">'+(p.photo?"":esc(n.charAt(0).toUpperCase()))+'</span><span>'+esc(n)+'<small>⭐ '+p.stars+'</small></span></button>'}).join("");
  $("pform").hidden=true;$("pnew").hidden=false}
 $("plist2").addEventListener("click",function(e){var b=e.target.closest("[data-who]");if(!b)return;PR.active=b.dataset.who;saveP();go("")});
 $("pnew").onclick=function(){$("pnew").hidden=true;$("pform").hidden=false;$("pfname").value="";setTimeout(function(){$("pfname").focus()},50)};
@@ -990,10 +1011,32 @@ try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persisted(
 
 function renderMenu(){var p=prof();$("m-prof").textContent=PR.list.length+" profil"+(PR.list.length>1?"s":"")+" · actif : "+pname(p);
  var bt=ls("bk_last");$("m-save").textContent=bt?"Dernière sauvegarde : "+new Date(+bt).toLocaleDateString("fr-FR"):"Aucune sauvegarde pour l'instant";$("m-code").textContent=CFG.pin&&CFG.pin!==DEF_PIN?"Code personnel":"Code par défaut : 0000";installedVersion().then(function(v){$("m-app").textContent="Version installée : "+(v||"?")})}
-function renderProfils(){$("plist").innerHTML=PR.list.map(function(p){return '<button class="menuitem" data-edit="'+p.id+'"><span class="ic">👤</span><span>'+esc(pname(p))+(p.id===PR.active?'<span class="badge">actif</span>':'')+'<small>⭐ '+p.stars+({none:" · sans récompense",stars:" · étoiles seules",gifts:" · 🎁 cadeaux · "+money(p.money,p)})[p.rmode||"gifts"]+'</small></span></button>'}).join("")}
+/* ---------- Photo du profil : une photo existante, recadrée en rond (glisser + zoom), enregistrée en 192×192 JPEG dans p.photo ---------- */
+function avStyle(p,i){return p.photo?'background:url('+p.photo+') center/cover':'background:'+AVC[(i||0)%AVC.length]}
+var PH={img:null,s:1,x:0,y:0,base:1};
+function phDraw(){var c=$("ph-cv"),g=c.getContext("2d"),im=PH.img,W=c.width,k=PH.base*PH.s,w=im.width*k,h=im.height*k;
+ PH.x=Math.min(0,Math.max(W-w,PH.x));PH.y=Math.min(0,Math.max(W-h,PH.y));g.fillStyle="#000";g.fillRect(0,0,W,W);g.drawImage(im,PH.x,PH.y,w,h)}
+$("p-photo").onchange=function(){var f=this.files&&this.files[0];this.value="";if(!f)return;var r=new FileReader();
+ r.onload=function(){var im=new Image();im.onload=function(){var W=$("ph-cv").width;PH.img=im;PH.s=1;PH.base=W/Math.min(im.width,im.height);
+  PH.x=(W-im.width*PH.base)/2;PH.y=(W-im.height*PH.base)/2;$("ph-zoom").value=1;phDraw();$("phedit").hidden=false};
+  im.onerror=function(){toast("Cette image ne peut pas être ouverte",2200)};im.src=r.result};r.readAsDataURL(f)};
+(function(){var box=$("ph-box"),drag=null,pts={};
+ function sc(){return $("ph-cv").width/box.clientWidth}
+ box.addEventListener("pointerdown",function(e){box.setPointerCapture(e.pointerId);pts[e.pointerId]={x:e.clientX,y:e.clientY};drag={x:e.clientX,y:e.clientY,px:PH.x,py:PH.y}});
+ box.addEventListener("pointermove",function(e){if(!drag||!PH.img)return;var ids=Object.keys(pts);pts[e.pointerId]={x:e.clientX,y:e.clientY};if(ids.length>1)return;
+  PH.x=drag.px+(e.clientX-drag.x)*sc();PH.y=drag.py+(e.clientY-drag.y)*sc();phDraw()});
+ function up(e){delete pts[e.pointerId];drag=null}box.addEventListener("pointerup",up);box.addEventListener("pointercancel",up);
+ // zoom autour du centre du rond
+ $("ph-zoom").oninput=function(){if(!PH.img)return;var W=$("ph-cv").width,c=W/2,old=PH.s,n=+this.value;PH.x=c-(c-PH.x)*n/old;PH.y=c-(c-PH.y)*n/old;PH.s=n;phDraw()}})();
+$("ph-no").onclick=function(){$("phedit").hidden=true;PH.img=null};
+$("ph-ok").onclick=function(){if(!PH.img)return;var o=document.createElement("canvas"),S=192,src=$("ph-cv");o.width=o.height=S;o.getContext("2d").drawImage(src,0,0,S,S);
+ var url=o.toDataURL("image/jpeg",.85);$("phedit").hidden=true;PH.img=null;upd(function(p){p.photo=url});toast("📷 Photo enregistrée",1600)};
+$("p-phdel").onclick=function(){if(!E().photo)return;upd(function(p){delete p.photo})};
+function renderProfils(){$("plist").innerHTML=PR.list.map(function(p){return '<button class="menuitem" data-edit="'+p.id+'"><span class="ic">'+(p.photo?'<span class="mini-av" style="width:40px;height:40px;background-image:url('+p.photo+')"></span>':"👤")+'</span><span>'+esc(pname(p))+(p.id===PR.active?'<span class="badge">actif</span>':'')+'<small>⭐ '+p.stars+({none:" · sans récompense",stars:" · étoiles seules",gifts:" · 🎁 cadeaux · "+money(p.money,p)})[p.rmode||"gifts"]+'</small></span></button>'}).join("")}
 $("plist").addEventListener("click",function(e){var b=e.target.closest("[data-edit]");if(!b)return;EDIT=b.dataset.edit;openPage("profil")});
 $("padd").onclick=function(){var id="p"+Date.now().toString(36);PR.list.push({id:id,name:"",reward:true,unit:"€",per:10,gain:1,stars:0,money:0});saveP();EDIT=id;openPage("profil");setTimeout(function(){$("p-name").focus()},100)};
 function renderProfil(){var p=prof(EDIT);if(p.id!==EDIT)EDIT=p.id;
+ var ix=PR.list.indexOf(p);$("p-av").setAttribute("style",avStyle(p,ix));$("p-av").className="av"+(p.photo?" ph":"");$("p-av").textContent=p.photo?"":pname(p).charAt(0).toUpperCase();$("p-phdel").hidden=!p.photo;
  if(document.activeElement!==$("p-name"))$("p-name").value=p.name;$("p-name").placeholder="Prénom de l'enfant";
  var act=p.id===PR.active;$("p-use").hidden=act;$("p-active").hidden=!act;$("p-del").hidden=PR.list.length<2;
  $("pg-profil").classList.toggle("nomon",p.rmode!=="gifts");renderRmode(p);
