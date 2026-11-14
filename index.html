@@ -271,7 +271,7 @@ body.rw-gifts #purse{display:none!important}
     <div class="purse" id="purse" style="flex:none"><span class="lines grow"><span class="l1"><span class="st">⭐ <span id="h-day">0</span></span> / <span id="h-goal">20</span> aujourd'hui</span><span class="minibar"><i id="h-bar"></i></span><span class="hint" id="hint"></span></span></div>
 
   <button class="gbar" id="gbar" aria-label="Mon chemin des cadeaux"><div class="gtrack" id="gtrack"><div class="gfill" id="gfill"></div><span class="gpin" id="gpin">⭐</span></div>
-    <div class="gtxt" id="gtxt"></div><div class="gsub" id="gsub"></div></button>
+    <div class="gtxt" id="gtxt"></div></button>
 
   <div class="mid">
     <h1 id="hello">Bonjour ! 👋</h1>
@@ -821,7 +821,6 @@ function renderGbar(){var p=prof();if(p.rmode!=="gifts")return;var G=ensureGifts
  for(var i=0;i<5;i++){var e=document.createElement("span");e.className=gClass(p,i);e.style.left=(gAt(p,i)/L*100)+"%";e.textContent=GS[i]==="l"?"👑":"🎁";tr.appendChild(e)}
  var nx=gNext(p);
  $("gtxt").innerHTML=rd?"🎁 Touche le cadeau pour l'ouvrir !":nx>=0?"Encore <b>"+(gAt(p,nx)-G.pos)+" ⭐</b> avant le prochain cadeau !":"👑 Chemin terminé !";
- $("gsub").textContent="⭐ "+d.st+" / "+p.goal+" aujourd'hui · chemin n°"+G.path;
  $("gbar").setAttribute("aria-label","Chemin des cadeaux : "+Math.min(G.pos,L)+" étoiles sur "+L+(rd?", un cadeau à ouvrir":nx>=0?", prochain cadeau dans "+(gAt(p,nx)-G.pos)+" étoiles":""));
  // animation : les étoiles gagnées depuis le dernier affichage s'envolent vers la jauge
  var key=p.id+":"+G.path,target=Math.min(G.pos,L)/L*100,prev=GSHOWN[key];GSHOWN[key]=G.pos;
