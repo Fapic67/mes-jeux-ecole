@@ -287,7 +287,7 @@ body.rw-gifts #purse{display:none!important}
     <h1 id="hello">Bonjour ! 👋</h1>
     <p class="sub">Choisis une matière<span id="daytxt"></span></p>
     <button class="tile fr" data-go="francais"><span class="ic">📚</span><span>Français<small>Complète la phrase, conjugaison</small></span></button>
-    <button class="tile math" data-go="maths"><span class="ic">🧮</span><span>Mathématiques<small>Calcul, téléphone, dis le nombre</small></span></button>
+    <button class="tile math" data-go="maths"><span class="ic">🧮</span><span>Mathématiques<small>Calcul, téléphone</small></span></button>
     <button class="tile de" data-go="allemand"><span class="ic">🇩🇪</span><span>Allemand<small>Der · Die · Das, mots en images, écrire</small></span></button>
     <button class="tile lo" data-go="logique"><span class="ic">🧩</span><span>Logique<small>Code secret, petit robot</small></span></button>
     <button class="tile me" data-go="memoire"><span class="ic">🧠</span><span>Mémoire<small>Memory, liste des courses</small></span></button>
@@ -310,7 +310,6 @@ body.rw-gifts #purse{display:none!important}
   <div class="mid">
     <button class="game" data-play="calcul"><span class="ic">➕</span><span>Calcul malin<small>Additions, soustractions, compléments · voix en allemand</small></span></button>
     <button class="game" data-play="telephone"><span class="ic">📞</span><span>Le téléphone magique<small>Écoute les nombres et compose le numéro</small></span></button>
-    <button class="game" data-play="nombre"><span class="ic">🎤</span><span>Dis le nombre<small>Lis le nombre à voix haute</small></span></button>
   </div>
 </section>
 
@@ -589,7 +588,6 @@ var GAMES={
  phrase:{t:"Complète la phrase",app:"francais",start:4,subj:"francais",eco:"phrase"},
  conj:{t:"Conjugue être et avoir",app:"francais",start:5,subj:"francais",eco:"conj"},
  calcul:{t:"Calcul malin",app:"calcul",subj:"maths",eco:"calcul"},
- nombre:{t:"Dis le nombre",app:"nombre",subj:"maths",eco:"nombre"},
  telephone:{t:"Le téléphone magique",app:"telephone",subj:"maths",eco:"telephone"},
  article:{t:"Der · Die · Das",app:"deutsch",start:1,subj:"allemand",eco:"dde"},
  code:{t:"Le code secret",app:"code",subj:"logique",eco:"code"},
@@ -693,7 +691,7 @@ function money(v,p){p=p||prof();v=r2(v);return v.toLocaleString("fr-FR",v%1?{min
    Les jeux envoient {type:"answer", game, ok, diff, q} à chaque réponse.
    Points = P(jeu) × difficulté × palier de série (×1, ×2 dès 5, ×3 dès 10) × qualité ; 10 points = 1 ⭐.
    Barème : objectif (min/jour) × 7 jours ≈ autant d'étoiles = maximum €/semaine ; le surplus est reporté. */
-var ECON={P:{calcul:.7,telephone:.9,dde:.5,fdw:.5,quique:1.1,phrase:1.1,note:.5,code:7,robot:5,boucles:6,reparateur:4,chenille:.8,memory:1,courses:2.5,conj:.8,nombre:.6,sdw:1.1},PTS:10};
+var ECON={P:{calcul:.7,telephone:.9,dde:.5,fdw:.5,quique:1.1,phrase:1.1,note:.5,code:7,robot:5,boucles:6,reparateur:4,chenille:.8,memory:1,courses:2.5,conj:.8,sdw:1.1},PTS:10};
 function tierOf(st){return st>=10?3:st>=5?2:1}
 function pad(n){return(n<10?"0":"")+n}
 function dkey(d){d=d||new Date();return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())}
