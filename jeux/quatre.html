@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Quatre en ligne</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#fff6ec;--fg:#3a2416;--mut:#8a6a55;--card:#fff;--bd:#f1dcc6;--p1:#e5484d;--p2:#ffc400;--grid:#22a861;--jx:#ff8a3d;box-sizing:border-box}
+@media (prefers-color-scheme:dark){:root{--bg:#1e1712;--fg:#fbefe4;--mut:#c4a893;--card:#2b211a;--bd:#4a3a2e;--grid:#1c7f4b}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--fg);font-family:"Fredoka",system-ui,sans-serif;user-select:none}
+button{font-family:inherit;touch-action:manipulation;cursor:pointer;color:inherit}
+#wrap{position:fixed;inset:0;overflow-y:auto}
+#inner{max-width:460px;min-height:100%;margin:0 auto;padding:14px 12px calc(18px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px;justify-content:center}
+h1{margin:0;font-size:30px;text-align:center}
+.rule{color:var(--mut);font-size:18px;text-align:center;font-weight:600}
+.opt{width:100%;min-height:74px;border:3px solid var(--bd);border-radius:22px;background:var(--card);font-size:21px;font-weight:700;display:flex;align-items:center;gap:14px;padding:8px 16px;text-align:left;box-shadow:0 4px 0 var(--bd)}
+.opt span{font-size:34px}.opt small{display:block;font-size:16px;color:var(--mut);font-weight:600}
+.score{display:flex;gap:10px}.score div{flex:1;background:var(--card);border:3px solid var(--bd);border-radius:18px;padding:6px;text-align:center;font-size:16px;color:var(--mut);font-weight:600}
+.score b{display:block;font-size:26px;color:var(--fg)}.score .on{border-color:currentColor}
+#s1.on{color:var(--p1)}#s2.on{color:#d9a300}
+#turn{font-size:24px;font-weight:700;text-align:center;min-height:32px}
+#board{position:relative;display:grid;grid-template-columns:repeat(7,1fr);gap:5px;background:var(--grid);padding:7px;border-radius:20px;box-shadow:0 6px 0 rgba(0,0,0,.2)}
+.h{aspect-ratio:1;border-radius:50%;background:var(--bg);position:relative;overflow:visible}
+.tok{position:absolute;inset:0;border-radius:50%;box-shadow:inset 0 -5px 0 rgba(0,0,0,.18)}
+.tok.p1{background:var(--p1)}.tok.p2{background:var(--p2)}
+.tok.drop{animation:drop var(--t,.35s) cubic-bezier(.5,0,.75,1)}
+@keyframes drop{from{transform:translateY(var(--from))}}
+.tok.win{animation:win .6s infinite alternate}
+@keyframes win{to{transform:scale(.8);box-shadow:0 0 0 5px #fff}}
+.big{min-height:62px;border:0;border-radius:999px;background:var(--jx);color:#fff!important;font-size:22px;font-weight:700;box-shadow:0 5px 0 #d9601a}
+.big.alt{background:var(--card);color:var(--fg)!important;border:3px solid var(--bd);box-shadow:none}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div id="wrap"><div id="inner">
+ <div id="setup" style="display:flex;flex-direction:column;gap:12px">
+  <h1>🔴 Quatre en ligne 🟡</h1>
+  <div class="rule">Chacun son tour, on fait tomber un jeton dans une colonne.<br><b>Le premier qui aligne 4 jetons gagne</b> (en ligne, en colonne ou en diagonale).</div>
+  <button class="opt" data-m="easy"><span>🤖</span>Contre le robot<small>Robot gentil</small></button>
+  <button class="opt" data-m="smart"><span>🧠</span>Contre le robot malin<small>Il réfléchit à l'avance !</small></button>
+  <button class="opt" data-m="two"><span>👫</span>À deux<small>Sur le même téléphone</small></button>
+ </div>
+ <div id="play" style="display:flex;flex-direction:column;gap:12px" hidden>
+  <div class="score"><div id="s1"><span id="n1">Toi 🔴</span><b id="w1">0</b></div><div><span>Égalités</span><b id="wd">0</b></div><div id="s2"><span id="n2">Robot 🟡</span><b id="w2">0</b></div></div>
+  <div id="turn"></div>
+  <div id="board"></div>
+  <div style="display:flex;flex-direction:column;gap:10px" id="after" hidden><button class="big" id="again">🔁 Rejouer</button><button class="big alt" id="menu">Changer d'adversaire</button></div>
+ </div>
+</div></div>
+<script>
+(function(){
+// Jeu de la boutique (matière Jeux : pas d'étoiles). Quatre en ligne sur une grille 7 × 6, à deux ou contre un robot.
+// Fait travailler l'anticipation et la stratégie (bloquer l'adversaire, préparer deux menaces).
+var $=function(i){return document.getElementById(i)};
+var ac=null;function tone(f,t,d,v){try{if(!ac){var C=window.AudioContext||window.webkitAudioContext;if(!C)return;ac=new C()}if(ac.state==="suspended")ac.resume();var o=ac.createOscillator(),g=ac.createGain(),s=ac.currentTime+(t||0);o.type="triangle";o.frequency.value=f;g.gain.setValueAtTime(.0001,s);g.gain.exponentialRampToValueAtTime(v||.18,s+.02);g.gain.exponentialRampToValueAtTime(.0001,s+(d||.15));o.connect(g);g.connect(ac.destination);o.start(s);o.stop(s+(d||.15)+.05)}catch(e){}}
+function say(t){try{if(!window.speechSynthesis)return;speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.lang="fr-FR";var v=(speechSynthesis.getVoices()||[]).filter(function(x){return /^fr/i.test(x.lang)})[0];if(v)u.voice=v;u.rate=.95;speechSynthesis.speak(u)}catch(e){}}
+var W=7,H=6,g,player,first=1,over,busy,mode,score={1:0,2:0,d:0},T=null;
+var NAME=function(p){return mode==="two"?(p===1?"Joueur 🔴":"Joueur 🟡"):(p===1?"Toi":"Le robot")};
+$("setup").onclick=function(e){var b=e.target.closest("[data-m]");if(!b)return;mode=b.dataset.m;score={1:0,2:0,d:0};first=1;
+ $("n1").textContent=mode==="two"?"Joueur 🔴":"Toi 🔴";$("n2").textContent=mode==="two"?"Joueur 🟡":(mode==="smart"?"Robot malin 🟡":"Robot 🟡");$("setup").hidden=true;$("play").hidden=false;newGame()};
+function newGame(){clearTimeout(T);g=[];for(var c=0;c<W;c++)g.push([]);player=first;first=first===1?2:1;over=false;busy=false;$("after").hidden=true;
+ var h="";for(var r=H-1;r>=0;r--)for(var c2=0;c2<W;c2++)h+='<div class="h" data-c="'+c2+'" data-r="'+r+'"></div>';$("board").innerHTML=h;draw();if(mode!=="two"&&player===2)robot()}
+function draw(){$("w1").textContent=score[1];$("w2").textContent=score[2];$("wd").textContent=score.d;$("s1").classList.toggle("on",player===1&&!over);$("s2").classList.toggle("on",player===2&&!over);
+ if(!over)$("turn").textContent=mode==="two"?NAME(player)+", à toi !":player===1?"À toi de jouer ! 🔴":"🤖 Le robot réfléchit…"}
+function cell(c,r){return document.querySelector('.h[data-c="'+c+'"][data-r="'+r+'"]')}
+// alignement de 4 qui passe par (c,r)
+function line(G,c,r,p){var D=[[1,0],[0,1],[1,1],[1,-1]];for(var i=0;i<4;i++){var dx=D[i][0],dy=D[i][1],L=[[c,r]];
+ for(var s=-1;s<=1;s+=2){var x=c+dx*s,y=r+dy*s;while(x>=0&&x<W&&y>=0&&(G[x][y]===p)){L.push([x,y]);x+=dx*s;y+=dy*s}}if(L.length>=4)return L}return null}
+function drop(c,who){if(over||busy||g[c].length>=H)return;busy=true;var r=g[c].length;g[c].push(who);
+ var h=cell(c,r),t=document.createElement("div");t.className="tok p"+who+" drop";var fall=(H-r);t.style.setProperty("--from",-(fall*112)+"%");t.style.setProperty("--t",(.15+fall*.06)+"s");h.appendChild(t);
+ setTimeout(function(){tone(who===1?330:440,0,.08,.15);busy=false;var L=line(g,c,r,who);
+  if(L){over=true;score[who]++;L.forEach(function(p){var e=cell(p[0],p[1]).firstChild;if(e)e.classList.add("win")});end(who);return}
+  if(g.every(function(col){return col.length>=H})){over=true;score.d++;end(0);return}
+  player=who===1?2:1;draw();if(mode!=="two"&&player===2)robot()},(.15+fall*.06)*1000)}
+function end(w){draw();$("turn").textContent=w===0?"🤝 Égalité !":mode==="two"?"🎉 "+NAME(w)+" a gagné !":w===1?"🎉 Bravo, tu as gagné !":"😅 Le robot a gagné !";
+ if(w===1||(mode==="two"&&w))[523,659,784,1047].forEach(function(f,k){tone(f,k*.1,.25,.2)});else if(w===2)tone(220,0,.4,.2);
+ say(w===0?"Égalité !":mode==="two"?NAME(w).replace("Joueur","Le joueur")+" a gagné !":w===1?"Bravo, tu as gagné !":"Le robot a gagné !");
+ $("after").hidden=false;try{if(parent!==window)parent.postMessage({type:"roundEnd"},"*")}catch(e){}}
+// robot : gentil = gagne s'il peut, sinon bloque parfois, sinon au hasard ; malin = recherche à 5 coups (minimax + élagage)
+function free(G){var a=[];for(var c=0;c<W;c++)if(G[c].length<H)a.push(c);return a}
+function winMove(G,p){var F=free(G);for(var i=0;i<F.length;i++){var c=F[i];G[c].push(p);var w=line(G,c,G[c].length-1,p);G[c].pop();if(w)return c}return -1}
+function evalG(G){var s=0,D=[[1,0],[0,1],[1,1],[1,-1]];for(var c=0;c<W;c++){if(G[c][0]===2||G[c][1]===2)s+=(c===3?3:0);}
+ for(var x=0;x<W;x++)for(var y=0;y<H;y++)for(var d=0;d<4;d++){var dx=D[d][0],dy=D[d][1],ex=x+dx*3,ey=y+dy*3;if(ex<0||ex>=W||ey<0||ey>=H)continue;var a=0,b=0;
+  for(var k=0;k<4;k++){var v=G[x+dx*k][y+dy*k];if(v===2)a++;else if(v===1)b++}if(a&&b)continue;s+=a===3?8:a===2?2:0;s-=b===3?9:b===2?2:0}
+ for(var y2=0;y2<H;y2++)s+=(G[3][y2]===2?2:G[3][y2]===1?-2:0);return s}
+function mm(G,depth,al,be,p){var F=free(G);if(!F.length)return 0;F.sort(function(a,b){return Math.abs(3-a)-Math.abs(3-b)});
+ for(var i=0;i<F.length;i++){var c=F[i];G[c].push(p);var w=line(G,c,G[c].length-1,p);G[c].pop();if(w)return p===2?1000+depth:-1000-depth}
+ if(depth===0)return evalG(G);
+ var best=p===2?-1e9:1e9;for(var j=0;j<F.length;j++){var c2=F[j];G[c2].push(p);var v=mm(G,depth-1,al,be,p===2?1:2);G[c2].pop();
+  if(p===2){if(v>best)best=v;if(best>al)al=best}else{if(v<best)best=v;if(best<be)be=best}if(al>=be)break}return best}
+function robot(){draw();T=setTimeout(function(){var G=g.map(function(c){return c.slice()}),c=winMove(G,2);
+ if(c<0){var blk=winMove(G,1);if(blk>=0&&(mode==="smart"||Math.random()<.6))c=blk}
+ if(c<0){var F=free(G);if(mode==="smart"){var bv=-1e9;F.sort(function(a,b){return Math.abs(3-a)-Math.abs(3-b)});F.forEach(function(k){G[k].push(2);var v=mm(G,4,-1e9,1e9,1);G[k].pop();if(v>bv){bv=v;c=k}})}
+  else c=F[Math.floor(Math.random()*F.length)]}
+ drop(c,2)},650)}
+$("board").addEventListener("click",function(e){var h=e.target.closest(".h");if(!h||over||busy)return;if(mode!=="two"&&player===2)return;drop(+h.dataset.c,player)});
+$("again").onclick=newGame;
+$("menu").onclick=function(){clearTimeout(T);$("play").hidden=true;$("setup").hidden=false};
+window.hubBack=function(){if(!$("play").hidden){clearTimeout(T);$("play").hidden=true;$("setup").hidden=false;return true}return false};
+})();
+</script>
+</body>
+</html>

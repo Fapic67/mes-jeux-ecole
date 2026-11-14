@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Le perroquet musical</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f2fbef;--fg:#1f3320;--mut:#5c7a5c;--card:#fff;--bd:#d4ead0;--jx:#ff8a3d;box-sizing:border-box}
+@media (prefers-color-scheme:dark){:root{--bg:#131f14;--fg:#ebf7ea;--mut:#a3c0a2;--card:#1d2b1e;--bd:#30472f}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--fg);font-family:"Fredoka",system-ui,sans-serif;user-select:none}
+button{font-family:inherit;touch-action:manipulation;cursor:pointer;color:inherit}
+#wrap{position:fixed;inset:0;overflow-y:auto}
+#inner{max-width:440px;min-height:100%;margin:0 auto;padding:14px 14px calc(18px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:14px;justify-content:center;align-items:center}
+h1{margin:0;font-size:30px;text-align:center}
+.sub{color:var(--mut);font-size:18px;text-align:center;font-weight:600}
+.opt{width:100%;min-height:74px;border:3px solid var(--bd);border-radius:22px;background:var(--card);font-size:21px;font-weight:700;display:flex;align-items:center;gap:14px;padding:8px 16px;text-align:left;box-shadow:0 4px 0 var(--bd)}
+.opt span{font-size:34px}.opt small{display:block;font-size:16px;color:var(--mut);font-weight:600}.opt b{margin-left:auto;font-size:16px;color:var(--jx)}
+#bird{font-size:84px;line-height:1;transition:transform .15s}
+#bird.sing{animation:sing .35s}
+@keyframes sing{50%{transform:rotate(-12deg) scale(1.1)}}
+#status{font-size:23px;font-weight:700;min-height:32px;text-align:center}
+#round{color:var(--mut);font-size:18px;font-weight:600}
+#pads{display:grid;gap:12px;width:100%}
+.pad{aspect-ratio:1;border:0;border-radius:28px;background:var(--c);opacity:.55;box-shadow:0 6px 0 rgba(0,0,0,.18);font-size:40px;transition:opacity .1s,transform .1s,filter .1s}
+.pad.lit{opacity:1;transform:scale(1.05);filter:brightness(1.15) drop-shadow(0 0 14px var(--c))}
+.pad:disabled{cursor:default}
+.big{width:100%;min-height:64px;border:0;border-radius:999px;background:var(--jx);color:#fff!important;font-size:22px;font-weight:700;box-shadow:0 5px 0 #d9601a}
+.big.alt{background:var(--card);color:var(--fg)!important;border:3px solid var(--bd);box-shadow:none}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div id="wrap"><div id="inner">
+ <div id="menu" style="display:flex;flex-direction:column;gap:12px;width:100%">
+  <h1>🦜 Le perroquet musical</h1>
+  <div class="sub">Le perroquet chante une petite musique.<br>Rejoue-la dans le même ordre !</div>
+  <div id="modes" style="display:flex;flex-direction:column;gap:12px"></div>
+ </div>
+ <div id="game" style="display:flex;flex-direction:column;gap:12px;width:100%;align-items:center" hidden>
+  <div id="bird">🦜</div>
+  <div id="status"></div><div id="round"></div>
+  <div id="pads"></div>
+  <div id="after" style="display:flex;flex-direction:column;gap:10px;width:100%" hidden><button class="big" id="again">🔁 Rejouer</button><button class="big alt" id="menuB">Changer</button></div>
+ </div>
+</div></div>
+<script>
+(function(){
+// Jeu de la boutique (matière Jeux : pas d'étoiles). Le perroquet joue une suite de notes/couleurs qui s'allonge à chaque tour ; on la rejoue.
+// Fait travailler la mémoire de travail et l'écoute.
+var $=function(i){return document.getElementById(i)};
+var PK=window.PROFILE?"@"+window.PROFILE:"";
+function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
+var ac=null;function note(f,d,v,ty){try{if(!ac){var C=window.AudioContext||window.webkitAudioContext;if(!C)return;ac=new C()}if(ac.state==="suspended")ac.resume();var o=ac.createOscillator(),g=ac.createGain(),s=ac.currentTime;o.type=ty||"triangle";o.frequency.value=f;g.gain.setValueAtTime(.0001,s);g.gain.exponentialRampToValueAtTime(v||.25,s+.02);g.gain.exponentialRampToValueAtTime(.0001,s+(d||.35));o.connect(g);g.connect(ac.destination);o.start(s);o.stop(s+(d||.35)+.05)}catch(e){}}
+// do mi sol do (4 boutons) ; do ré mi fa sol la (6 boutons)
+var PADS=[{c:"#ff5c7a",f:261.6,ic:"🍓"},{c:"#4a7cff",f:329.6,ic:"🫐"},{c:"#22a861",f:392,ic:"🍏"},{c:"#ffc400",f:523.3,ic:"🍋"},{c:"#9b6bff",f:293.7,ic:"🍇"},{c:"#ff8a3d",f:440,ic:"🍊"}];
+var MODES=[{id:"4",n:4,t:"4 fruits",d:"Pour commencer",ic:"🍓"},{id:"6",n:6,t:"6 fruits",d:"Plus de couleurs, plus difficile",ic:"🍇"},{id:"son",n:4,t:"Les yeux fermés",d:"Seulement le son, sans lumière",ic:"👂",blind:1}];
+var M,seq=[],pos=0,listen=false,round=0,tok=0; // tok : annule les musiques d'une partie quittée
+function best(id){return parseInt(ls("perroquet_best_"+id+PK))||0}
+function menu(){tok++;$("menu").hidden=false;$("game").hidden=true;listen=false;
+ $("modes").innerHTML=MODES.map(function(m,i){return '<button class="opt" data-i="'+i+'"><span>'+m.ic+"</span>"+m.t+"<small>"+m.d+"</small><b>"+(best(m.id)?"🏆 "+best(m.id):"")+"</b></button>"}).join("")}
+$("modes").onclick=function(e){var b=e.target.closest("[data-i]");if(b)start(MODES[+b.dataset.i])};
+function start(m){tok++;M=m;seq=[];round=0;$("menu").hidden=true;$("game").hidden=false;$("after").hidden=true;
+ $("pads").style.gridTemplateColumns="repeat("+(m.n===6?3:2)+",1fr)";$("pads").style.maxWidth=m.n===6?"420px":"340px";
+ $("pads").innerHTML=PADS.slice(0,m.n).map(function(p,i){return '<button class="pad" data-i="'+i+'" style="--c:'+p.c+'">'+p.ic+"</button>"}).join("");next()}
+function light(i,ms){var el=$("pads").children[i];if(!M.blind)el.classList.add("lit");note(PADS[i].f,ms/1000);setTimeout(function(){el.classList.remove("lit")},ms*.85)}
+function next(){round++;seq.push(Math.floor(Math.random()*M.n));pos=0;listen=false;$("round").textContent="Tour "+round+" · "+seq.length+" note"+(seq.length>1?"s":"");
+ $("status").textContent="🦜 Écoute bien…";setPads(false);var my=tok,ms=Math.max(330,620-round*18),i=0,bird=$("bird");
+ setTimeout(function play(){if(my!==tok)return;if(i>=seq.length){listen=true;setPads(true);$("status").textContent="À toi !";return}bird.classList.remove("sing");void bird.offsetWidth;bird.classList.add("sing");light(seq[i],ms);i++;setTimeout(play,ms+120)},700)}
+function setPads(on){[].forEach.call($("pads").children,function(b){b.disabled=!on})}
+$("pads").addEventListener("pointerdown",function(e){var b=e.target.closest(".pad");if(!b||!listen)return;e.preventDefault();var i=+b.dataset.i;
+ b.classList.add("lit");note(PADS[i].f,.3);setTimeout(function(){b.classList.remove("lit")},220);
+ if(i!==seq[pos]){lose();return}pos++;
+ if(pos===seq.length){listen=false;setPads(false);$("status").textContent=["Bravo !","Super !","Bien joué !","Génial !"][round%4];setTimeout(function(){if(!$("game").hidden)next()},900)}});
+function lose(){listen=false;setPads(false);note(150,.5,.25,"square");var score=seq.length-1,b=best(M.id),rec=score>b;if(rec)ls("perroquet_best_"+M.id+PK,score);
+ $("status").textContent=(rec&&score>0?"🏆 Nouveau record : ":"Oups ! Tu as retenu ")+score+" note"+(score>1?"s":"")+(rec&&score>0?" !":".");
+ $("round").textContent="Ton record : "+Math.max(b,score);
+ // le perroquet rejoue la bonne suite
+ var i=0,ms=420,my=tok;setTimeout(function play(){if(my!==tok)return;if(i>=seq.length){$("after").hidden=false;try{if(parent!==window)parent.postMessage({type:"roundEnd"},"*")}catch(e){}return}var el=$("pads").children[seq[i]];el.classList.add("lit");note(PADS[seq[i]].f,ms/1000,.18);setTimeout(function(){el.classList.remove("lit")},ms*.8);i++;setTimeout(play,ms+100)},900)}
+$("again").onclick=function(){start(M)};$("menuB").onclick=menu;
+window.hubBack=function(){if(!$("game").hidden){menu();return true}return false};
+window.__P={seq:function(){return seq}};
+menu();
+})();
+</script>
+</body>
+</html>

@@ -371,6 +371,10 @@ body.rw-shop #purse{display:none!important}
     <button class="game" data-play="bulles"><span class="ic">🫧</span><span>Attrape les bulles<small>Éclate vite les bonnes bulles</small></span></button>
     <button class="game" data-play="glissant"><span class="ic">🦔</span><span>Le jardin glissant<small>Fais glisser le hérisson jusqu'à la fraise</small></span></button>
     <button class="game" data-play="allumettes"><span class="ic">🔥</span><span>Le jeu des allumettes<small>Ne prends pas la dernière !</small></span></button>
+    <button class="game" data-play="pizzeria"><span class="ic">🍕</span><span>La pizzeria<small>Prépare les commandes et rends la monnaie</small></span></button>
+    <button class="game" data-play="tuyaux"><span class="ic">🚰</span><span>Les tuyaux magiques<small>Tourne les tuyaux pour arroser la plante</small></span></button>
+    <button class="game" data-play="perroquet"><span class="ic">🦜</span><span>Le perroquet musical<small>Rejoue la musique du perroquet</small></span></button>
+    <button class="game" data-play="quatre"><span class="ic">🔴</span><span>Quatre en ligne<small>Aligne 4 jetons, à deux ou contre le robot</small></span></button>
   </div>
 </section>
 
@@ -630,6 +634,10 @@ var GAMES={
  bulles:{t:"Attrape les bulles",app:"bulles",subj:"jeux",prize:1},
  glissant:{t:"Le jardin glissant",app:"glissant",subj:"jeux",prize:1},
  allumettes:{t:"Le jeu des allumettes",app:"allumettes",subj:"jeux",prize:1},
+ pizzeria:{t:"La pizzeria",app:"pizzeria",subj:"jeux",prize:1},
+ tuyaux:{t:"Les tuyaux magiques",app:"tuyaux",subj:"jeux",prize:1},
+ perroquet:{t:"Le perroquet musical",app:"perroquet",subj:"jeux",prize:1},
+ quatre:{t:"Quatre en ligne",app:"quatre",subj:"jeux",prize:1},
  schreib:{t:"Schreib das Wort",app:"deutsch",start:3,subj:"allemand",eco:"sdw"},
  mot:{t:"Finde das Wort",app:"deutsch",start:2,subj:"allemand",eco:"fdw"}
 };
@@ -836,9 +844,13 @@ var SHOP_DEF=[{id:"bonbon",ic:"🍬",t:"Un bonbon",price:20,rep:true,on:true},{i
  {id:"ecran",ic:"📺",t:"15 min d'écran",price:40,rep:true,on:true},{id:"dessert",ic:"🍰",t:"Tu choisis le dessert",price:50,rep:true,on:true},
  {id:"euro",ic:"💶",t:"1 € dans la tirelire",price:60,rep:true,on:true},
  {id:"g-bulles",ic:"🫧",t:"Attrape les bulles",price:60,game:"bulles",on:true},{id:"g-glissant",ic:"🦔",t:"Le jardin glissant",price:80,game:"glissant",on:true},
- {id:"g-allumettes",ic:"🔥",t:"Le jeu des allumettes",price:60,game:"allumettes",on:true}];
+ {id:"g-allumettes",ic:"🔥",t:"Le jeu des allumettes",price:60,game:"allumettes",on:true},
+ {id:"g-pizzeria",ic:"🍕",t:"La pizzeria",price:80,game:"pizzeria",on:true},{id:"g-tuyaux",ic:"🚰",t:"Les tuyaux magiques",price:80,game:"tuyaux",on:true},
+ {id:"g-perroquet",ic:"🦜",t:"Le perroquet musical",price:60,game:"perroquet",on:true},{id:"g-quatre",ic:"🔴",t:"Quatre en ligne",price:70,game:"quatre",on:true}];
 var SHOP=null;
-function shop(){if(!SHOP){SHOP=lj("shop",null);if(!SHOP||!SHOP.items){SHOP={items:JSON.parse(JSON.stringify(SHOP_DEF))};saveShop()}}return SHOP}
+function shop(){if(!SHOP){SHOP=lj("shop",null);if(!SHOP||!SHOP.items){SHOP={items:JSON.parse(JSON.stringify(SHOP_DEF))}}
+  if(!SHOP.known)SHOP.known=["bulles","glissant","allumettes"].concat(SHOP.items.filter(function(i){return i.game}).map(function(i){return i.game}));
+  SHOP_DEF.forEach(function(d){if(d.game&&SHOP.known.indexOf(d.game)<0){SHOP.known.push(d.game);if(!SHOP.items.some(function(i){return i.game===d.game}))SHOP.items.push(JSON.parse(JSON.stringify(d)))}});saveShop()}return SHOP}
 function saveShop(){if(window.NOSAVE)return;ls("shop",JSON.stringify(SHOP))}
 function ensureShop(p){if(!p.games)p.games=(p.gifts&&p.gifts.games)?p.gifts.games.slice():[];if(!p.shopBought)p.shopBought={};if(!p.shopPend)p.shopPend=(p.gifts&&p.gifts.pending)?p.gifts.pending.slice():[];if(!p.shopLog)p.shopLog=[];return p}
 // jeux à débloquer : GAMES[x].prize

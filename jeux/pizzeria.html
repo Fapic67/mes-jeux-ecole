@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>La pizzeria</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#fff4ea;--fg:#3a2416;--mut:#8a6a55;--card:#fff;--bd:#f1d9c3;--jx:#ff8a3d;--ok:#22a861;--bad:#e5484d;box-sizing:border-box}
+@media (prefers-color-scheme:dark){:root{--bg:#1e1712;--fg:#fbefe4;--mut:#c4a893;--card:#2b211a;--bd:#4a3a2e}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--fg);font-family:"Fredoka",system-ui,sans-serif;user-select:none}
+button{font-family:inherit;touch-action:manipulation;cursor:pointer;color:inherit}
+#wrap{position:fixed;inset:0;overflow-y:auto}
+#inner{max-width:460px;margin:0 auto;padding:10px 12px calc(18px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:10px}
+header{display:flex;align-items:center;gap:8px}
+#info{flex:1;font-size:17px;color:var(--mut);font-weight:600}
+.hb{min-height:56px;padding:0 14px;border:3px solid var(--bd);background:var(--card);border-radius:16px;font-weight:700;font-size:18px;white-space:nowrap}
+#order{display:flex;align-items:center;gap:10px;background:var(--card);border:3px solid var(--bd);border-radius:22px;padding:10px 12px}
+#client{font-size:52px;line-height:1;flex:none}
+#bubble{flex:1;font-size:20px;font-weight:700;line-height:1.35}
+#bubble .q{display:inline-flex;align-items:center;gap:2px;white-space:nowrap}
+#ear{flex:none;width:52px;height:52px;border-radius:50%;border:3px solid var(--bd);background:var(--bg);font-size:24px}
+#pizza{position:relative;width:min(78vw,300px);aspect-ratio:1;margin:0 auto;border-radius:50%;background:radial-gradient(circle,#f6d27a 0 60%,#e9a94b 61% 68%,#d48a33 69%);box-shadow:0 8px 0 rgba(0,0,0,.12)}
+#pizza::before{content:"";position:absolute;inset:11%;border-radius:50%;background:radial-gradient(circle,#e8553b 0 70%,#d9472e 71%);opacity:.92}
+#pizza span{position:absolute;font-size:30px;line-height:1;transform:translate(-50%,-50%);animation:plop .3s}
+@keyframes plop{from{transform:translate(-50%,-150%) scale(1.6);opacity:0}}
+#pizza.served{animation:serve .6s}
+@keyframes serve{50%{transform:scale(1.08) rotate(8deg)}}
+#tops{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+#tops button{aspect-ratio:1;border:3px solid var(--bd);border-radius:16px;background:var(--card);font-size:30px;padding:0}
+#tops button:active{transform:scale(.92)}
+.acts{display:flex;gap:8px}.acts button{min-height:62px;border:0;border-radius:18px;font-size:21px;font-weight:700}
+#undo{flex:0 0 28%;background:var(--bd);color:var(--fg)}#serve{flex:1;background:var(--ok);color:#fff;box-shadow:0 5px 0 #17804a}
+#msg{min-height:28px;text-align:center;font-size:20px;font-weight:700}
+/* caisse */
+#till{display:flex;flex-direction:column;gap:10px;background:var(--card);border:3px solid var(--bd);border-radius:22px;padding:12px}
+#till .t{font-size:20px;font-weight:700;text-align:center;line-height:1.4}
+#given{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;min-height:56px;align-items:center;border:3px dashed var(--bd);border-radius:16px;padding:6px}
+.coin{width:52px;height:52px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;border:0;box-shadow:inset 0 -4px 0 rgba(0,0,0,.18)}
+.c1{background:radial-gradient(circle at 35% 30%,#fff2b0,#e0b42c);color:#5a4300}
+.c2{background:radial-gradient(circle at 35% 30%,#f1f1f1,#b9b9b9);color:#333;outline:6px solid #e0b42c;outline-offset:-6px}
+.c5{width:74px;border-radius:10px;background:linear-gradient(135deg,#c9d7f2,#8fa9dc);color:#1b2b55}
+#coins{display:flex;gap:10px;justify-content:center}
+.sheet{position:fixed;inset:0;background:rgba(40,20,10,.55);display:flex;align-items:flex-end;justify-content:center;z-index:5}
+.panel{background:var(--bg);width:100%;max-width:520px;max-height:90%;overflow:auto;border-radius:28px 28px 0 0;padding:20px 18px calc(22px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:10px}
+.panel h2{margin:0;font-size:26px}
+.opts button{width:100%;min-height:58px;border:3px solid var(--bd);border-radius:16px;background:var(--card);font-size:19px;font-weight:700;text-align:left;padding:6px 14px;margin-bottom:8px}
+.opts button.on{background:var(--jx);border-color:var(--jx);color:#fff}
+.opts small{display:block;font-weight:500;font-size:16px;opacity:.85}
+.big{min-height:62px;border:0;border-radius:999px;background:var(--jx);color:#fff!important;font-size:22px;font-weight:700}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div id="wrap"><div id="inner">
+<header><div id="info"></div><button class="hb" id="lvlb">Niveau 1</button></header>
+<div id="order"><div id="client"></div><div id="bubble"></div><button id="ear" aria-label="Réécouter">🔊</button></div>
+<div id="kitchen">
+  <div id="pizza"></div>
+  <div id="tops" style="margin-top:10px"></div>
+  <div class="acts" style="margin-top:10px"><button id="undo" aria-label="Enlever le dernier">⌫</button><button id="serve">🍕 Servir</button></div>
+</div>
+<div id="till" hidden>
+  <div class="t" id="tt"></div>
+  <div id="given"></div>
+  <div id="coins"><button class="coin c1" data-v="1">1 €</button><button class="coin c2" data-v="2">2 €</button><button class="coin c5" data-v="5">5 €</button></div>
+  <div class="acts"><button id="cundo" style="flex:0 0 28%;background:var(--bd);color:var(--fg)">⌫</button><button id="pay" style="flex:1;background:var(--ok);color:#fff;box-shadow:0 5px 0 #17804a">💶 Rendre</button></div>
+</div>
+<div id="msg"></div>
+</div></div>
+<div class="sheet" id="sheet" hidden><div class="panel"><h2>Choisis un niveau</h2><div class="opts" id="lvls"></div><button class="big" id="close">Fermer</button></div></div>
+<script>
+(function(){
+// Jeu de la boutique (matière Jeux : pas d'étoiles). Un client commande une pizza (« 3 🍄 et 2 🫒 ») : on la garnit en comptant,
+// puis (dès le niveau 4) on rend la monnaie avec des pièces. Fait travailler le dénombrement, l'addition et la monnaie.
+var $=function(i){return document.getElementById(i)};
+var PK=window.PROFILE?"@"+window.PROFILE:"";
+function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
+function rnd(a,b){return a+Math.floor(Math.random()*(b-a+1))}
+function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=rnd(0,i),t=a[i];a[i]=a[j];a[j]=t}return a}
+var ac=null;function tone(f,t,d,v){try{if(!ac){var C=window.AudioContext||window.webkitAudioContext;if(!C)return;ac=new C()}if(ac.state==="suspended")ac.resume();var o=ac.createOscillator(),g=ac.createGain(),s=ac.currentTime+(t||0);o.type="triangle";o.frequency.value=f;g.gain.setValueAtTime(.0001,s);g.gain.exponentialRampToValueAtTime(v||.18,s+.02);g.gain.exponentialRampToValueAtTime(.0001,s+(d||.15));o.connect(g);g.connect(ac.destination);o.start(s);o.stop(s+(d||.15)+.05)}catch(e){}}
+function say(t){try{if(!window.speechSynthesis)return;speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.lang="fr-FR";var v=(speechSynthesis.getVoices()||[]).filter(function(x){return /^fr/i.test(x.lang)})[0];if(v)u.voice=v;u.rate=.9;speechSynthesis.speak(u)}catch(e){}}
+var TOP=[{e:"🍄",n:"champignon"},{e:"🫒",n:"olive"},{e:"🍅",n:"tomate"},{e:"🧀",n:"fromage"},{e:"🌽",n:"maïs"},{e:"🍍",n:"ananas"}];
+var NUM=["zéro","un","deux","trois","quatre","cinq","six","sept","huit","neuf","dix"];
+var CLIENTS=["🧒","👧","👦","👵","👴","🧔","👩","👨‍🦰","🧑‍🦱","👱‍♀️"];
+// niveaux : sortes d'ingrédients, quantité max, monnaie à rendre
+var LV=[null,{k:1,q:3,t:"1 ingrédient, jusqu'à 3"},{k:2,q:4,t:"2 ingrédients, jusqu'à 4"},{k:3,q:5,t:"3 ingrédients, jusqu'à 5"},
+ {k:2,q:4,ch:1,t:"2 ingrédients + rendre la monnaie (sur 10 €)"},{k:3,q:5,ch:1,t:"3 ingrédients + monnaie (sur 10 €)"},{k:3,q:6,ch:2,t:"3 ingrédients + monnaie (sur 20 €)"}];
+var MAXL=LV.length-1,GOAL=3;
+var level=Math.min(MAXL,Math.max(1,parseInt(ls("pizza_lvl"+PK))||1)),best=Math.min(MAXL,Math.max(level,parseInt(ls("pizza_best"+PK))||1));
+var order,put,price,paid,given,okRow=0,served=0,lock=false;
+function plural(n,w){return w==="maïs"||w==="ananas"?w:n>1?w+"s":w}
+function newOrder(){var L=LV[level],tops=shuffle(TOP.slice(0,Math.max(3,L.k+2))).slice(0,L.k);order=tops.map(function(t){return{e:t.e,n:t.n,q:rnd(1,L.q)}});put=[];lock=false;
+ $("client").textContent=CLIENTS[rnd(0,CLIENTS.length-1)];
+ $("bubble").innerHTML="Je voudrais une pizza avec "+order.map(function(o){return'<span class="q">'+o.q+" "+o.e+"</span>"}).join(" et ")+" !";
+ $("tops").innerHTML=shuffle(TOP.slice(0,Math.max(3,L.k+2)).concat()).map(function(t){return'<button data-e="'+t.e+'" aria-label="'+t.n+'">'+t.e+"</button>"}).join("");
+ $("pizza").innerHTML="";$("pizza").className="";$("kitchen").hidden=false;$("till").hidden=true;$("msg").textContent="";info();speak()}
+function speak(){say("Je voudrais une pizza avec "+order.map(function(o){return NUM[o.q]+" "+plural(o.q,o.n)}).join(" et "))}
+function info(){$("info").textContent="🍕 "+served+" servie"+(served>1?"s":"")+" · "+"⭐".repeat(okRow)+"☆".repeat(GOAL-okRow);$("lvlb").textContent="Niveau "+level}
+// les ingrédients se posent en spirale sur la pizza
+function spot(i){var a=i*2.4,r=.12+.26*Math.sqrt((i+1)/14);return[50+Math.cos(a)*r*100,50+Math.sin(a)*r*100]}
+$("tops").onclick=function(e){var b=e.target.closest("[data-e]");if(!b||lock||put.length>=24)return;put.push(b.dataset.e);var p=spot(put.length-1),s=document.createElement("span");s.textContent=b.dataset.e;s.style.left=p[0]+"%";s.style.top=p[1]+"%";$("pizza").appendChild(s);tone(500+put.length*20,0,.06,.12);$("msg").textContent=""};
+$("undo").onclick=function(){if(lock||!put.length)return;put.pop();$("pizza").lastChild.remove()};
+$("serve").onclick=function(){if(lock)return;var bad=order.filter(function(o){return put.filter(function(x){return x===o.e}).length!==o.q}),extra=put.filter(function(x){return !order.some(function(o){return o.e===x})}).length;
+ if(bad.length||extra){okRow=0;info();tone(200,0,.3,.2);var o=bad[0];
+  $("msg").textContent=extra?"Oups, il y a un ingrédient que je n'ai pas demandé !":"Compte bien les "+o.e+" : j'en voudrais "+o.q+".";return}
+ lock=true;$("pizza").classList.add("served");[523,659,784].forEach(function(f,k){tone(f,k*.1,.2,.18)});
+ if(LV[level].ch){setTimeout(till,700)}else win("Miam ! Merci !")};
+// caisse : la pizza coûte « price », le client paie « paid », on rend « paid − price »
+function till(){var L=LV[level];paid=L.ch===2?20:10;price=rnd(paid===10?3:8,paid-1);given=[];
+ $("kitchen").hidden=true;$("till").hidden=false;$("tt").innerHTML="La pizza coûte <b>"+price+" €</b>.<br>Le client te donne <b>"+paid+" €</b>.<br>Rends-lui la monnaie !";drawGiven();
+ say("La pizza coûte "+price+" euros. Le client te donne "+paid+" euros. Rends-lui la monnaie !")}
+function drawGiven(){$("given").innerHTML=given.length?given.map(function(v){return'<span class="coin c'+v+'">'+v+" €</span>"}).join(""):'<span style="color:var(--mut);font-weight:600">Touche les pièces à rendre</span>'}
+$("coins").onclick=function(e){var b=e.target.closest("[data-v]");if(!b||given.length>=12)return;given.push(+b.dataset.v);tone(900,0,.05,.12);drawGiven()};
+$("cundo").onclick=function(){given.pop();drawGiven()};
+$("pay").onclick=function(){var s=given.reduce(function(a,b){return a+b},0),want=paid-price;
+ if(s===want)win("Merci ! Tu as bien rendu "+want+" €.");
+ else{okRow=0;info();tone(200,0,.3,.2);$("msg").textContent=s<want?"Ce n'est pas assez : il faut rendre "+paid+" − "+price+".":"C'est trop ! Il faut rendre "+paid+" − "+price+"."}};
+function win(t){served++;okRow++;$("msg").textContent="😋 "+t;say(t);info();
+ try{if(parent!==window)parent.postMessage({type:"roundEnd"},"*")}catch(e){}
+ if(okRow>=GOAL&&level<MAXL){okRow=0;level++;best=Math.max(best,level);ls("pizza_lvl"+PK,level);ls("pizza_best"+PK,best);
+  setTimeout(function(){$("msg").textContent="🎉 Niveau "+level+" : "+LV[level].t;say("Bravo ! Niveau "+level);info()},1300);setTimeout(newOrder,3600)}
+ else setTimeout(newOrder,2300)}
+$("ear").onclick=function(){if(!$("till").hidden)say("La pizza coûte "+price+" euros. Le client te donne "+paid+" euros.");else speak()};
+$("lvlb").onclick=function(){var h="";for(var i=1;i<=best;i++)h+='<button data-l="'+i+'" class="'+(i===level?"on":"")+'">Niveau '+i+"<small>"+LV[i].t+"</small></button>";$("lvls").innerHTML=h;$("sheet").hidden=false};
+$("lvls").onclick=function(e){var b=e.target.closest("[data-l]");if(!b)return;level=+b.dataset.l;okRow=0;ls("pizza_lvl"+PK,level);$("sheet").hidden=true;newOrder()};
+$("close").onclick=function(){$("sheet").hidden=true};
+window.hubBack=function(){if(!$("sheet").hidden){$("sheet").hidden=true;return true}return false};
+newOrder();
+})();
+</script>
+</body>
+</html>
