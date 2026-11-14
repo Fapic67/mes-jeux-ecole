@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Le jeu des allumettes</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#fff6ec;--fg:#3a2416;--mut:#8a6a55;--card:#fff;--bd:#f1dcc6;--p1:#e5484d;--p2:#4a7cff;--jx:#ff8a3d;box-sizing:border-box}
+@media (prefers-color-scheme:dark){:root{--bg:#1e1712;--fg:#fbefe4;--mut:#c4a893;--card:#2b211a;--bd:#4a3a2e}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--fg);font-family:"Fredoka",system-ui,sans-serif;user-select:none}
+button{font-family:inherit;touch-action:manipulation;cursor:pointer;color:inherit}
+#wrap{position:fixed;inset:0;overflow-y:auto}
+#inner{max-width:460px;min-height:100%;margin:0 auto;padding:14px 14px calc(18px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:14px;justify-content:center}
+h1{margin:0;font-size:30px;text-align:center}
+.rule{color:var(--mut);font-size:18px;text-align:center;font-weight:600}
+.opt{width:100%;min-height:74px;border:3px solid var(--bd);border-radius:22px;background:var(--card);font-size:21px;font-weight:700;display:flex;align-items:center;gap:14px;padding:8px 16px;text-align:left;box-shadow:0 4px 0 var(--bd)}
+.opt span{font-size:34px}.opt small{display:block;font-size:16px;color:var(--mut);font-weight:600}
+.score{display:flex;gap:10px}.score div{flex:1;background:var(--card);border:3px solid var(--bd);border-radius:18px;padding:6px;text-align:center;font-size:16px;color:var(--mut);font-weight:600}
+.score b{display:block;font-size:26px;color:var(--fg)}.score .on{border-color:currentColor}
+#s1.on{color:var(--p1)}#s2.on{color:var(--p2)}
+#turn{font-size:25px;font-weight:700;text-align:center;min-height:34px}
+#pile{display:flex;flex-wrap:wrap;justify-content:center;gap:10px 14px;min-height:150px;padding:16px 8px;background:var(--card);border:3px solid var(--bd);border-radius:24px}
+.m{width:14px;height:74px;position:relative;transition:transform .45s,opacity .45s}
+.m::before{content:"";position:absolute;left:3px;right:3px;top:12px;bottom:0;border-radius:3px;background:linear-gradient(90deg,#e7b97a,#f6d6a3,#d9a35f)}
+.m::after{content:"";position:absolute;left:0;right:0;top:0;height:20px;border-radius:50% 50% 45% 45%;background:radial-gradient(circle at 40% 35%,#ff8a7a,#d8322a 70%)}
+.m.sel{transform:translateY(-12px)}
+.m.gone{transform:translateY(-60px) rotate(25deg);opacity:0}
+#count{font-size:20px;font-weight:700;text-align:center;color:var(--mut)}
+.take{display:flex;gap:10px}.take button{flex:1;min-height:76px;border:0;border-radius:20px;background:var(--jx);color:#fff;font-size:22px;font-weight:700;box-shadow:0 5px 0 #d9601a}
+.take button b{display:block;font-size:30px}
+.take button:disabled{opacity:.35}
+#msg{font-size:19px;text-align:center;color:var(--mut);font-weight:600;min-height:26px}
+.big{min-height:64px;border:0;border-radius:999px;background:var(--jx);color:#fff!important;font-size:22px;font-weight:700;box-shadow:0 5px 0 #d9601a}
+.big.alt{background:var(--card);color:var(--fg)!important;border:3px solid var(--bd);box-shadow:none}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div id="wrap"><div id="inner">
+ <div id="setup" style="display:flex;flex-direction:column;gap:12px">
+  <h1>🔥 Le jeu des allumettes</h1>
+  <div class="rule">Chacun son tour, on prend 1, 2 ou 3 allumettes.<br><b>Celui qui prend la dernière a perdu !</b></div>
+  <button class="opt" data-m="easy"><span>🤖</span>Contre le robot<small>Robot gentil : il joue au hasard</small></button>
+  <button class="opt" data-m="smart"><span>🧠</span>Contre le robot malin<small>Il connaît le truc… à toi de le trouver !</small></button>
+  <button class="opt" data-m="two"><span>👫</span>À deux<small>Sur le même téléphone, chacun son tour</small></button>
+ </div>
+ <div id="play" style="display:flex;flex-direction:column;gap:12px" hidden>
+  <div class="score"><div id="s1"><span id="n1">Toi</span><b id="w1">0</b></div><div id="s2"><span id="n2">Robot</span><b id="w2">0</b></div></div>
+  <div id="turn"></div>
+  <div id="pile"></div>
+  <div id="count"></div>
+  <div class="take" id="take"><button data-n="1"><b>1</b>allumette</button><button data-n="2"><b>2</b>allumettes</button><button data-n="3"><b>3</b>allumettes</button></div>
+  <div id="msg"></div>
+  <div style="display:flex;flex-direction:column;gap:10px" id="after" hidden><button class="big" id="again">🔁 Rejouer</button><button class="big alt" id="menu">Changer d'adversaire</button></div>
+ </div>
+</div></div>
+<script>
+(function(){
+// Jeu à gagner dans les cadeaux (matière Jeux : pas d'étoiles). Jeu de Nim (variante « qui prend la dernière perd »).
+// Fait travailler le calcul (retirer, compter ce qui reste) et la stratégie : laisser 1, 5, 9, 13… allumettes à l'adversaire.
+var $=function(i){return document.getElementById(i)};
+var ac=null;function tone(f,t,d,v){try{if(!ac){var C=window.AudioContext||window.webkitAudioContext;if(!C)return;ac=new C()}if(ac.state==="suspended")ac.resume();var o=ac.createOscillator(),g=ac.createGain(),s=ac.currentTime+(t||0);o.type="triangle";o.frequency.value=f;g.gain.setValueAtTime(.0001,s);g.gain.exponentialRampToValueAtTime(v||.18,s+.02);g.gain.exponentialRampToValueAtTime(.0001,s+(d||.15));o.connect(g);g.connect(ac.destination);o.start(s);o.stop(s+(d||.15)+.05)}catch(e){}}
+function say(t){try{if(!window.speechSynthesis)return;speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.lang="fr-FR";var v=(speechSynthesis.getVoices()||[]).filter(function(x){return /^fr/i.test(x.lang)})[0];if(v)u.voice=v;u.rate=.95;speechSynthesis.speak(u)}catch(e){}}
+var mode,left,player,first=1,wins={1:0,2:0},busy=false,over=false,lossSmart=0,T=null;
+var NAME=function(p){return mode==="two"?(p===1?"Joueur 1":"Joueur 2"):(p===1?"Toi":"Le robot")};
+$("setup").onclick=function(e){var b=e.target.closest("[data-m]");if(!b)return;mode=b.dataset.m;wins={1:0,2:0};first=1;
+ $("n1").textContent=mode==="two"?"Joueur 1":"Toi";$("n2").textContent=mode==="two"?"Joueur 2":mode==="smart"?"Robot malin":"Robot";$("setup").hidden=true;$("play").hidden=false;newGame()};
+function newGame(){clearTimeout(T);left=13+Math.floor(Math.random()*9);player=first;first=first===1?2:1;over=false;busy=false;$("after").hidden=true;$("msg").textContent="";
+ $("pile").innerHTML=Array.apply(null,Array(left)).map(function(){return'<div class="m"></div>'}).join("");draw();
+ if(mode!=="two"&&player===2)robot()}
+function draw(){$("w1").textContent=wins[1];$("w2").textContent=wins[2];$("s1").classList.toggle("on",player===1&&!over);$("s2").classList.toggle("on",player===2&&!over);
+ $("count").textContent=left+" allumette"+(left>1?"s":"");
+ if(!over)$("turn").innerHTML=mode==="two"?'<span style="color:var(--p'+player+')">'+NAME(player)+"</span>, à toi !":player===1?"À toi de jouer !":"🤖 Le robot réfléchit…";
+ document.querySelectorAll("#take button").forEach(function(b){b.disabled=over||busy||+b.dataset.n>left||(mode!=="two"&&player===2)})}
+function take(n,who){if(over||busy||n>left)return;busy=true;var ms=document.querySelectorAll("#pile .m:not(.gone)");
+ for(var i=0;i<n;i++)(function(el,i){el.classList.add("sel");setTimeout(function(){el.classList.add("gone");tone(700-i*80,0,.12)},250+i*160)})(ms[ms.length-1-i],i);
+ left-=n;draw();
+ setTimeout(function(){busy=false;if(left===0){end(who);return}player=who===1?2:1;draw();if(mode!=="two"&&player===2)robot()},350+n*160)}
+// le robot malin laisse 1, 5, 9, 13… allumettes (reste de 1 en divisant par 4) ; le gentil joue au hasard
+function robot(){draw();T=setTimeout(function(){var n;if(mode==="smart"){n=(left-1)%4;if(n===0)n=1+Math.floor(Math.random()*Math.min(3,left))}else n=1+Math.floor(Math.random()*Math.min(3,left));
+ $("msg").textContent="🤖 Le robot prend "+n+" allumette"+(n>1?"s":"")+".";take(n,2)},1100)}
+function end(lastTaker){over=true;var winner=lastTaker===1?2:1;wins[winner]++;draw();
+ var you=mode!=="two"&&winner===1;
+ $("turn").innerHTML=mode==="two"?'🎉 <span style="color:var(--p'+winner+')">'+NAME(winner)+"</span> a gagné !":you?"🎉 Bravo, tu as gagné !":"😅 Le robot a gagné !";
+ $("msg").textContent=(mode!=="two"&&lastTaker===1?"Tu as":NAME(lastTaker)+" a")+" pris la dernière allumette.";
+ if(you||mode==="two")[523,659,784,1047].forEach(function(f,k){tone(f,k*.1,.25,.2)});else tone(220,0,.4,.2);
+ say(mode==="two"?NAME(winner)+" a gagné !":you?"Bravo, tu as gagné !":"Le robot a gagné !");
+ if(mode==="smart"&&!you){lossSmart++;if(lossSmart>=2)$("msg").textContent+=" 💡 Astuce : essaie de laisser 5 allumettes au robot… ou 9 !"}
+ $("after").hidden=false;try{if(parent!==window)parent.postMessage({type:"roundEnd"},"*")}catch(e){}}
+$("take").onclick=function(e){var b=e.target.closest("button");if(!b||b.disabled)return;$("msg").textContent="";take(+b.dataset.n,player)};
+$("again").onclick=newGame;
+$("menu").onclick=function(){clearTimeout(T);$("play").hidden=true;$("setup").hidden=false};
+window.hubBack=function(){if(!$("play").hidden){clearTimeout(T);$("play").hidden=true;$("setup").hidden=false;return true}return false};
+})();
+</script>
+</body>
+</html>

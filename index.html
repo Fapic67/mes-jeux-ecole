@@ -291,7 +291,7 @@ body.rw-gifts #purse{display:none!important}
     <button class="tile lo" data-go="logique"><span class="ic">🧩</span><span>Logique<small>Code secret, petit robot</small></span></button>
     <button class="tile me" data-go="memoire"><span class="ic">🧠</span><span>Mémoire<small>Memory, liste des courses</small></span></button>
     <button class="tile mu" data-go="musique"><span class="ic">🎵</span><span>Musique<small>Trouve la note</small></span></button>
-    <button class="tile jx" data-go="jeux"><span class="ic">🎲</span><span>Jeux<small>Morpion à deux</small></span></button>
+    <button class="tile jx" data-go="jeux"><span class="ic">🎲</span><span>Jeux<small>Morpion, jeux à gagner 🎁</small></span></button>
   </div>
 </section>
 
@@ -352,6 +352,9 @@ body.rw-gifts #purse{display:none!important}
   <div class="top"><button class="btn icon-btn" data-back="1" aria-label="Retour"><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 4.5 8.5 12l7 7.5"/></svg></button><h2 class="ttl">🎲 Jeux</h2></div>
   <div class="mid">
     <button class="game" data-play="morpion"><span class="ic">⭕</span><span>Morpion<small>À deux joueurs, chacun son tour</small></span></button>
+    <button class="game" data-play="bulles"><span class="ic">🫧</span><span>Attrape les bulles<small>Éclate vite les bonnes bulles</small></span></button>
+    <button class="game" data-play="glissant"><span class="ic">🦔</span><span>Le jardin glissant<small>Fais glisser le hérisson jusqu'à la fraise</small></span></button>
+    <button class="game" data-play="allumettes"><span class="ic">🔥</span><span>Le jeu des allumettes<small>Ne prends pas la dernière !</small></span></button>
   </div>
 </section>
 
@@ -406,6 +409,11 @@ body.rw-gifts #purse{display:none!important}
         <div class="muted" id="p-greserve"></div>
         <button class="btn danger" id="p-greset">Recommencer le chemin au début</button>
       </div>
+    </div>
+    <div class="card">
+      <h3>🎮 Jeux à gagner</h3>
+      <div class="muted">Ces jeux se gagnent dans les cadeaux du chemin. Un parent peut aussi les débloquer ici (utile sans barre de cadeaux).</div>
+      <div id="p-prz" class="pg" style="gap:6px"></div>
     </div>
     <div class="card" id="p-gpendc">
       <h3>🎁 Cadeaux à remettre</h3>
@@ -591,6 +599,10 @@ var GAMES={
  memory:{t:"Memory",app:"memory",subj:"memoire",eco:"memory",luck:1}, // luck : jeu en partie de hasard → pas de série 🔥, étoiles à la fin de la partie
  courses:{t:"Die Einkaufsliste",app:"courses",subj:"memoire",eco:"courses"},
  morpion:{t:"Morpion",app:"morpion",subj:"jeux"},
+ // jeux à gagner dans les cadeaux (prize) : ordre = ordre de déblocage
+ bulles:{t:"Attrape les bulles",app:"bulles",subj:"jeux",prize:1},
+ glissant:{t:"Le jardin glissant",app:"glissant",subj:"jeux",prize:1},
+ allumettes:{t:"Le jeu des allumettes",app:"allumettes",subj:"jeux",prize:1},
  schreib:{t:"Schreib das Wort",app:"deutsch",start:3,subj:"allemand",eco:"sdw"},
  mot:{t:"Finde das Wort",app:"deutsch",start:2,subj:"allemand",eco:"fdw"}
 };
@@ -812,7 +824,7 @@ function giftAdd(p,n){if(p.rmode!=="gifts"||!n)return;var G=ensureGifts(p),befor
 // jeux « à gagner » : GAMES[x].prize ; débloqués par profil dans p.gifts.games
 function prizeGames(){return Object.keys(GAMES).filter(function(k){return GAMES[k].prize})}
 function prizeLeft(p){var G=ensureGifts(p);return prizeGames().filter(function(k){return G.games.indexOf(k)<0})}
-function gamesWon(p){return p.rmode==="gifts"?ensureGifts(p).games:[]}
+function gamesWon(p){return ensureGifts(p).games}
 function isLockedPrize(k,p){p=p||prof();return !!(GAMES[k]&&GAMES[k].prize)&&gamesWon(p).indexOf(k)<0}
 // tirage d'un cadeau : pondéré, jamais vide ; argent seulement dans la limite de la semaine ; jeu seulement s'il en reste dans la réserve
 function gCands(p,sz){var G=ensureGifts(p);return G.pool.filter(function(r){if(!r.on||r.sz.indexOf(sz)<0)return false;
@@ -824,7 +836,7 @@ function gDraw(p,sz,k){var c=gCands(p,sz),out=[];if(!c.length)c=[{id:"bravo",ic:
 function gLabel(p,r,sz){return r.money?money(ensureGifts(p).amt[sz],p):r.game?"Un nouveau jeu : "+GAMES[prizeLeft(p)[0]].t:r.t}
 function gWin(p,r,sz){var G=ensureGifts(p),lab=gLabel(p,r,sz),it={d:dkey(),path:G.path,sz:sz,ic:r.ic,t:lab};
  if(r.money){G.eur=r2(G.eur+G.amt[sz]);p.money=r2(p.money+G.amt[sz])}
- else if(r.game){G.games.push(prizeLeft(p)[0])}
+ else if(r.game){var gk=prizeLeft(p)[0];G.games.push(gk);if(p.play&&p.play.games.indexOf(gk)<0)p.play.games.push(gk)}
  else G.pending.push({id:Date.now().toString(36),d:dkey(),ic:r.ic,t:lab});
  G.log.unshift(it);G.log=G.log.slice(0,60);G.opened++;
  if(G.opened>=5&&G.pos>=gLen(p)){G.pos-=gLen(p);G.opened=0;G.path++;G.newPath=1}
@@ -1065,7 +1077,11 @@ var DMINS=[15,20,30,45,60,90];
 /* fiche profil : type de récompense et réglages des cadeaux */
 var RMODES=[["none","🚫 Pas de récompense","Ni étoiles ni cadeaux : on joue pour apprendre."],["stars","⭐ Étoiles seules","Un compteur d'étoiles et l'objectif du jour, sans cadeau."],["gifts","🎁 Barre de cadeaux","Les étoiles font avancer un chemin avec des cadeaux à ouvrir (argent, bonbon, jeu…)."]];
 var FREQ=[[1,"rare"],[2,"parfois"],[3,"souvent"]];
-function renderRmode(p){$("p-rmode").innerHTML=RMODES.map(function(m){return '<button data-rm="'+m[0]+'" class="'+(p.rmode===m[0]?"on":"")+'">'+m[1]+"<small>"+m[2]+"</small></button>"}).join("");
+function renderPrize(p){var G=ensureGifts(p);$("p-prz").innerHTML=prizeGames().map(function(k){var won=G.games.indexOf(k)>=0;
+ return '<div class="row"><span class="grow"><b>'+esc(GAMES[k].t)+'</b><small class="muted" style="display:block">'+(won?"✅ débloqué":"🔒 à gagner")+'</small></span><button class="btn'+(won?" danger":"")+'" data-prz="'+k+'">'+(won?"Reverrouiller":"Débloquer")+"</button></div>"}).join("")}
+$("p-prz").addEventListener("click",function(e){var b=e.target.closest("[data-prz]");if(!b)return;var k=b.dataset.prz;
+ upd(function(p){var G=ensureGifts(p),i=G.games.indexOf(k);if(i>=0)G.games.splice(i,1);else{G.games.push(k);if(p.play.games.indexOf(k)<0)p.play.games.push(k)}})});
+function renderRmode(p){renderPrize(p);$("p-rmode").innerHTML=RMODES.map(function(m){return '<button data-rm="'+m[0]+'" class="'+(p.rmode===m[0]?"on":"")+'">'+m[1]+"<small>"+m[2]+"</small></button>"}).join("");
  $("p-goalrow").hidden=p.rmode==="none";$("p-gopts").hidden=p.rmode!=="gifts";$("p-stc").hidden=p.rmode==="none";$("p-gpendc").hidden=p.rmode!=="gifts";
  if(p.rmode!=="gifts")return;var G=ensureGifts(p);
  $("p-gtxt").textContent="Chemin de "+gLen(p)+" ⭐ (≈ une semaine à "+p.goal+" min par jour) avec 5 cadeaux : à "+GM.map(function(x,i){return gAt(p,i)}).join(", ")+" ⭐. Le dernier (👑) se choisit parmi 3. Chemin n°"+G.path+" : "+Math.min(G.pos,gLen(p))+" ⭐. Argent gagné cette semaine : "+money(G.eur,p)+" sur "+money(p.cap,p)+".";

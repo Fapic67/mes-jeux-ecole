@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Attrape les bulles</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#e9f6ff;--fg:#17324a;--mut:#56738c;--card:#fff;--bd:#cfe3f3;--jx:#ff8a3d;--ok:#22a861;--bad:#e5484d;box-sizing:border-box}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1c2a;--fg:#eaf5ff;--mut:#9db7cc;--card:#1a2a3b;--bd:#2c4258}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--fg);font-family:"Fredoka",system-ui,sans-serif;user-select:none}
+button{font-family:inherit;touch-action:manipulation;cursor:pointer;color:inherit}
+.scr{position:fixed;inset:0;display:flex;flex-direction:column}
+/* menu */
+#menu{align-items:center;justify-content:center;gap:12px;padding:16px;overflow-y:auto}
+#menu h1{margin:0;font-size:32px}
+#menu .sub{color:var(--mut);font-size:18px;text-align:center;margin:0 0 6px}
+.mode{width:100%;max-width:420px;display:flex;align-items:center;gap:14px;min-height:76px;border:3px solid var(--bd);border-radius:22px;background:var(--card);padding:8px 16px;text-align:left;font-size:21px;font-weight:700;box-shadow:0 4px 0 var(--bd)}
+.mode .ic{font-size:34px}.mode small{display:block;font-size:16px;font-weight:600;color:var(--mut)}
+.mode b{margin-left:auto;font-size:16px;color:var(--jx);white-space:nowrap}
+/* jeu */
+#hud{display:flex;align-items:center;gap:10px;padding:8px 12px 4px}
+#rule{flex:1;font-size:21px;font-weight:700;line-height:1.2}
+#hearts{font-size:22px;letter-spacing:2px}
+#pts{font-size:24px;font-weight:700;min-width:56px;text-align:right;color:var(--jx)}
+#tbar{height:8px;margin:0 12px;border-radius:4px;background:var(--bd);overflow:hidden}#tbar i{display:block;height:100%;background:var(--jx);width:100%}
+#sky{position:relative;flex:1;overflow:hidden;touch-action:none}
+.bub{position:absolute;left:0;top:0;width:78px;height:78px;margin:-39px 0 0 -39px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:26px;color:#17324a;
+ background:radial-gradient(circle at 32% 28%,rgba(255,255,255,.95) 0 10%,rgba(255,255,255,.35) 11% 30%,transparent 31%),radial-gradient(circle,var(--c) 0 62%,rgba(255,255,255,.75) 63% 70%,var(--c) 71%);
+ border:2px solid rgba(255,255,255,.8);box-shadow:0 4px 12px rgba(0,0,0,.12);will-change:transform}
+.bub.sm{font-size:21px}
+.bub.pop{animation:pop .28s forwards}.bub.bad{animation:bad .4s forwards}
+@keyframes pop{to{transform:var(--t) scale(1.7);opacity:0}}
+@keyframes bad{30%{transform:var(--t) translateX(-8px)}60%{transform:var(--t) translateX(8px)}to{transform:var(--t) scale(.3);opacity:0}}
+.plus{position:absolute;font-size:24px;font-weight:700;color:var(--ok);pointer-events:none;animation:up .8s forwards}
+.plus.m{color:var(--bad)}
+@keyframes up{to{transform:translateY(-50px);opacity:0}}
+/* fin */
+#end{align-items:center;justify-content:center;gap:14px;padding:20px;text-align:center;background:rgba(0,0,0,.45)}
+#end .card{background:var(--bg);border-radius:28px;padding:22px;width:100%;max-width:400px;display:flex;flex-direction:column;gap:12px;align-items:center}
+#end h2{margin:0;font-size:30px}.big{font-size:64px;font-weight:700;color:var(--jx);line-height:1}
+.btn{width:100%;min-height:62px;border:0;border-radius:999px;background:var(--jx);color:#fff!important;font-size:22px;font-weight:700;box-shadow:0 5px 0 #d9601a}
+.btn.alt{background:var(--card);color:var(--fg)!important;border:3px solid var(--bd);box-shadow:none}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="scr" id="menu">
+  <h1>🫧 Attrape les bulles</h1>
+  <p class="sub">Touche seulement les bonnes bulles !<br>3 erreurs ou 40 secondes, et c'est fini.</p>
+  <div id="modes" style="display:flex;flex-direction:column;gap:12px;width:100%;align-items:center"></div>
+</div>
+<div class="scr" id="game" hidden>
+  <div id="hud"><div id="rule"></div><div id="hearts"></div><div id="pts">0</div></div>
+  <div id="tbar"><i id="tfill"></i></div>
+  <div id="sky"></div>
+</div>
+<div class="scr" id="end" hidden><div class="card">
+  <h2 id="e-t"></h2><div class="big" id="e-s"></div><div id="e-b" style="color:var(--mut);font-size:19px;font-weight:600"></div>
+  <button class="btn" id="e-again">🔁 Rejouer</button><button class="btn alt" id="e-menu">Changer de bulles</button>
+</div></div>
+<script>
+(function(){
+// Jeu à gagner dans les cadeaux (matière Jeux : pas d'étoiles). Fait travailler : reconnaissance des nombres, pair/impair, compléments à 10, calcul mental rapide.
+var $=function(i){return document.getElementById(i)};
+var PK=window.PROFILE?"@"+window.PROFILE:"";
+function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
+function rnd(a,b){return a+Math.floor(Math.random()*(b-a+1))}
+var ac=null;function tone(f,t,d,v,ty){try{if(!ac){var C=window.AudioContext||window.webkitAudioContext;if(!C)return;ac=new C()}if(ac.state==="suspended")ac.resume();var o=ac.createOscillator(),g=ac.createGain(),s=ac.currentTime+(t||0);o.type=ty||"sine";o.frequency.setValueAtTime(f,s);o.frequency.exponentialRampToValueAtTime(f*1.6,s+(d||.1));g.gain.setValueAtTime(.0001,s);g.gain.exponentialRampToValueAtTime(v||.2,s+.01);g.gain.exponentialRampToValueAtTime(.0001,s+(d||.1));o.connect(g);g.connect(ac.destination);o.start(s);o.stop(s+(d||.1)+.05)}catch(e){}}
+function say(t){try{if(!window.speechSynthesis)return;speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.lang="fr-FR";var v=(speechSynthesis.getVoices()||[]).filter(function(x){return /^fr/i.test(x.lang)})[0];if(v)u.voice=v;u.rate=.95;speechSynthesis.speak(u)}catch(e){}}
+
+// familles de règles : chaque partie tire une règle ; gen() fabrique une bulle {t: texte, ok: bonne ou pas}
+var MODES=[
+ {id:"nombre",ic:"🔢",t:"Le bon nombre",d:"Éclate tous les 7…",mk:function(){var n=rnd(1,9);return{rule:"Éclate tous les "+n,voice:"Éclate tous les "+n,gen:function(good){var v=good?n:rnd(0,9);if(!good)while(v===n)v=rnd(0,9);return{t:String(v),ok:v===n}}}}},
+ {id:"parite",ic:"⚖️",t:"Pair ou impair",d:"2, 4, 6… ou 1, 3, 5…",mk:function(){var pair=Math.random()<.5;return{rule:"Éclate les nombres "+(pair?"pairs":"impairs"),voice:"Éclate les nombres "+(pair?"pairs":"impairs"),gen:function(good){var v;do{v=rnd(0,20)}while((v%2===0)!==(good?pair:!pair));return{t:String(v),ok:(v%2===0)===pair}}}}},
+ {id:"dix",ic:"🔟",t:"Pour faire 10",d:"3 + ? = 10",mk:function(){var k=rnd(1,9),n=10-k;return{rule:k+" + ? = 10",voice:"Éclate le nombre qui fait dix avec "+k,gen:function(good){var v=good?n:rnd(0,10);if(!good)while(v===n)v=rnd(0,10);return{t:String(v),ok:v===n}}}}},
+ {id:"calcul",ic:"➕",t:"Les calculs",d:"Éclate les calculs qui font 8",mk:function(){var n=rnd(5,12);function ex(v){if(Math.random()<.6&&v>=1){var a=rnd(0,v);return a+" + "+(v-a)}var b=rnd(0,9);return(v+b)+" − "+b}
+   return{rule:"Éclate les calculs qui font "+n,voice:"Éclate les calculs qui font "+n,gen:function(good){var v=good?n:rnd(Math.max(0,n-4),n+4);if(!good)while(v===n)v=rnd(Math.max(0,n-4),n+4);return{t:ex(v),ok:v===n,sm:1}}}}}];
+var COLORS=["#9fd8ff","#ffc2df","#c8f2b4","#ffe39a","#d6c5ff","#a8f0e6"];
+function best(id){return parseInt(ls("bulles_best_"+id+PK))||0}
+function menu(){$("menu").hidden=false;$("game").hidden=true;$("end").hidden=true;
+ $("modes").innerHTML=MODES.map(function(m,i){return '<button class="mode" data-i="'+i+'"><span class="ic">'+m.ic+"</span><span>"+m.t+"<small>"+m.d+"</small></span><b>"+(best(m.id)?"🏆 "+best(m.id):"")+"</b></button>"}).join("")}
+$("modes").onclick=function(e){var b=e.target.closest("[data-i]");if(b)start(+b.dataset.i)};
+
+var M,R,bubs=[],score,hearts,t0,last,spawnT,raf,on=false,DUR=40000;
+function start(i){M=MODES[i];R=M.mk();score=0;hearts=3;bubs.forEach(function(b){b.el.remove()});bubs=[];
+ $("menu").hidden=true;$("end").hidden=true;$("game").hidden=false;$("rule").textContent=R.rule;$("pts").textContent="0";drawHearts();say(R.voice);
+ on=true;t0=performance.now();last=t0;spawnT=t0+600;cancelAnimationFrame(raf);raf=requestAnimationFrame(loop)}
+function drawHearts(){$("hearts").textContent="❤️".repeat(hearts)+"🤍".repeat(3-hearts)}
+function spawn(now){var sky=$("sky"),W=sky.clientWidth,H=sky.clientHeight,el=document.createElement("div"),good=Math.random()<.42,b=R.gen(good);
+ var el2=el;el.className="bub"+(b.sm?" sm":"");el.textContent=b.t;el.style.setProperty("--c",COLORS[rnd(0,COLORS.length-1)]);sky.appendChild(el);
+ var o={el:el2,ok:b.ok,x:rnd(45,Math.max(46,W-45)),y:H+45,sp:(55+Math.min(70,(now-t0)/400))*(.85+Math.random()*.3),ph:Math.random()*6,dead:false};
+ el.addEventListener("pointerdown",function(e){e.preventDefault();hit(o)});bubs.push(o)}
+function place(o,now){var x=o.x+Math.sin(now/600+o.ph)*14;var t="translate("+x+"px,"+o.y+"px)";o.el.style.transform=t;o.el.style.setProperty("--t",t);o.cx=x}
+function loop(now){if(!on)return;var dt=Math.min(.05,(now-last)/1000);last=now;var left=DUR-(now-t0);
+ $("tfill").style.width=Math.max(0,left/DUR*100)+"%";
+ if(now>=spawnT){spawn(now);spawnT=now+Math.max(430,950-(now-t0)/70)}
+ bubs.forEach(function(o){if(o.dead)return;o.y-=o.sp*dt;place(o,now);if(o.y<-50){o.dead=true;o.el.remove()}});
+ bubs=bubs.filter(function(o){return !o.dead});
+ if(left<=0){finish(true);return}raf=requestAnimationFrame(loop)}
+function float(o,txt,bad){var p=document.createElement("div");p.className="plus"+(bad?" m":"");p.textContent=txt;p.style.left=(o.cx-10)+"px";p.style.top=(o.y-30)+"px";$("sky").appendChild(p);setTimeout(function(){p.remove()},800)}
+function hit(o){if(!on||o.dead)return;o.dead=true;
+ if(o.ok){score++;$("pts").textContent=score;o.el.classList.add("pop");tone(620+Math.min(score,20)*25,0,.12,.22);float(o,"+1")}
+ else{hearts--;drawHearts();o.el.classList.add("bad");tone(180,0,.3,.25,"square");float(o,"✗",1);if(navigator.vibrate)try{navigator.vibrate(60)}catch(e){}if(hearts<=0){setTimeout(function(){finish(false)},350)}}
+ setTimeout(function(){o.el.remove()},420)}
+function finish(time){if(!on)return;on=false;cancelAnimationFrame(raf);
+ var b=best(M.id),rec=score>b;if(rec)ls("bulles_best_"+M.id+PK,score);
+ $("e-t").textContent=rec&&score>0?"🏆 Nouveau record !":time?"⏱️ Temps écoulé !":"💥 Plus de cœurs !";
+ $("e-s").textContent=score+" 🫧";$("e-b").textContent=rec?"Ton ancien record : "+b:"Ton record : "+Math.max(b,score);
+ $("end").hidden=false;[523,659,784].forEach(function(f,k){tone(f,k*.12,.2,.18,"triangle")});say(rec&&score>0?"Nouveau record ! "+score+" bulles":score+" bulles");
+ try{if(parent!==window)parent.postMessage({type:"roundEnd"},"*")}catch(e){}}
+$("e-again").onclick=function(){start(MODES.indexOf(M))};
+$("e-menu").onclick=menu;
+document.addEventListener("visibilitychange",function(){if(document.hidden&&on){on=false;cancelAnimationFrame(raf);menu()}});
+window.hubBack=function(){if(!$("menu").hidden)return false;on=false;cancelAnimationFrame(raf);bubs.forEach(function(b){b.el.remove()});bubs=[];menu();return true};
+menu();
+})();
+</script>
+</body>
+</html>
