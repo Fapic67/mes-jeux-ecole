@@ -622,7 +622,8 @@ window.hubListen=function(lang,opts){lang=lang||"fr-FR";opts=opts||{};
   r.onresult=function(e){got=[];var x=e.results[0];for(var i=0;i<x.length;i++)got.push(x[i].transcript)};
   r.onerror=function(e){sp(false);ko(e.error==="not-allowed"?"denied":e.error||"error")};
   r.onend=function(){sp(false);if(REC===r)REC=null;ok(got||[])};try{r.start()}catch(e){ko("error")}})};
-document.addEventListener("visibilitychange",function(){if(document.hidden)window.hubListenStop()});
+document.addEventListener("visibilitychange",function(){if(document.hidden){window.hubListenStop();try{saveP()}catch(e){}}});
+window.addEventListener("pagehide",function(){try{saveP()}catch(e){}});
 window.hubListenStop=function(){try{if(NATIVE){var SR=plug("SpeechRecognition");SR&&SR.stop()}else if(REC)REC.stop()}catch(e){}};
 // sauvegarde automatique : Documents/MesJeuxEcole/config.json, réécrit dès qu'une donnée change
 var lastAuto="";
@@ -634,11 +635,12 @@ if(FS){
  try{FS.checkPermissions().then(function(p){if(p&&p.publicStorage!=="granted")return FS.requestPermissions()}).catch(function(){})}catch(e){}
  if(FRESH){ // données vides : on relit le fichier de configuration s'il existe
   FS.readFile({path:CFG_FILE,directory:"DOCUMENTS",encoding:"utf8"}).then(function(r){var o=JSON.parse(r.data);
-   if(o&&o.app==="mes-jeux-ecole"&&o.data&&o.data.profiles){localStorage.clear();Object.keys(o.data).forEach(function(k){localStorage.setItem(k,String(o.data[k]))});localStorage.setItem("bk_restored",o.date||"1");location.reload()}}).catch(function(){})}
+   if(o&&o.app==="mes-jeux-ecole"&&o.data&&o.data.profiles){window.NOSAVE=true;localStorage.clear();Object.keys(o.data).forEach(function(k){localStorage.setItem(k,String(o.data[k]))});localStorage.setItem("bk_restored",o.date||"1");location.reload()}}).catch(function(){})}
  setInterval(autoSave,10000);document.addEventListener("visibilitychange",function(){if(document.hidden)autoSave()});window.addEventListener("pagehide",autoSave)}
 var CFG=lj("rw_cfg",{});CFG.pin=CFG.pin||"";            // réglages globaux : code parent
 var PR=lj("profiles",null);
-function saveP(){ls("profiles",JSON.stringify(PR));if(FS)setTimeout(autoSave,500)}
+// NOSAVE : une restauration est en cours (données réécrites puis rechargement) → ne plus rien écrire par-dessus
+function saveP(){if(window.NOSAVE)return;ls("profiles",JSON.stringify(PR));if(FS)setTimeout(autoSave,500)}
 function saveCfg(){ls("rw_cfg",JSON.stringify(CFG))}
 (function migrate(){ // ancienne cagnotte unique (rw, rw_cfg, hub_prenom) -> premier profil
  if(PR&&PR.list&&PR.list.length)return;
@@ -877,7 +879,8 @@ function lockMsg(p){var d=today(p),r=p.play.ratio,k=Math.round((1-r)/r*10)/10;
    À 0 : le jeu en cours se termine (fin de manche {type:"roundEnd"} ou 5 min de grâce), puis « C'est fini pour aujourd'hui ». */
 function dayOn(p){p=p||prof();ensureEcon(p);return !!p.daily.on}
 function dayLeft(p){p=p||prof();ensureEcon(p);var D=p.daily,b=D.bonus&&D.bonus.d===dkey()?D.bonus.sec:0;return D.min*60+b-today(p).sec}
-function dayOver(p){return dayOn(p)&&dayLeft(p)<=0}
+function dayMark(p){var D=p.daily;return dkey()+"|"+(D.bonus&&D.bonus.d===dkey()?D.bonus.sec:0)}
+function dayOver(p){p=p||prof();return dayOn(p)&&(dayLeft(p)<=0||p.daily.done===dayMark(p))}
 var dayUp=false,dayT=null,dayInGame=false;
 function endDay(){clearTimeout(dayT);dayT=null;if(!GAMES[cur])return;saveP();showDayOver(true)}
 function showDayOver(inGame){dayInGame=inGame;$("dayover").hidden=false}
@@ -885,7 +888,7 @@ $("do-ok").onclick=function(){$("dayover").hidden=true;dayUp=false;if(dayInGame)
 $("do-parent").onclick=function(){$("dayover").hidden=true;checkCode(function(){var p=prof(),D=p.daily,b=D.bonus&&D.bonus.d===dkey()?D.bonus.sec:0;
  D.bonus={d:dkey(),sec:b+900+Math.max(0,-dayLeft(p))};dayUp=false;clearTimeout(dayT);saveP();renderLocks();renderTime();toast("🔑 +15 min pour aujourd'hui",2200)},function(){if(dayInGame&&dayOver())showDayOver(true)})};
 function renderLocks(){var p=prof(),left=playLeft(p),over=dayOver(p);
- $("daytxt").textContent=dayOn(p)?(over?" · 🌙 fini pour aujourd'hui":" · 🌙 encore "+mins(dayLeft(p))+" min aujourd'hui"):"";
+ $("daytxt").textContent=dayOn(p)?(over?" · 🌙 fini pour aujourd'hui":(dayLeft(p)<60?" · 🌙 moins d'1 min aujourd'hui":" · 🌙 encore "+mins(dayLeft(p))+" min aujourd'hui")):"";
  document.querySelectorAll("[data-play]").forEach(function(b){var k=b.dataset.play,sm=b.querySelector("small");if(!sm)return;if(b.dataset.sub==null)b.dataset.sub=sm.innerHTML;
   var lim=isPlay(k,p),lk=lim&&left<30,pz=isLockedPrize(k,p);b.classList.toggle("locked",lk||over||pz);
   if(pz){sm.innerHTML=b.dataset.sub+'<span class="pt">🎁 à gagner dans un cadeau</span>';return}
@@ -900,7 +903,7 @@ function renderTime(){var t=$("ptime");
  t.className=timeUp?"up":l<60?"warn":"";t.textContent=timeUp?"⏳ Termine ta partie !":"⏳ "+fmtClock(l)}
 setInterval(function(){if(!GAMES[cur]||document.hidden||Date.now()-lastAct>60000)return;var p=prof(),d=today(p);d.sec++;if(isPlay(cur,p))d.play++;else d.learn++;stDay(stG(p.id,cur)).sec++;
  if(++tick%15===0){saveP();stSave(p.id)}
- if(dayOn(p)&&!dayUp&&dayLeft(p)<=0){dayUp=true;toast("🌙 C'est presque fini pour aujourd'hui : termine ton jeu !",3500);dayT=setTimeout(endDay,300000)}
+ if(dayOn(p)&&!dayUp&&dayLeft(p)<=0){dayUp=true;p.daily.done=dayMark(p);saveP();toast("🌙 C'est presque fini pour aujourd'hui : termine ton jeu !",3500);dayT=setTimeout(endDay,300000)}
  if(isPlay(cur,p)&&!timeUp&&playLeft(p)<=0){timeUp=true;toast("⏳ Le temps de jeu est fini : termine ta partie !",3500);graceT=setTimeout(endPlay,180000)}
  renderTime()},1000);
 function endPlay(){clearTimeout(graceT);graceT=null;if(!GAMES[cur]||!isPlay(cur))return;saveP();$("tu-txt").textContent="Tu pourras rejouer après "+mins(learnNeeded(prof()))+" min d'apprentissage.";$("timeup").hidden=false}
@@ -978,7 +981,7 @@ $("bk-file").onchange=function(){var f=this.files&&this.files[0];if(!f)return;va
   var pr=null;try{pr=JSON.parse(o.data.profiles)}catch(e){}
   var who=pr&&pr.list?pr.list.map(function(p){return p.name||"Sans prénom"}).join(", "):"?";
   if(!confirm("Restaurer la sauvegarde du "+new Date(o.date).toLocaleString("fr-FR")+" ?\nProfils : "+who+"\nLes données actuelles seront remplacées."))return;
-  try{localStorage.clear();Object.keys(o.data).forEach(function(k){localStorage.setItem(k,String(o.data[k]))})}catch(e){$("bk-st").textContent="⚠️ Restauration impossible : "+e.message;return}
+  try{window.NOSAVE=true;localStorage.clear();Object.keys(o.data).forEach(function(k){localStorage.setItem(k,String(o.data[k]))})}catch(e){$("bk-st").textContent="⚠️ Restauration impossible : "+e.message;return}
   location.replace(location.pathname)};
  r.readAsText(f)};
 // bouton retour d'Android dans l'appli : même comportement que la flèche ←, quitte depuis « Qui joue ? »
@@ -1146,7 +1149,7 @@ function parentOf(h){return GAMES[h]?GAMES[h].subj:h===""||h==="profil"?"profil"
 function depth(){return(history.state&&history.state.d)||0}
 function url(h){return h?"#"+h:location.pathname+location.search}
 function show(h){
- if(h===cur)return;cur=h;window.hubListenStop&&window.hubListenStop();
+ if(h===cur)return;if(GAMES[cur])try{saveP()}catch(e){}cur=h;window.hubListenStop&&window.hubListenStop();
  if(pendingReload&&!GAMES[h]){location.reload();return}
  document.querySelectorAll(".view").forEach(function(v){v.classList.remove("on")});
  renderPurse();
