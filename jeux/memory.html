@@ -19,15 +19,16 @@ header{display:flex;align-items:center;gap:8px}
 #hint{flex:1;font-size:17px;color:var(--mut);font-weight:600}
 .hb{min-height:56px;padding:0 14px;border:3px solid var(--bd);background:var(--card);color:var(--fg);border-radius:16px;font-weight:700;font-size:18px;white-space:nowrap}
 #board{display:grid;gap:8px;margin:auto 0;width:100%}
-.cd{aspect-ratio:3/4;perspective:600px;border:0;padding:0;background:none}
+.cd{aspect-ratio:3/4;perspective:600px;border:0;padding:0;background:none;color:var(--fg)}
 .cd .in{position:relative;width:100%;height:100%;transition:transform .35s;transform-style:preserve-3d}
 .cd.up .in,.cd.ok .in{transform:rotateY(180deg)}
 .cd .f,.cd .b{position:absolute;inset:0;border-radius:14px;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;align-items:center;justify-content:center}
-.cd .b{background:var(--me);background-image:radial-gradient(circle at 30% 30%,rgba(255,255,255,.35) 0 12%,transparent 13%),radial-gradient(circle at 70% 70%,rgba(255,255,255,.25) 0 10%,transparent 11%);box-shadow:0 4px 0 #a8329a;font-size:30px}
+.cd .b{background:var(--me);background-image:radial-gradient(circle at 30% 30%,rgba(255,255,255,.35) 0 12%,transparent 13%),radial-gradient(circle at 70% 70%,rgba(255,255,255,.25) 0 10%,transparent 11%);box-shadow:0 4px 0 #a8329a;font-size:30px;font-weight:700;color:#fff}
 .cd .f{transform:rotateY(180deg);background:var(--card);border:3px solid var(--bd);padding:4px;text-align:center}
 .cd .f .e{font-size:var(--es,40px);line-height:1}
 .cd .f .w{font-size:var(--ws,16px);font-weight:700;line-height:1.15;overflow-wrap:anywhere;hyphens:auto}
-.cd .f .w i{display:block;font-style:normal;font-weight:600;color:var(--mut);font-size:.85em}
+.cd .f .w{color:var(--fg)}
+.cd .f .w i{display:block;font-style:normal;font-weight:700;color:var(--me);font-size:.85em}
 .cd.ok .f{border-color:var(--ok);background:#e8f8ee}
 @media (prefers-color-scheme:dark){.cd.ok .f{background:#1d3a28}}
 .cd.ko .f{border-color:var(--bad)}
@@ -102,7 +103,7 @@ function deal(){var P=LV[level].p,c=[];
  else wordsPool().slice(0,P).forEach(function(w,i){var full=(w.a?w.a+" ":"")+w.w;c.push({id:i,say:full,h:'<span class="e">'+w.e+"</span>"});c.push({id:i,say:full,h:'<span class="w">'+(w.a?"<i>"+w.a+"</i>":"")+w.w+"</span>"})});
  cards=shuffle(c);cards.forEach(function(x,i){x.i=i});open=[];lock=false;moves=0;found=0;seen={};
  var b=$("board"),C=LV[level].c;b.style.gridTemplateColumns="repeat("+C+",1fr)";var W=Math.min(520,innerWidth)-24,cw=(W-(C-1)*8)/C;
- b.style.setProperty("--es",Math.round(cw*.48)+"px");b.style.setProperty("--ws",Math.max(13,Math.min(19,Math.round(cw*.17)))+"px");
+ b.style.setProperty("--es",Math.round(cw*.48)+"px");b.style.setProperty("--ws",Math.max(15,Math.min(22,Math.round(cw*.2)))+"px");
  b.innerHTML=cards.map(function(x){return '<button class="cd" data-i="'+x.i+'" aria-label="carte"><div class="in"><div class="b">?</div><div class="f">'+x.h+"</div></div></button>"}).join("");
  $("after").hidden=true;$("msg").textContent="";$("setb").textContent="Niveau "+level;$("hint").textContent=mode==="de"?"Trouve l'image et son mot allemand !":"Retrouve les paires !";stat()}
 function stat(){$("stat").textContent="Paires : "+found+" / "+LV[level].p+" · Coups : "+moves}
