@@ -234,6 +234,7 @@ body.rw-gifts #purse{display:none!important}
 #ph-box canvas{position:absolute;inset:0}
 #ph-box::after{content:"";position:absolute;inset:0;border-radius:50%;box-shadow:0 0 0 400px rgba(0,0,0,.55);border:3px solid #fff;pointer-events:none}
 #ph-zoom{width:280px;accent-color:var(--math)}
+.adm{font-size:14px;font-weight:700;color:#fff;background:#e0a100;border-radius:999px;padding:1px 8px;vertical-align:middle}
 .ptile.new{border-style:dashed;box-shadow:none;color:var(--soft)}
 .ptile.new .av{background:var(--line);color:var(--ink)}
 #spanel{min-height:75%}
@@ -385,6 +386,7 @@ body.rw-gifts #purse{display:none!important}
         <span class="pg" style="gap:8px;flex:1"><label class="btn" style="text-align:center;cursor:pointer">📷 Choisir une photo<input type="file" id="p-photo" accept="image/*" hidden></label>
         <button class="btn danger" id="p-phdel">Retirer la photo</button></span></div>
       <label class="row"><span>Prénom</span><input class="field grow" id="p-name" maxlength="20" autocomplete="off"></label>
+      <label class="switch"><input type="checkbox" id="p-admin"><span class="grow">👑 Administrateur<small class="muted" style="display:block;font-size:16px">Tous les jeux disponibles, sans limite de temps, paramètres sans code. Le code parent est demandé pour ouvrir ce profil.</small></span></label>
       <div class="row"><button class="btn okb grow" id="p-use">Utiliser ce profil</button><span class="muted grow" id="p-active">✅ Profil utilisé en ce moment</span><button class="btn danger" id="p-del">Supprimer</button></div>
     </div>
     <div class="card">
@@ -718,7 +720,7 @@ function renderPurse(bump){var p=prof(),E=ensureEcon(p),d=today(p),w=weekSum(p,E
  $("h-day").textContent=d.st;$("h-goal").textContent=p.goal;$("h-bar").style.width=Math.min(100,d.st/p.goal*100)+"%";
  var carry=Math.max(0,p.stars-w.st);
  $("hint").textContent=(d.st>=p.goal?"🎯 Objectif du jour atteint ! ":"")+"Cette semaine : ⭐ "+w.st;
- $("whon").textContent=pname(p);$("whoi").innerHTML=p.photo?'<span class="mini-av" style="background-image:url('+p.photo+')"></span>':"👤";
+ $("whon").textContent=pname(p)+(p.admin?" 👑":"");$("whoi").innerHTML=p.photo?'<span class="mini-av" style="background-image:url('+p.photo+')"></span>':"👤";
  $("hello").textContent=p.name?"Bonjour "+p.name+" ! 👋":"Bonjour ! 👋";
  renderEco();renderLocks();renderTime();renderGbar();
  if(bump){["pstars","purse"].forEach(function(id){var e=$(id);e.classList.remove("bump");void e.offsetWidth;e.classList.add("bump")})}}
@@ -825,7 +827,7 @@ function giftAdd(p,n){if(p.rmode!=="gifts"||!n)return;var G=ensureGifts(p),befor
 function prizeGames(){return Object.keys(GAMES).filter(function(k){return GAMES[k].prize})}
 function prizeLeft(p){var G=ensureGifts(p);return prizeGames().filter(function(k){return G.games.indexOf(k)<0})}
 function gamesWon(p){return ensureGifts(p).games}
-function isLockedPrize(k,p){p=p||prof();return !!(GAMES[k]&&GAMES[k].prize)&&gamesWon(p).indexOf(k)<0}
+function isLockedPrize(k,p){p=p||prof();return !p.admin&&!!(GAMES[k]&&GAMES[k].prize)&&gamesWon(p).indexOf(k)<0}
 // tirage d'un cadeau : pondéré, jamais vide ; argent seulement dans la limite de la semaine ; jeu seulement s'il en reste dans la réserve
 function gCands(p,sz){var G=ensureGifts(p);return G.pool.filter(function(r){if(!r.on||r.sz.indexOf(sz)<0)return false;
   if(r.money)return G.eur+G.amt[sz]<=p.cap+1e-9;if(r.game)return prizeLeft(p).length>0;return true})}
@@ -900,7 +902,7 @@ function addStars(n){onAnswer({game:"calcul",ok:true})} // ancien message {type:
 // temps de jeu : un jeu ouvert et une réponse dans les 90 dernières secondes
 /* ---------- Temps de jeu limité par rapport à l'apprentissage ----------
    Compteurs par jour : learn / play (secondes actives). Jeu autorisé = learn × r / (1 − r) + bonus parent. */
-function isPlay(k,p){p=p||prof();ensureEcon(p);return !!(p.play.on&&p.play.games.indexOf(k)>=0)}
+function isPlay(k,p){p=p||prof();ensureEcon(p);return !!(!p.admin&&p.play.on&&p.play.games.indexOf(k)>=0)}
 function bonusToday(p){var b=p.play.bonus||{};return b.d===dkey()?b.sec:0}
 function playLeft(p){p=p||prof();var d=today(p),r=p.play.ratio;return d.learn*r/(1-r)+bonusToday(p)-d.play}
 function learnNeeded(p){var d=today(p),r=p.play.ratio;return Math.max(60,(d.play+60-bonusToday(p))*(1-r)/r-d.learn)} // secondes d'apprentissage pour 1 min de jeu
@@ -909,7 +911,7 @@ function lockMsg(p){var d=today(p),r=p.play.ratio,k=Math.round((1-r)/r*10)/10;
  return (d.learn<30&&!bonusToday(p)?"Fais d'abord un peu d'apprentissage. ":"")+"Encore "+mins(learnNeeded(p))+" min d'apprentissage pour pouvoir jouer ("+String(k).replace(".",",")+" min d'apprentissage = 1 min de jeu)."}
 /* ---------- Temps par jour (p.daily = {on, min, bonus:{d,sec}}) : temps actif dans les jeux (today().sec) ----------
    À 0 : le jeu en cours se termine (fin de manche {type:"roundEnd"} ou 5 min de grâce), puis « C'est fini pour aujourd'hui ». */
-function dayOn(p){p=p||prof();ensureEcon(p);return !!p.daily.on}
+function dayOn(p){p=p||prof();ensureEcon(p);return !!(!p.admin&&p.daily.on)}
 function dayLeft(p){p=p||prof();ensureEcon(p);var D=p.daily,b=D.bonus&&D.bonus.d===dkey()?D.bonus.sec:0;return D.min*60+b-today(p).sec}
 function dayMark(p){var D=p.daily;return dkey()+"|"+(D.bonus&&D.bonus.d===dkey()?D.bonus.sec:0)}
 function dayOver(p){p=p||prof();return dayOn(p)&&(dayLeft(p)<=0||p.daily.done===dayMark(p))}
@@ -951,9 +953,11 @@ function showNotice(){var p=prof(),E=ensureEcon(p),n=E.notice;if(!n||!$("notice"
  $("notice").hidden=false;$("nt-ok").onclick=function(){$("notice").hidden=true;delete E.notice;saveP()}}
 /* écran « Qui joue ? » : premier écran à l'ouverture */
 var AVC=["#22a861","#4a7cff","#ff5c7a","#9b6bff","#13a8a8","#ff8a3d"];
-function renderProfilScreen(){$("plist2").innerHTML=PR.list.map(function(p,i){var n=pname(p);return '<button class="ptile" data-who="'+p.id+'"><span class="av'+(p.photo?" ph":"")+'" style="'+avStyle(p,i)+'">'+(p.photo?"":esc(n.charAt(0).toUpperCase()))+'</span><span>'+esc(n)+'<small>⭐ '+p.stars+'</small></span></button>'}).join("");
+function renderProfilScreen(){$("plist2").innerHTML=PR.list.map(function(p,i){var n=pname(p);return '<button class="ptile" data-who="'+p.id+'"><span class="av'+(p.photo?" ph":"")+'" style="'+avStyle(p,i)+'">'+(p.photo?"":esc(n.charAt(0).toUpperCase()))+'</span><span>'+esc(n)+(p.admin?' <span class="adm">👑 admin</span>':"")+'<small>⭐ '+p.stars+'</small></span></button>'}).join("");
  $("pform").hidden=true;$("pnew").hidden=false}
-$("plist2").addEventListener("click",function(e){var b=e.target.closest("[data-who]");if(!b)return;PR.active=b.dataset.who;saveP();go("")});
+$("plist2").addEventListener("click",function(e){var b=e.target.closest("[data-who]");if(!b)return;var id=b.dataset.who;
+ function open(){PR.active=id;saveP();go("")}
+ if(prof0(id).admin&&PR.active!==id)checkCode(open);else open()});
 $("pnew").onclick=function(){$("pnew").hidden=true;$("pform").hidden=false;$("pfname").value="";setTimeout(function(){$("pfname").focus()},50)};
 $("pfcancel").onclick=function(){$("pform").hidden=true;$("pnew").hidden=false};
 function createProfile(){var n=$("pfname").value.trim().slice(0,20);if(!n){$("pfname").focus();return}
@@ -1048,6 +1052,7 @@ function renderProfils(){$("plist").innerHTML=PR.list.map(function(p){return '<b
 $("plist").addEventListener("click",function(e){var b=e.target.closest("[data-edit]");if(!b)return;EDIT=b.dataset.edit;openPage("profil")});
 $("padd").onclick=function(){var id="p"+Date.now().toString(36);PR.list.push({id:id,name:"",reward:true,unit:"€",per:10,gain:1,stars:0,money:0});saveP();EDIT=id;openPage("profil");setTimeout(function(){$("p-name").focus()},100)};
 function renderProfil(){var p=prof(EDIT);if(p.id!==EDIT)EDIT=p.id;
+ $("p-admin").checked=!!p.admin;
  var ix=PR.list.indexOf(p);$("p-av").setAttribute("style",avStyle(p,ix));$("p-av").className="av"+(p.photo?" ph":"");$("p-av").textContent=p.photo?"":pname(p).charAt(0).toUpperCase();$("p-phdel").hidden=!p.photo;
  if(document.activeElement!==$("p-name"))$("p-name").value=p.name;$("p-name").placeholder="Prénom de l'enfant";
  var act=p.id===PR.active;$("p-use").hidden=act;$("p-active").hidden=!act;$("p-del").hidden=PR.list.length<2;
@@ -1126,6 +1131,7 @@ $("p-birth").onblur=function(){var d=this.value.replace(/\D/g,"");if(!d.length){
 $("p-cls").onchange=function(){var v=this.value;upd(function(p){p.cls=v})};
 $("p-name").oninput=function(){var v=this.value.trim().slice(0,20);upd(function(p){p.name=v})};
 $("p-use").onclick=function(){PR.active=EDIT;saveP();renderProfil()};
+$("p-admin").onchange=function(){var v=this.checked;upd(function(p){if(v)p.admin=true;else delete p.admin});renderLocks();renderTime();toast(v?"👑 Profil administrateur":"Profil normal",1600)};
 $("p-del").onclick=function(){var p=E();if(PR.list.length<2)return;if(!confirm("Supprimer le profil « "+pname(p)+" » et ses étoiles ?"))return;
  PR.list=PR.list.filter(function(x){return x.id!==p.id});if(PR.active===p.id)PR.active=PR.list[0].id;["robot_lvl","robot_best","stats","chenille_lvl","chenille_best","boucles_lvl","boucles_best","reparateur_lvl","reparateur_best","memory_lvl","memory_best","memory_mode","courses_lvl","courses_best","de_sel_mem","de_sel_courses","de_sel_sdw"].forEach(function(k){try{localStorage.removeItem(k+"@"+p.id)}catch(e){}});delete STC[p.id];saveP();back()};
 $("p-unit").oninput=function(){var v=this.value.trim();if(v)upd(function(p){p.unit=v})};
@@ -1185,7 +1191,7 @@ $("s-upd").onclick=function(){var b=this,st=$("s-updst");b.disabled=true;st.text
   return Promise.all(jobs).then(function(){location.replace(location.pathname+"?maj="+Date.now())})
  }).catch(function(){b.disabled=false;st.textContent="⚠️ Pas de connexion internet : réessaie quand tu es en ligne."})};
 function openSettings(already){PG=[];renderPage();if(!already)openOv("settings")}
-$("gear").onclick=$("gear2").onclick=function(){checkCode(openSettings)};
+$("gear").onclick=$("gear2").onclick=function(){var p=prof();if(p.admin&&PR.active===p.id&&$("v-profil").classList.contains("on")===false){openSettings();return}checkCode(openSettings)};
 $("sclose").onclick=function(){var i=OV.indexOf("settings");if(i<0)return;var n=OV.length-i;
  if(history.state&&history.state.ov===OV[OV.length-1]){history.go(-n)}else{while(OV.length>i)hideOv(OV.pop())}};
 $("s-pin").onclick=function(){newCode(renderCode)};
