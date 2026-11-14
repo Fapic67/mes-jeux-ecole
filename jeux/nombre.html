@@ -24,14 +24,23 @@ header{display:flex;align-items:center;gap:8px}
 @keyframes sh{25%{transform:translateX(-10px)}75%{transform:translateX(10px)}}
 #mic{width:120px;height:120px;border-radius:50%;border:0;background:var(--ma);color:#fff;font-size:56px;box-shadow:0 7px 0 #2f5ad1}
 #mic:disabled{opacity:.45}
-/* micro : .wait = il écoute (anneau), .talk = la personne parle (pulse), .off = en pause (toucher pour reparler) */
-#mic{position:relative;transition:background .2s,transform .2s}
-#mic.wait::after{content:"";position:absolute;inset:-10px;border-radius:50%;border:4px solid var(--ma);opacity:.5;animation:ring 1.6s ease-out infinite}
-#mic.talk{background:var(--bad);box-shadow:0 7px 0 #b3262b;animation:pulse .45s ease-in-out infinite}
-#mic.talk::after{content:"";position:absolute;inset:-14px;border-radius:50%;border:5px solid var(--bad);opacity:.6;animation:ring .9s ease-out infinite}
-#mic.off{background:var(--bd);color:var(--mut);box-shadow:0 7px 0 #a7b3d6}
-@keyframes pulse{50%{transform:scale(1.14)}}
-@keyframes ring{0%{transform:scale(.9);opacity:.6}100%{transform:scale(1.25);opacity:0}}
+/* micro : .start = il s'allume (attendre), .ready = il écoute (parle !), .talk = la voix est entendue (grossit avec le volume --lv),
+   .think = analyse, .off = éteint (toucher pour parler) */
+#mic{position:relative;margin:14px 0;transition:background .25s,box-shadow .25s,transform .08s linear;--lv:0}
+#mic.start{background:#9aa6c8;box-shadow:0 7px 0 #77829f}
+#mic.start::after{content:"";position:absolute;inset:-10px;border-radius:50%;border:5px dotted #9aa6c8;animation:spin 1.2s linear infinite}
+#mic.ready,#mic.talk{background:var(--ok);box-shadow:0 7px 0 #17804a}
+#mic.ready::after{content:"";position:absolute;inset:-12px;border-radius:50%;border:5px solid var(--ok);animation:ring 1.3s ease-out infinite}
+#mic.talk{transform:scale(calc(1.04 + var(--lv) * .2))}
+#mic.talk::after{content:"";position:absolute;inset:calc(-10px - var(--lv) * 10px);border-radius:50%;border:6px solid var(--ok);opacity:calc(.35 + var(--lv) * .6)}
+#mic.think{background:var(--ma);box-shadow:0 7px 0 #2f5ad1}
+#mic.off{background:var(--bd);box-shadow:0 7px 0 #a7b3d6;filter:grayscale(1)}
+@keyframes ring{0%{transform:scale(.92);opacity:.7}100%{transform:scale(1.3);opacity:0}}
+@keyframes spin{to{transform:rotate(360deg)}}
+#mic.talk:not([data-lv]){animation:pulse .5s ease-in-out infinite}
+@keyframes pulse{50%{transform:scale(1.18)}}
+#st{font-size:24px;font-weight:700;min-height:34px;text-align:center;padding:4px 18px;border-radius:999px}
+#st.ready,#st.talk{color:#fff;background:var(--ok)}#st.start{color:var(--mut)}#st.off{color:var(--mut);border:3px dashed var(--bd)}#st.think{color:var(--ma)}
 #msg{min-height:58px;text-align:center;font-size:22px;font-weight:700;padding:0 6px}
 #msg small{display:block;font-size:17px;font-weight:600;color:var(--mut)}
 #help{display:flex;flex-direction:column;gap:10px;width:100%}
@@ -61,6 +70,7 @@ header{display:flex;align-items:center;gap:8px}
 <div class="stage" id="stage">
   <div id="num"></div>
   <button id="mic" aria-label="Parler">🎤</button>
+  <div id="st"></div>
   <div id="msg"></div>
   <div id="help" hidden>
     <div class="row" id="cands"></div>
@@ -111,14 +121,14 @@ var n=-1,recent=[],missed=false,fails=0,busy=false,count=0,sel=null,lis=false,si
 function next(){var x,t=0;do{x=rnd(max+1)}while((recent.indexOf(x)>=0||(max>20&&x<10&&Math.random()<.7))&&++t<50);
  n=x;recent.push(x);if(recent.length>Math.min(8,max-2))recent.shift();missed=false;fails=0;busy=false;sel=null;
  $("num").textContent=n;$("num").className="";$("msg").innerHTML="";$("help").hidden=true;$("mic").hidden=false;$("mic").disabled=false;silent=0;setTimeout(listen,350)}
-function good(){try{if(parent!==window)parent.postMessage({type:"roundEnd"},"*")}catch(e){}busy=true;$("num").className="ok";$("mic").disabled=true;$("mic").className="";$("help").hidden=true;if(!missed)answer(true);count++;
+function good(){$("st").className="";$("st").textContent="";try{if(parent!==window)parent.postMessage({type:"roundEnd"},"*")}catch(e){}busy=true;$("num").className="ok";$("mic").disabled=true;$("mic").className="";$("help").hidden=true;if(!missed)answer(true);count++;
  [660,880].forEach(function(f,k){tone(f,k*.1,.18,.2)});$("msg").innerHTML=["Bravo !","Super !","Génial !","Oui !"][rnd(4)];
  say(n,function(){setTimeout(next,300)})}
 function wrong(heard){tone(200,0,.3,.2);var e=$("num");e.className="";void e.offsetWidth;e.className="ko";
  $("msg").innerHTML=heard==null?"Je n'ai pas bien compris…<small>Dis le nombre bien fort</small>":"J'ai entendu « "+heard+" »<small>Essaie encore !</small>";
  if(++fails>=3)showHelp();else setTimeout(listen,1400)}
 // aide si le micro ne comprend pas : 3 nombres à écouter, on choisit le bon
-function showHelp(){stopMic();$("mic").className="off";var c=[n],t=0;while(c.length<3&&t++<99){var x=n+[-11,-10,-1,1,10,11,20,-20][rnd(8)];if(x>=0&&x<=Math.max(max,10)&&c.indexOf(x)<0)c.push(x)}
+function showHelp(){stopMic();micState("off");$("st").textContent="";var c=[n],t=0;while(c.length<3&&t++<99){var x=n+[-11,-10,-1,1,10,11,20,-20][rnd(8)];if(x>=0&&x<=Math.max(max,10)&&c.indexOf(x)<0)c.push(x)}
  while(c.length<3){var y=rnd(max+1);if(c.indexOf(y)<0)c.push(y)}
  c.sort(function(){return Math.random()-.5});$("help").hidden=false;$("pick").disabled=true;
  $("msg").innerHTML="Le micro ne t'entend pas bien.<small>Écoute les 3 nombres et choisis celui qui est écrit</small>";
@@ -126,21 +136,30 @@ function showHelp(){stopMic();$("mic").className="off";var c=[n],t=0;while(c.len
 $("cands").onclick=function(e){var b=e.target.closest("button");if(!b||busy)return;sel=+b.dataset.v;document.querySelectorAll("#cands button").forEach(function(x){x.classList.toggle("on",x===b)});$("pick").disabled=false;say(sel)};
 $("pick").onclick=function(){if(sel==null||busy)return;if(sel===n)good();else{if(!missed)answer(false);missed=true;tone(200,0,.3,.2);$("msg").innerHTML="Ce n'est pas celui-là<small>Écoute encore</small>"}};
 
-/* écoute automatique : le micro s'ouvre dès qu'un nombre s'affiche ; l'icône pulse quand on parle.
-   Deux silences de suite → pause (pour ne pas écouter sans fin) : on touche 🎤 pour reprendre. */
-function micState(c){var m=$("mic");if(!busy)m.className=c}
+/* écoute automatique : le micro s'allume dès qu'un nombre s'affiche.
+   États bien visibles : « ⏳ Une seconde… » (il s'allume) → « 🟢 Parle maintenant ! » (il écoute vraiment) → « 👂 Je t'écoute » (voix entendue,
+   l'icône grossit avec le volume) → « 🤔 … » (analyse). Deux silences de suite → micro éteint : « Touche le micro pour parler ». */
+var ST={start:"⏳ Une seconde…",ready:"🟢 Parle maintenant !",talk:"👂 Je t'écoute…",think:"🤔 …",off:"🎤 Touche le micro pour parler"};
+function micState(c){if(busy)return;var m=$("mic");m.className=c;if(c!=="talk")m.style.setProperty("--lv",0);var st=$("st");st.className=c;st.textContent=ST[c]||""}
 function stopMic(){try{parent.hubListenStop&&parent.hubListenStop()}catch(e){}}
-function listen(){if(busy||lis||!$("help").hidden||document.hidden||!$("sheet").hidden)return;lis=true;micState("wait");
- if(!$("msg").innerHTML)$("msg").innerHTML="<small>Je t'écoute…</small>";
- parent.hubListen("fr-FR",{onSpeech:function(on){if(lis)micState(on?"talk":"wait")}}).then(heard,function(err){lis=false;
-  if(err==="denied"){micState("off");$("msg").innerHTML="Le micro n'est pas autorisé.<small>Autorise le micro pour Mes jeux d'école dans les réglages du téléphone</small>";return}
-  heard([])})}
-function heard(alts){lis=false;if(busy)return;micState("");
+var readyT=null;
+function listen(){if(busy||lis||!$("help").hidden||document.hidden||!$("sheet").hidden)return;lis=true;var ready=false,mine={};listen.cur=mine;
+ micState("start");
+ function onReady(){if(ready||listen.cur!==mine||!lis)return;ready=true;clearTimeout(readyT);micState("ready")}
+ // anciennes versions de l'appli (sans le signal « prêt ») : on considère le micro prêt après 1,2 s
+ readyT=setTimeout(onReady,1200);
+ parent.hubListen("fr-FR",{onReady:onReady,
+   onSpeech:function(on){if(!lis||listen.cur!==mine)return;ready=true;clearTimeout(readyT);micState(on?"talk":"think")},
+   onLevel:function(x){var m=$("mic");m.dataset.lv="1";if(lis&&listen.cur===mine&&m.className==="talk")m.style.setProperty("--lv",x.toFixed(2))}})
+  .then(heard,function(err){lis=false;clearTimeout(readyT);
+   if(err==="denied"){micState("off");$("st").textContent="";$("msg").innerHTML="Le micro n'est pas autorisé.<small>Autorise le micro pour Mes jeux d'école dans les réglages du téléphone</small>";return}
+   heard([])})}
+function heard(alts){lis=false;clearTimeout(readyT);if(busy)return;micState("think");
  var vals=alts.map(parseFr);if(vals.indexOf(n)>=0){good();return}
  var h=vals.filter(function(v){return v!=null})[0];
  if(h!=null){silent=0;if(!missed)answer(false);missed=true;wrong(h);return}
  if(alts.length){silent=0;wrong(null);return}          // des mots, mais pas un nombre
- if(++silent>=2){micState("off");$("msg").innerHTML="<small>Touche 🎤 quand tu veux parler</small>";return}
+ if(++silent>=2){micState("off");$("msg").innerHTML="";return}
  listen()}
 $("mic").onclick=function(){if(busy)return;if(!lis){silent=0;$("msg").innerHTML="";listen()}};
 document.addEventListener("visibilitychange",function(){if(document.hidden){stopMic()}else if(!lis&&!busy&&$("mic").className!=="off")setTimeout(listen,300)});

@@ -520,16 +520,20 @@ if(NATIVE)(function(){ // synthèse vocale d'Android à la place de speechSynthe
 window.hubListenOK=function(){if(NATIVE)return Capacitor.isPluginAvailable&&Capacitor.isPluginAvailable("SpeechRecognition")?"ok":"old-apk";return(window.SpeechRecognition||window.webkitSpeechRecognition)?"ok":"none"};
 var REC=null;
 // opts.onSpeech(true/false) : la personne commence / arrête de parler (pour animer le micro)
-window.hubListen=function(lang,opts){lang=lang||"fr-FR";opts=opts||{};var sp=function(v){try{opts.onSpeech&&opts.onSpeech(v)}catch(e){}};
- if(NATIVE){var SR=plug("SpeechRecognition"),hd=null;if(!SR)return Promise.reject("none");
-  var done=function(){sp(false);try{hd&&hd.remove()}catch(e){}};
+// opts.onReady() : le micro écoute vraiment (APK 2.2+ / Chrome) ; opts.onLevel(0..1) : volume de la voix (APK 2.2+)
+window.hubListen=function(lang,opts){lang=lang||"fr-FR";opts=opts||{};
+ var sp=function(v){try{opts.onSpeech&&opts.onSpeech(v)}catch(e){}},rd=function(){try{opts.onReady&&opts.onReady()}catch(e){}},lv=function(x){try{opts.onLevel&&opts.onLevel(x)}catch(e){}};
+ if(NATIVE){var SR=plug("SpeechRecognition"),hd=null,hr=null;if(!SR)return Promise.reject("none");
+  var done=function(){sp(false);try{hd&&hd.remove()}catch(e){}try{hr&&hr.remove()}catch(e){}};
   return SR.checkPermissions().then(function(p){return p.speechRecognition==="granted"?p:SR.requestPermissions()}).then(function(p){
    if(p.speechRecognition!=="granted")throw "denied";
-   return Promise.resolve(SR.addListener("listeningState",function(d){sp(d&&d.status==="started")})).then(function(h){hd=h;
+   // « rms » en dB (≈ -2 silence … 10 voix forte) → niveau 0..1
+   Promise.resolve(SR.addListener("rms",function(d){lv(Math.max(0,Math.min(1,(((d&&d.value)||0)+2)/11)))})).then(function(h){hr=h},function(){});
+   return Promise.resolve(SR.addListener("listeningState",function(d){var st=d&&d.status;if(st==="ready")rd();else sp(st==="started")})).then(function(h){hd=h;
     return SR.start({language:lang,maxResults:5,partialResults:false,popup:false})})}).then(function(r){done();return(r&&r.matches)||[]},function(e){done();throw e})}
  var C=window.SpeechRecognition||window.webkitSpeechRecognition;if(!C)return Promise.reject("none");
  return new Promise(function(ok,ko){var got=null;try{if(REC)REC.abort()}catch(e){}var r=REC=new C();r.lang=lang;r.maxAlternatives=5;r.interimResults=false;r.continuous=false;
-  r.onspeechstart=function(){sp(true)};r.onspeechend=function(){sp(false)};
+  r.onaudiostart=function(){rd()};r.onspeechstart=function(){sp(true)};r.onspeechend=function(){sp(false)};
   r.onresult=function(e){got=[];var x=e.results[0];for(var i=0;i<x.length;i++)got.push(x[i].transcript)};
   r.onerror=function(e){sp(false);ko(e.error==="not-allowed"?"denied":e.error||"error")};
   r.onend=function(){sp(false);if(REC===r)REC=null;ok(got||[])};try{r.start()}catch(e){ko("error")}})};
