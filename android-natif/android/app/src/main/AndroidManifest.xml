@@ -42,4 +42,6 @@
     <!-- Écriture de Documents/MesJeuxEcole/config.json sur Android 10 et plus ancien -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="29" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+    <!-- Micro : jeu « Dis le nombre » (reconnaissance vocale) -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
 </manifest>

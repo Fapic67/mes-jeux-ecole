@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dis le nombre</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eef3ff;--fg:#1f2a4a;--mut:#5d6a93;--card:#fff;--bd:#d3dcf5;--ma:#4a7cff;--ok:#22a861;--bad:#e5484d;box-sizing:border-box}
+@media (prefers-color-scheme:dark){:root{--bg:#141a2e;--fg:#eef2ff;--mut:#a6b1d6;--card:#1f2742;--bd:#34406a}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--fg);font-family:"Fredoka",system-ui,sans-serif;user-select:none}
+button{font-family:inherit;touch-action:manipulation;cursor:pointer;color:inherit}
+#wrap{position:fixed;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y}
+#inner{max-width:480px;min-height:100%;margin:0 auto;padding:10px 14px calc(18px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:14px}
+header{display:flex;align-items:center;gap:8px}
+#hint{flex:1;font-size:17px;color:var(--mut);font-weight:600}
+.hb{min-height:56px;padding:0 14px;border:3px solid var(--bd);background:var(--card);border-radius:16px;font-weight:700;font-size:18px;white-space:nowrap}
+.stage{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px}
+#num{font-size:min(38vw,170px);font-weight:700;line-height:1;color:var(--ma);min-height:1em;transition:color .2s}
+#num.ok{color:var(--ok);animation:pop .5s}#num.ko{animation:sh .35s}
+@keyframes pop{40%{transform:scale(1.15)}}
+@keyframes sh{25%{transform:translateX(-10px)}75%{transform:translateX(10px)}}
+#mic{width:120px;height:120px;border-radius:50%;border:0;background:var(--ma);color:#fff;font-size:56px;box-shadow:0 7px 0 #2f5ad1}
+#mic:disabled{opacity:.45}
+#mic.on{background:var(--bad);box-shadow:0 7px 0 #b3262b;animation:pulse 1s infinite}
+@keyframes pulse{50%{transform:scale(1.08)}}
+#msg{min-height:58px;text-align:center;font-size:22px;font-weight:700;padding:0 6px}
+#msg small{display:block;font-size:17px;font-weight:600;color:var(--mut)}
+#help{display:flex;flex-direction:column;gap:10px;width:100%}
+#help .row{display:flex;gap:10px}
+#help .row button{flex:1;height:72px;border:3px solid var(--bd);border-radius:18px;background:var(--card);font-size:28px;font-weight:700}
+#help .row button.on{border-color:var(--ma);background:var(--ma);color:#fff}
+.go{height:62px;border:0;border-radius:18px;background:var(--ok);color:#fff!important;font-size:22px;font-weight:700;box-shadow:0 5px 0 #17804a}
+.go:disabled{opacity:.4}
+#score{display:flex;justify-content:center;gap:6px;font-size:24px;min-height:30px}
+#warn{display:none;background:var(--card);border:3px solid var(--bad);border-radius:20px;padding:16px;font-size:19px;line-height:1.4;text-align:center}
+#warn a{color:var(--ma);font-weight:700}
+.sheet{position:fixed;inset:0;background:rgba(10,15,40,.55);display:flex;align-items:flex-end;justify-content:center;z-index:5}
+.panel{background:var(--bg);width:100%;max-width:520px;max-height:90%;overflow:auto;border-radius:28px 28px 0 0;padding:20px 18px calc(22px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px}
+.panel h2{margin:0;font-size:24px}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opts button{min-height:58px;border:3px solid var(--bd);border-radius:16px;background:var(--card);font-size:19px;font-weight:700;text-align:left;padding:6px 14px}
+.opts button.on{background:var(--ma);border-color:var(--ma);color:#fff}
+.opts small{display:block;font-weight:500;font-size:16px;opacity:.85}
+.big{height:64px;border:0;border-radius:18px;background:var(--ma);color:#fff!important;font-size:22px;font-weight:700}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div id="wrap"><div id="inner">
+<header><div id="hint">Appuie sur 🎤 et dis le nombre</div><button class="hb" id="setb">⚙️</button></header>
+<div id="warn"></div>
+<div class="stage" id="stage">
+  <div id="num"></div>
+  <button id="mic" aria-label="Parler">🎤</button>
+  <div id="msg"></div>
+  <div id="help" hidden>
+    <div class="row" id="cands"></div>
+    <button class="go" id="pick" disabled>C'est celui-là ✓</button>
+  </div>
+</div>
+<div id="score"></div>
+</div></div>
+
+<div class="sheet" id="sheet" hidden><div class="panel">
+  <h2>Nombres jusqu'à…</h2>
+  <div class="opts" id="maxs"></div>
+  <button class="big" id="close">Fermer</button>
+</div></div>
+
+<script>
+(function(){
+var $=function(i){return document.getElementById(i)};
+var PK=window.PROFILE?"@"+window.PROFILE:"";
+function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
+function rnd(n){return Math.floor(Math.random()*n)}
+var MAXS=[[10,"10","pour commencer"],[20,"20","les nombres de 11 à 16 sont piégeux"],[69,"69","dizaines jusqu'à soixante-neuf"],[100,"100","avec soixante-dix et quatre-vingts"]];
+var max=parseInt(ls("nb_max"+PK))||20;if(!MAXS.some(function(m){return m[0]===max}))max=20;
+
+/* ---------- lecture d'un nombre français dans une phrase entendue ---------- */
+var W={zero:0,"zéro":0,un:1,une:1,hein:1,deux:2,trois:3,quatre:4,cinq:5,six:6,sept:7,set:7,cette:7,huit:8,neuf:9,dix:10,dis:10,onze:11,douze:12,treize:13,quatorze:14,quinze:15,seize:16,
+ vingt:20,vingts:20,vin:20,vain:20,trente:30,quarante:40,cinquante:50,soixante:60,septante:70,huitante:80,octante:80,nonante:90,cent:100,cents:100,sans:100,sang:100};
+function parseFr(t){t=String(t).toLowerCase();var d=t.match(/\d+/);if(d)return parseInt(d[0],10);
+ var toks=t.replace(/[-’']/g," ").split(/\s+/),cur=0,seen=false;
+ for(var i=0;i<toks.length;i++){var w=toks[i];if(w==="et"&&seen)continue;if(!(w in W)){if(seen)break;continue}var v=W[w];seen=true;
+  if(v===100)cur=(cur||1)*100;
+  else if(v===20&&cur%100===4)cur=cur-4+80;          // quatre-vingt(s)
+  else if(v===10&&(cur%100===60||cur%100===80))cur+=10; // soixante-dix, quatre-vingt-dix
+  else if(v<10&&(cur%100===70||cur%100===90)&&toks[i-1]==="dix")cur+=v; // dix-sept après 70/90 (déjà compté)
+  else cur+=v}
+ return seen?cur:null}
+
+/* ---------- sons et voix ---------- */
+var ac=null;
+function tone(f,t,d,v){try{if(!ac){var C=window.AudioContext||window.webkitAudioContext;if(!C)return;ac=new C()}if(ac.state==="suspended")ac.resume();var o=ac.createOscillator(),g=ac.createGain(),s=ac.currentTime+t;o.type="triangle";o.frequency.value=f;g.gain.setValueAtTime(.0001,s);g.gain.exponentialRampToValueAtTime(v||.2,s+.02);g.gain.exponentialRampToValueAtTime(.0001,s+d);o.connect(g);g.connect(ac.destination);o.start(s);o.stop(s+d+.05)}catch(e){}}
+function say(t,cb){var done=false,fin=function(){if(!done){done=true;cb&&cb()}};setTimeout(fin,1300+String(t).length*90);
+ try{if(!window.speechSynthesis)return;speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(String(t));u.lang="fr-FR";var v=(speechSynthesis.getVoices()||[]).filter(function(x){return /^fr/i.test(x.lang)})[0];if(v)u.voice=v;u.rate=.9;u.onend=function(){setTimeout(fin,200)};speechSynthesis.speak(u)}catch(e){}}
+
+function diff(){return max<=20?1:max<=69?1.25:1.5}
+function answer(ok){try{if(parent!==window)parent.postMessage({type:"answer",game:"nombre",ok:ok,diff:diff(),k:n<10?"0 à 9":Math.floor(n/10)*10,item:String(n)},"*")}catch(e){}}
+
+var n=-1,recent=[],missed=false,fails=0,busy=false,count=0,sel=null;
+function next(){var x,t=0;do{x=rnd(max+1)}while((recent.indexOf(x)>=0||(max>20&&x<10&&Math.random()<.7))&&++t<50);
+ n=x;recent.push(x);if(recent.length>Math.min(8,max-2))recent.shift();missed=false;fails=0;busy=false;sel=null;
+ $("num").textContent=n;$("num").className="";$("msg").innerHTML="";$("help").hidden=true;$("mic").hidden=false;$("mic").disabled=false}
+function good(){busy=true;$("num").className="ok";$("mic").disabled=true;$("help").hidden=true;if(!missed)answer(true);count++;
+ [660,880].forEach(function(f,k){tone(f,k*.1,.18,.2)});$("msg").innerHTML=["Bravo !","Super !","Génial !","Oui !"][rnd(4)];
+ say(n,function(){setTimeout(next,300)})}
+function wrong(heard){tone(200,0,.3,.2);var e=$("num");e.className="";void e.offsetWidth;e.className="ko";
+ $("msg").innerHTML=heard==null?"Je n'ai pas bien entendu…<small>Appuie sur 🎤 et parle bien fort</small>":"J'ai entendu « "+heard+" »<small>Essaie encore !</small>";
+ if(++fails>=3)showHelp()}
+// aide si le micro ne comprend pas : 3 nombres à écouter, on choisit le bon
+function showHelp(){var c=[n],t=0;while(c.length<3&&t++<99){var x=n+[-11,-10,-1,1,10,11,20,-20][rnd(8)];if(x>=0&&x<=Math.max(max,10)&&c.indexOf(x)<0)c.push(x)}
+ while(c.length<3){var y=rnd(max+1);if(c.indexOf(y)<0)c.push(y)}
+ c.sort(function(){return Math.random()-.5});$("help").hidden=false;$("pick").disabled=true;
+ $("msg").innerHTML="Le micro ne t'entend pas bien.<small>Écoute les 3 nombres et choisis celui qui est écrit</small>";
+ $("cands").innerHTML=c.map(function(x,i){return '<button data-v="'+x+'">🔊 '+"ABC"[i]+"</button>"}).join("")}
+$("cands").onclick=function(e){var b=e.target.closest("button");if(!b||busy)return;sel=+b.dataset.v;document.querySelectorAll("#cands button").forEach(function(x){x.classList.toggle("on",x===b)});$("pick").disabled=false;say(sel)};
+$("pick").onclick=function(){if(sel==null||busy)return;if(sel===n)good();else{if(!missed)answer(false);missed=true;tone(200,0,.3,.2);$("msg").innerHTML="Ce n'est pas celui-là<small>Écoute encore</small>"}};
+
+$("mic").onclick=function(){if(busy)return;var m=$("mic");
+ if(m.classList.contains("on")){parent.hubListenStop&&parent.hubListenStop();return}
+ try{speechSynthesis.cancel()}catch(e){}
+ m.classList.add("on");$("msg").innerHTML="J'écoute…";
+ parent.hubListen("fr-FR").then(function(alts){m.classList.remove("on");if(busy)return;
+  var vals=alts.map(parseFr);if(vals.indexOf(n)>=0){good();return}
+  var h=vals.filter(function(v){return v!=null})[0];
+  if(h!=null){if(!missed)answer(false);missed=true;wrong(h)}else wrong(null)},
+ function(err){m.classList.remove("on");
+  if(err==="denied")$("msg").innerHTML="Le micro n'est pas autorisé.<small>Autorise le micro pour Mes jeux d'école dans les réglages du téléphone</small>";
+  else wrong(null)})};
+
+/* réglage : nombre maximum */
+function opts(){$("maxs").innerHTML=MAXS.map(function(m){return '<button data-m="'+m[0]+'" class="'+(m[0]===max?"on":"")+'">Jusqu\'à '+m[1]+"<small>"+m[2]+"</small></button>"}).join("")}
+$("setb").onclick=function(){opts();$("sheet").hidden=false};
+$("maxs").onclick=function(e){var b=e.target.closest("button");if(!b)return;max=+b.dataset.m;ls("nb_max"+PK,max);$("sheet").hidden=true;recent=[];next()};
+$("close").onclick=function(){$("sheet").hidden=true};
+window.hubBack=function(){if(!$("sheet").hidden){$("sheet").hidden=true;return true}return false};
+
+// micro disponible ?
+var st=parent.hubListenOK?parent.hubListenOK():"none";
+if(st!=="ok"){$("warn").style.display="block";$("stage").hidden=true;$("hint").textContent="";$("setb").hidden=true;
+ $("warn").innerHTML=st==="old-apk"?"🎤 Ce jeu a besoin du micro, qui n'est pas dans cette version de l'appli.<br><br>Un parent peut installer la nouvelle version : ouvrir dans Chrome<br><b>fapic67.github.io/mes-jeux-ecole/telechargement/mes-jeux-ecole.apk</b><br><small>Elle s'installe par-dessus : les étoiles et les profils sont gardés.</small>"
+  :"🎤 La reconnaissance de la voix n'est pas disponible dans ce navigateur. Ouvre l'appli dans Chrome ou installe l'appli Android."}
+else next();
+window.__parse=parseFr;
+})();
+</script>
+</body>
+</html>
