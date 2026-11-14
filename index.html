@@ -309,6 +309,12 @@ body.nomoney .home-mon{display:none!important}
       <div class="row"><button class="btn okb grow" id="p-use">Utiliser ce profil</button><span class="muted grow" id="p-active">✅ Profil utilisé en ce moment</span><button class="btn danger" id="p-del">Supprimer</button></div>
     </div>
     <div class="card">
+      <h3>🎂 Âge et classe</h3>
+      <label class="row"><span class="grow">Date de naissance</span><input class="field" id="p-birth" type="date" max="2100-12-31"></label>
+      <label class="row" id="p-clsrow"><span class="grow">Classe</span><select class="field" id="p-cls"></select></label>
+      <div class="muted" id="p-agetxt"></div>
+    </div>
+    <div class="card">
       <h3>Système de récompense</h3>
       <label class="switch"><input type="checkbox" id="p-money"><span class="grow">Échanger les étoiles contre une récompense</span></label>
       <div class="muted" id="p-moneyst"></div>
@@ -559,7 +565,7 @@ function toast(txt,ms){var t=document.createElement("div");t.className="toast";t
 var ecoOff=false; // un jeu peut couper les étoiles (ex. code secret hors Difficile)
 function noStars(){return !!(GAMES[cur]&&GAMES[cur].subj==="jeux")||ecoOff}
 function onAnswer(m){if(noStars())return;var p=prof(),E=ensureEcon(p),P=ECON.P[m.game];if(P==null)return;rollWeek(p);
- var d=today(p),diff=Math.max(1,Math.min(3,+m.diff||1)),q=m.q==null?1:Math.max(0,Math.min(1,+m.q));lastDiff=diff;lastAct=Date.now();d.tot++;
+ var d=today(p),diff=Math.max(1,Math.min(3,(+m.diff||1)*ageBonus(p,cur))),q=m.q==null?1:Math.max(0,Math.min(1,+m.q));lastDiff=diff;lastAct=Date.now();d.tot++;
  if(m.ok){E.streak++;d.ok++;d.best=Math.max(d.best,E.streak);E.best=Math.max(E.best||0,E.streak);
   var t=tierOf(E.streak);E.gauge=r2(E.gauge+P*diff*t*q);var n=0;while(E.gauge>=ECON.PTS){E.gauge=r2(E.gauge-ECON.PTS);n++}
   if(E.streak===5)toast("🔥🔥 Série de 5 ! Tes étoiles vont 2 fois plus vite !",2600);
@@ -609,6 +615,16 @@ function renderResults(){RS.pid=prof(EDIT).id;var p=prof(RS.pid),S=st(p.id),per=
  if(!n)h+='<div class="card"><div class="muted">Pas encore de résultats sur cette période. Ils s\'afficheront dès que '+esc(pname(p))+" aura joué.</div></div>";
  $("rs-body").innerHTML=h}
 $("rs-per").addEventListener("click",function(e){var b=e.target.closest("[data-per]");if(!b)return;RS.per=+b.dataset.per;renderResults()});
+/* ---------- Âge, classe et bonus d'étoiles ----------
+   p.birth = "AAAA-MM-JJ", p.cls = classe choisie ("" = d'après l'âge). Adulte (18 ans et +) : pas de classe, pas de bonus. */
+var CLASSES=["PS","MS","GS","CP","CE1","CE2","CM1","CM2","6e","5e","4e","3e","2de","1re","Terminale"];
+// bonus par jeu selon la classe : exercices en avance sur le programme de la classe
+var AGEBONUS={conj:{PS:2,MS:2,GS:2,CP:1.5,CE1:1.25}};
+function ageOf(p){if(!p.birth)return null;var b=new Date(p.birth+"T12:00:00"),n=new Date();if(isNaN(b))return null;var a=n.getFullYear()-b.getFullYear();if(n.getMonth()<b.getMonth()||(n.getMonth()===b.getMonth()&&n.getDate()<b.getDate()))a--;return a}
+function isAdult(p){var a=ageOf(p);return a!=null&&a>=18}
+function classAuto(p){if(!p.birth)return null;var n=new Date(),y=n.getMonth()>=8?n.getFullYear():n.getFullYear()-1,i=y-(+p.birth.slice(0,4))-3;return i<0?null:CLASSES[Math.min(i,CLASSES.length-1)]}
+function classOf(p){return isAdult(p)?null:(p.cls||classAuto(p))}
+function ageBonus(p,g){var c=classOf(p),t=AGEBONUS[g];return(t&&c&&t[c])||1}
 function addStars(n){onAnswer({game:"calcul",ok:true})} // ancien message {type:"stars"} (compatibilité)
 // temps de jeu : un jeu ouvert et une réponse dans les 90 dernières secondes
 /* ---------- Temps de jeu limité par rapport à l'apprentissage ----------
@@ -730,6 +746,11 @@ function renderProfil(){var p=prof(EDIT);if(p.id!==EDIT)EDIT=p.id;
  if(document.activeElement!==$("p-rate"))$("p-rate").value=p.rate;$("p-unit4").textContent=p.unit;
  $("p-ratetxt").textContent=p.rate+" ⭐ = 1 "+p.unit+" · maximum "+money(p.cap,p)+" par semaine, atteint avec "+target(p)+" ⭐ (≈ "+Math.round(target(p)/7)+" ⭐ par jour). Les séries et les niveaux difficiles font gagner plus vite ; les étoiles en trop sont reportées.";renderBilan(p);renderPlay(p);
  $("p-unit2").textContent=$("p-unit3").textContent=p.unit;
+ if(document.activeElement!==$("p-birth"))$("p-birth").value=p.birth||"";
+ var ad=isAdult(p),ag=ageOf(p),ca=classAuto(p);$("p-clsrow").hidden=ad;
+ $("p-cls").innerHTML='<option value="">'+(ca?"D'après l'âge ("+ca+")":"Choisir…")+"</option>"+CLASSES.map(function(c){return '<option value="'+c+'"'+(p.cls===c?" selected":"")+">"+c+"</option>"}).join("");
+ var bl=Object.keys(AGEBONUS).filter(function(g){return ageBonus(p,g)>1}).map(function(g){return GAMES[g].t+" ⭐×"+String(ageBonus(p,g)).replace(".",",")});
+ $("p-agetxt").textContent=ag==null?"Indique la date de naissance : la classe sert à donner un bonus d'étoiles sur les exercices en avance sur le programme.":ad?ag+" ans · adulte : pas de classe ni de bonus d'étoiles.":ag+" ans · classe "+(classOf(p)||"?")+(p.cls?"":" (d'après l'âge)")+" · "+(bl.length?"bonus d'étoiles : "+bl.join(", "):"pas de bonus d'étoiles à ce niveau")+".";
  $("p-st").textContent=p.stars;$("p-mo").textContent=money(p.money,p);
  renderPurse()}
 function fmtMin(sec){var m=Math.round(sec/60);return m+" min"}
@@ -752,6 +773,8 @@ $("pl-ratio").addEventListener("click",function(e){var b=e.target.closest("[data
 $("pl-games").addEventListener("change",function(e){var g=e.target.dataset.g,v=e.target.checked;if(!g)return;upd(function(p){ensureEcon(p);var a=p.play.games.filter(function(x){return x!==g});if(v)a.push(g);p.play.games=a})});
 function E(){return prof(EDIT)}
 function upd(f){f(E());saveP();renderProfil()}
+$("p-birth").onchange=function(){var v=this.value;if(v&&!/^\d{4}-\d{2}-\d{2}$/.test(v))return;upd(function(p){p.birth=v})};
+$("p-cls").onchange=function(){var v=this.value;upd(function(p){p.cls=v})};
 $("p-name").oninput=function(){var v=this.value.trim().slice(0,20);upd(function(p){p.name=v})};
 $("p-use").onclick=function(){PR.active=EDIT;saveP();renderProfil()};
 $("p-del").onclick=function(){var p=E();if(PR.list.length<2)return;if(!confirm("Supprimer le profil « "+pname(p)+" » et ses étoiles ?"))return;
@@ -841,7 +864,7 @@ function show(h){
  if(pendingReload&&!GAMES[h]){location.reload();return}
  document.querySelectorAll(".view").forEach(function(v){v.classList.remove("on")});
  renderPurse();
- if(GAMES[h]){var g=GAMES[h];ensureEcon(prof()).streak=0;lastDiff=1;ecoOff=false;timeUp=false;clearTimeout(graceT);lastAct=Date.now();$("v-"+g.subj).classList.add("on");$("ptitle").textContent=g.t;$("play").classList.add("on");renderEco();var tok=++loadTok;setFrame(null);load(g.app).then(function(t){if(tok===loadTok)setFrame(src(g,t))},function(){if(tok===loadTok)setFrame("<p style=\"font:20px sans-serif;padding:20px\">Impossible de charger le jeu. Vérifie la connexion puis réessaie.</p>")});return}
+ if(GAMES[h]){var g=GAMES[h];ensureEcon(prof()).streak=0;lastDiff=ageBonus(prof(),h);ecoOff=false;timeUp=false;clearTimeout(graceT);lastAct=Date.now();$("v-"+g.subj).classList.add("on");$("ptitle").textContent=g.t;$("play").classList.add("on");renderEco();var tok=++loadTok;setFrame(null);load(g.app).then(function(t){if(tok===loadTok)setFrame(src(g,t))},function(){if(tok===loadTok)setFrame("<p style=\"font:20px sans-serif;padding:20px\">Impossible de charger le jeu. Vérifie la connexion puis réessaie.</p>")});return}
  stopGame();
  ($("v-"+h)||$("v-home")).classList.add("on");
  if(h==="profil")renderProfilScreen();

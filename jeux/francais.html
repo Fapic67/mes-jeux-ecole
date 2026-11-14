@@ -92,11 +92,12 @@ function show3(){
 var CONJ={etre:{n:"être",r:[["je","suis"],["tu","es"],["il, elle","est"],["nous","sommes"],["vous","êtes"],["ils, elles","sont"]]},
  avoir:{n:"avoir",r:[["j'","ai"],["tu","as"],["il, elle","a"],["nous","avons"],["vous","avez"],["ils, elles","ont"]]}};
 var cjSeq,cjI,cjDone=0,cjGood=0,cjMix=false;
-function conjMenu(){nokb();cjDone=0;bk.style.display=window.START?"none":"block";
+function conjMenu(){cjTok++;nokb();cjDone=0;bk.style.display=window.START?"none":"block";
  app.innerHTML='<h1>Conjugue au présent</h1><div class="menu" style="width:100%;display:flex;flex-direction:column;gap:14px"><button class="btn" data-v="etre">être</button><button class="btn" data-v="avoir">avoir</button><button class="btn btn2" data-v="mix">être et avoir</button></div>';
  app.querySelectorAll("[data-v]").forEach(function(b){b.onclick=function(){var v=b.dataset.v;cjMix=v==="mix";cjSeq=cjMix?(Math.random()<.5?["etre","avoir"]:["avoir","etre"]):[v];cjI=0;cjGood=0;conjTable()}})}
 function cjAnswer(ok,verb,row){try{if(parent!==window)parent.postMessage({type:"answer",game:"conj",ok:ok,diff:cjMix?1.25:1,k:CONJ[verb].n,item:row[0].replace(", elles","").replace(", elle","")+(row[0]==="j'"?"":" ")+row[1]},"*")}catch(e){}}
-function conjTable(){var V=CONJ[cjSeq[cjI]],row=0,val="",lock=false,tries=0,missed=false;
+var cjTok=0;
+function conjTable(){var tok=++cjTok,V=CONJ[cjSeq[cjI]],row=0,val="",lock=false,tries=0,missed=false;
  app.innerHTML='<p class="vt">Le verbe <b>'+V.n+'</b></p><div class="cj">'+V.r.map(function(r,i){return '<div class="r" id="cr'+i+'"><span class="p">'+r[0]+'</span><span class="v" id="cv'+i+'"></span></div>'}).join("")+'</div><div class="hint" id="hint"></div>';
  var hint=document.getElementById("hint");
  function el(i){return document.getElementById("cr"+i)}
@@ -106,9 +107,9 @@ function conjTable(){var V=CONJ[cjSeq[cjI]],row=0,val="",lock=false,tries=0,miss
   onDel:function(){if(lock)return;val=val.slice(0,-1);paint()},
   onOk:function(){if(lock||!val)return;var r=V.r[row],full=r[0].split(",")[0]+(r[0]==="j'"?"":" ")+r[1];
    if(val===r[1]){lock=true;if(!missed){cjGood++;cjAnswer(true,cjSeq[cjI],r)}el(row).className="r ok";cjDone++;hint.textContent="Bravo !";
-    say(full,function(){lock=false;row++;if(row<V.r.length){hint.textContent="";activate()}else{cjI++;cjI<cjSeq.length?conjTable():conjEnd()}})}
+    say(full,function(){if(tok!==cjTok)return;lock=false;row++;if(row<V.r.length){hint.textContent="";activate()}else{cjI++;cjI<cjSeq.length?conjTable():conjEnd()}})}
    else{if(!missed)cjAnswer(false,cjSeq[cjI],r);missed=true;tries++;lock=true;el(row).className="r ko shake";hint.textContent="Essaie encore !";if(tries>=2)say(full);
-    setTimeout(function(){val="";el(row).className="r on";paint();lock=false},700)}}});
+    setTimeout(function(){if(tok!==cjTok)return;val="";el(row).className="r on";paint();lock=false},700)}}});
  activate()}
 function conjEnd(){nokb();var tot=cjSeq.length*6;
  app.innerHTML='<h1>Bravo !</h1><div class="big">'+cjGood+' / '+tot+'</div><div class="cnt">du premier coup</div><button class="btn" id="re">Encore</button><button class="btn btn2" id="mn">Autre verbe</button>';
