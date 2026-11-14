@@ -214,7 +214,7 @@ body.nomoney .home-mon{display:none!important}
   <div class="mid">
     <h1 id="hello">Bonjour ! 👋</h1>
     <p class="sub">Choisis une matière</p>
-    <button class="tile fr" data-go="francais"><span class="ic">📚</span><span>Français<small>Complète la phrase</small></span></button>
+    <button class="tile fr" data-go="francais"><span class="ic">📚</span><span>Français<small>Complète la phrase, conjugaison</small></span></button>
     <button class="tile math" data-go="maths"><span class="ic">🧮</span><span>Mathématiques<small>Calcul, téléphone</small></span></button>
     <button class="tile de" data-go="allemand"><span class="ic">🇩🇪</span><span>Allemand<small>Der · Die · Das, mots en images</small></span></button>
     <button class="tile lo" data-go="logique"><span class="ic">🧩</span><span>Logique<small>Code secret, petit robot</small></span></button>
@@ -229,6 +229,7 @@ body.nomoney .home-mon{display:none!important}
   <div class="mid">
     <button class="game" data-play="phrase"><span class="ic">✏️</span><span>Complète la phrase<small>Écoute et écris le mot manquant</small></span></button>
     <button class="game" data-play="quique"><span class="ic">⌨️</span><span>Complète la phrase : qui ou que ?<small>Écoute et écris le mot manquant</small></span></button>
+    <button class="game" data-play="conj"><span class="ic">📝</span><span>Conjugue être et avoir<small>Complète le verbe pour chaque pronom</small></span></button>
   </div>
 </section>
 
@@ -443,6 +444,7 @@ body.nomoney .home-mon{display:none!important}
 var GAMES={
  quique:{t:"Qui ou que ?",app:"francais",start:3,subj:"francais",eco:"quique"},
  phrase:{t:"Complète la phrase",app:"francais",start:4,subj:"francais",eco:"phrase"},
+ conj:{t:"Conjugue être et avoir",app:"francais",start:5,subj:"francais",eco:"conj"},
  calcul:{t:"Calcul malin",app:"calcul",subj:"maths",eco:"calcul"},
  telephone:{t:"Le téléphone magique",app:"telephone",subj:"maths",eco:"telephone"},
  article:{t:"Der · Die · Das",app:"deutsch",start:1,subj:"allemand",eco:"dde"},
@@ -515,7 +517,7 @@ function money(v,p){p=p||prof();v=r2(v);return v.toLocaleString("fr-FR",v%1?{min
    Les jeux envoient {type:"answer", game, ok, diff, q} à chaque réponse.
    Points = P(jeu) × difficulté × palier de série (×1, ×2 dès 5, ×3 dès 10) × qualité ; 10 points = 1 ⭐.
    Barème : objectif (min/jour) × 7 jours ≈ autant d'étoiles = maximum €/semaine ; le surplus est reporté. */
-var ECON={P:{calcul:.7,telephone:.9,dde:.5,fdw:.5,quique:1.1,phrase:1.1,note:.5,code:7,robot:5,boucles:6,reparateur:4,chenille:.8,memory:.6,courses:2.5},PTS:10};
+var ECON={P:{calcul:.7,telephone:.9,dde:.5,fdw:.5,quique:1.1,phrase:1.1,note:.5,code:7,robot:5,boucles:6,reparateur:4,chenille:.8,memory:.6,courses:2.5,conj:.8},PTS:10};
 function tierOf(st){return st>=10?3:st>=5?2:1}
 function pad(n){return(n<10?"0":"")+n}
 function dkey(d){d=d||new Date();return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())}
@@ -578,7 +580,7 @@ function recordStat(m){if(!GAMES[cur])return;var p=prof(),G=stG(p.id,cur),D=stDa
   var ks=Object.keys(G.it);if(ks.length>400){ks.sort(function(a,b){return G.it[a][2]<G.it[b][2]?-1:1});ks.slice(0,ks.length-400).forEach(function(x){delete G.it[x]})}}
  stSave(p.id)}
 var RS={pid:null,per:7};
-var RDESC={quique:"phrases justes du premier coup",phrase:"mots bien écrits du premier coup",calcul:"opérations justes du premier coup",telephone:"nombres composés justes du premier coup",article:"articles justes du premier coup",mot:"mots trouvés du premier coup",code:"codes trouvés en 5 essais ou moins",robot:"programmes réussis (chaque essai raté compte)",boucles:"programmes réussis (chaque essai raté compte)",reparateur:"programmes réparés (chaque essai raté compte)",chenille:"perles trouvées du premier coup",memory:"paires trouvées sans erreur de mémoire (une erreur = la carte jumelle avait déjà été vue)",courses:"listes retenues en entier",note:"notes reconnues du premier coup"};
+var RDESC={quique:"phrases justes du premier coup",phrase:"mots bien écrits du premier coup",calcul:"opérations justes du premier coup",telephone:"nombres composés justes du premier coup",article:"articles justes du premier coup",mot:"mots trouvés du premier coup",code:"codes trouvés en 5 essais ou moins",robot:"programmes réussis (chaque essai raté compte)",boucles:"programmes réussis (chaque essai raté compte)",reparateur:"programmes réparés (chaque essai raté compte)",chenille:"perles trouvées du premier coup",conj:"verbes bien écrits du premier coup",memory:"paires trouvées sans erreur de mémoire (une erreur = la carte jumelle avait déjà été vue)",courses:"listes retenues en entier",note:"notes reconnues du premier coup"};
 function rKind(g,k){if(g==="calcul")return{add:"Additions",sub:"Soustractions",comp:"Compléments"}[k]||k;if(g==="telephone")return k+" à "+(+k+9);if(g==="mot")return"Leçon "+String(k).slice(1);return k}
 function rCls(o,t){if(!t)return"";var x=o/t;return x>=.9?"g":x>=.75?"g":x>=.6?"y":"r"}
 function rVerdict(o,t){if(t<10)return'<span class="rs-v n">Peu de réponses</span>';var x=o/t;

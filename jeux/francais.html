@@ -29,6 +29,17 @@ h1{margin:0;font-size:34px}
 .gap.ko{color:var(--bad);border-color:var(--bad)}
 .hint{color:var(--mut);font-size:19px;min-height:24px}
 body.withkb{justify-content:flex-start;padding-top:28px;padding-bottom:300px}
+/* conjugaison */
+.cj{width:100%;display:flex;flex-direction:column;gap:8px}
+.cj .r{display:flex;align-items:center;gap:12px;font-size:28px;font-weight:600;min-height:54px;padding:2px 12px;border-radius:16px;border:3px solid transparent}
+.cj .r.on{border-color:var(--syl);background:var(--card)}
+.cj .p{flex:0 0 40%;text-align:right;color:var(--mut)}
+.cj .v{flex:1;text-align:left;min-height:42px;border-bottom:4px solid var(--bd);color:var(--syl);font-weight:700;padding:0 4px}
+.cj .r.on .v{border-color:var(--syl)}
+.cj .r.ok .v{color:var(--ok);border-color:var(--ok)}
+.cj .r.ko .v{color:var(--bad);border-color:var(--bad)}
+.vt{font-size:26px;font-weight:700;margin:0}
+.vt b{color:var(--syl)}
 .back{position:fixed;top:10px;left:12px;min-height:52px;padding:0 16px;background:var(--card);border:3px solid var(--bd);border-radius:16px;font:700 18px "Fredoka",sans-serif;color:var(--fg);cursor:pointer}
 </style>
 <script src="jeux/clavier.js"></script>
@@ -52,7 +63,7 @@ function star(ok,q){var g=cur===4?"phrase":"quique";try{if(parent!==window)paren
 function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
 function bar(){return '<div class="cnt">'+(i+1)+' / '+deck.length+'</div><div class="bar"><i style="width:'+(i/deck.length*100)+'%"></i></div>'}
 var deck,i,good,missed,cur=3;
-function home(){nokb();if(window.START){parent.postMessage("hub-back","*");return}bk.style.display="none";app.innerHTML='<h1>Français</h1><div class="menu" style="width:100%"><button class="btn" id="m4">Complète la phrase</button><button class="btn" id="m3">Complète la phrase : qui ou que ?</button></div>';document.getElementById("m3").onclick=function(){startQ(3)};document.getElementById("m4").onclick=function(){startQ(4)}}
+function home(){nokb();if(window.START){parent.postMessage("hub-back","*");return}bk.style.display="none";app.innerHTML='<h1>Français</h1><div class="menu" style="width:100%"><button class="btn" id="m4">Complète la phrase</button><button class="btn" id="m3">Complète la phrase : qui ou que ?</button><button class="btn" id="m5">Conjugue être et avoir</button></div>';document.getElementById("m5").onclick=conjMenu;document.getElementById("m3").onclick=function(){startQ(3)};document.getElementById("m4").onclick=function(){startQ(4)}}
 // Complète la phrase : écrire qui / que au clavier, de mémoire
 // 3 = qui / que, 4 = mots simples
 function startQ(m){cur=m;bk.style.display="block";deck=shuffle(m===4?MOTS:QQ).slice(0,TOTAL);i=0;good=0;show3()}
@@ -77,6 +88,33 @@ function show3(){
   });
   say(q.full);
 }
+// Conjugaison : être et avoir au présent, tableau à compléter ligne par ligne
+var CONJ={etre:{n:"être",r:[["je","suis"],["tu","es"],["il, elle","est"],["nous","sommes"],["vous","êtes"],["ils, elles","sont"]]},
+ avoir:{n:"avoir",r:[["j'","ai"],["tu","as"],["il, elle","a"],["nous","avons"],["vous","avez"],["ils, elles","ont"]]}};
+var cjSeq,cjI,cjDone=0,cjGood=0,cjMix=false;
+function conjMenu(){nokb();cjDone=0;bk.style.display=window.START?"none":"block";
+ app.innerHTML='<h1>Conjugue au présent</h1><div class="menu" style="width:100%;display:flex;flex-direction:column;gap:14px"><button class="btn" data-v="etre">être</button><button class="btn" data-v="avoir">avoir</button><button class="btn btn2" data-v="mix">être et avoir</button></div>';
+ app.querySelectorAll("[data-v]").forEach(function(b){b.onclick=function(){var v=b.dataset.v;cjMix=v==="mix";cjSeq=cjMix?(Math.random()<.5?["etre","avoir"]:["avoir","etre"]):[v];cjI=0;cjGood=0;conjTable()}})}
+function cjAnswer(ok,verb,row){try{if(parent!==window)parent.postMessage({type:"answer",game:"conj",ok:ok,diff:cjMix?1.25:1,k:CONJ[verb].n,item:row[0].replace(", elles","").replace(", elle","")+(row[0]==="j'"?"":" ")+row[1]},"*")}catch(e){}}
+function conjTable(){var V=CONJ[cjSeq[cjI]],row=0,val="",lock=false,tries=0,missed=false;
+ app.innerHTML='<p class="vt">Le verbe <b>'+V.n+'</b></p><div class="cj">'+V.r.map(function(r,i){return '<div class="r" id="cr'+i+'"><span class="p">'+r[0]+'</span><span class="v" id="cv'+i+'"></span></div>'}).join("")+'</div><div class="hint" id="hint"></div>';
+ var hint=document.getElementById("hint");
+ function el(i){return document.getElementById("cr"+i)}
+ function paint(){document.getElementById("cv"+row).textContent=val;el(row).className="r on"}
+ function activate(){tries=0;missed=false;val="";el(row).className="r on";paint();if(row===0)window.scrollTo(0,0);else el(row).scrollIntoView({block:"nearest",behavior:"smooth"})}
+ kb({onKey:function(k){if(lock||val.length>=10)return;val+=k;hint.textContent="";paint()},
+  onDel:function(){if(lock)return;val=val.slice(0,-1);paint()},
+  onOk:function(){if(lock||!val)return;var r=V.r[row],full=r[0].split(",")[0]+(r[0]==="j'"?"":" ")+r[1];
+   if(val===r[1]){lock=true;if(!missed){cjGood++;cjAnswer(true,cjSeq[cjI],r)}el(row).className="r ok";cjDone++;hint.textContent="Bravo !";
+    say(full,function(){lock=false;row++;if(row<V.r.length){hint.textContent="";activate()}else{cjI++;cjI<cjSeq.length?conjTable():conjEnd()}})}
+   else{if(!missed)cjAnswer(false,cjSeq[cjI],r);missed=true;tries++;lock=true;el(row).className="r ko shake";hint.textContent="Essaie encore !";if(tries>=2)say(full);
+    setTimeout(function(){val="";el(row).className="r on";paint();lock=false},700)}}});
+ activate()}
+function conjEnd(){nokb();var tot=cjSeq.length*6;
+ app.innerHTML='<h1>Bravo !</h1><div class="big">'+cjGood+' / '+tot+'</div><div class="cnt">du premier coup</div><button class="btn" id="re">Encore</button><button class="btn btn2" id="mn">Autre verbe</button>';
+ say("Bravo ! "+cjGood+" sur "+tot);
+ document.getElementById("re").onclick=function(){cjI=0;cjGood=0;if(cjMix)cjSeq.reverse();conjTable()};
+ document.getElementById("mn").onclick=conjMenu}
 function end(){
   nokb();
   var n=Math.round(good/deck.length*10*2)/2,s=String(n).replace(".",",");
@@ -85,7 +123,9 @@ function end(){
   document.getElementById("mn").onclick=home;
   say("Bravo ! "+s+" sur dix");
 }
-window.START?startQ(window.START==4?4:3):home();
+// bouton retour du téléphone : depuis un tableau de conjugaison, revient au choix du verbe
+window.hubBack=function(){if(window.START==5&&!document.querySelector("[data-v]")){conjMenu();return true}return false};
+window.START==5?conjMenu():window.START?startQ(window.START==4?4:3):home();
 </script>
 </body>
 </html>
