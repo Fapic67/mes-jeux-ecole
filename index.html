@@ -860,7 +860,7 @@ function confetti(box){var C=["#ff5c7a","#ffd447","#4a7cff","#22a861","#9b6bff",
 function renderShopbar(){var p=prof();if(p.rmode!=="shop")return;ensureShop(p);$("sb-n").textContent=p.stars;
  var its=shopItems().filter(function(it){return itState(p,it)!=="own"}),can=its.filter(function(it){return it.price<=p.stars}).length,
   nx=its.filter(function(it){return it.price>p.stars}).sort(function(a,b){return a.price-b.price})[0];
- $("sb-h").textContent=can?"Tu peux acheter "+can+" chose"+(can>1?"s":"")+" !":nx?"Encore "+(nx.price-p.stars)+" ⭐ pour "+nx.ic+" "+nx.t:"Gagne des étoiles !";
+ $("sb-h").textContent=nx?"Encore "+(nx.price-p.stars)+" ⭐ pour "+nx.ic+" "+nx.t:"";
  $("shopbar").classList.toggle("can",can>0)}
 function openShop(){var p=prof();ensureShop(p);$("sh-n").textContent="⭐ "+p.stars;
  $("sh-grid").innerHTML=shopItems().map(function(it){var st=itState(p,it);
