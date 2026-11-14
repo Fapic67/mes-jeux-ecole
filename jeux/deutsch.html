@@ -33,9 +33,17 @@ body{background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,"S
 .big{font-size:72px;font-weight:800}
 h1{margin:0;font-size:34px}
 .ear{background:var(--card);border:3px solid var(--bd);border-radius:50%;width:68px;height:68px;font-size:32px;cursor:pointer;color:var(--fg)}
+/* Schreib das Wort */
+body.withkb{justify-content:flex-start;padding-top:24px;padding-bottom:300px}
+body.withkb .pic{min-height:0;font-size:90px}body.withkb .pic svg{width:120px;height:120px}
+.typed{font-size:clamp(30px,9vw,42px);font-weight:700;min-height:56px;min-width:70%;border-bottom:4px solid var(--der);padding:0 6px;color:var(--der);white-space:pre}
+.typed.ok{color:var(--das);border-color:var(--das)}.typed.ko{color:var(--bad);border-color:var(--bad)}
+.hint{color:var(--mut);font-size:19px;min-height:24px;font-weight:600}
+.copy{font-size:22px;color:var(--mut)}.copy b{color:var(--fg)}
 .back{position:fixed;top:10px;left:12px;min-height:52px;padding:0 16px;background:var(--card);border:3px solid var(--bd);border-radius:16px;font-size:18px;font-weight:700;color:var(--fg);cursor:pointer}
 </style>
 <script src="jeux/allemand-mots.js"></script>
+<script src="jeux/clavier.js"></script>
 </head>
 <body>
 <div id="app"></div>
@@ -52,11 +60,11 @@ function pickVoice(){var v=(window.speechSynthesis&&speechSynthesis.getVoices())
 if(window.speechSynthesis){pickVoice();speechSynthesis.onvoiceschanged=pickVoice}
 function say(t){try{if(!window.speechSynthesis){msg.textContent="Synthèse vocale indisponible : ouvre le lien dans le navigateur du téléphone";return}pickVoice();speechSynthesis.cancel();setTimeout(function(){var u=new SpeechSynthesisUtterance(t);u.lang="de-DE";if(voice)u.voice=voice;u.rate=.9;u.onerror=function(e){msg.textContent="Erreur voix : "+e.error};speechSynthesis.resume();speechSynthesis.speak(u)},60)}catch(e){msg.textContent="Erreur voix : "+e}}
 // Étoiles : bonne réponse du premier coup = série ; un peu plus de difficulté si beaucoup de leçons sont cochées
-function star(ok,w){var g=mode===2?"fdw":"dde",d=deSelected(g,window.PROFILE).length>8?1.25:1;try{if(parent!==window)parent.postMessage({type:"answer",game:g,ok:ok!==false,diff:d,k:w?(mode===2?"L"+w.n:w.a):null,item:w?(w.a?w.a+" ":"")+w.w:null},"*")}catch(e){}}
+function star(ok,w){var g=mode===3?"sdw":mode===2?"fdw":"dde",d=deSelected(g,window.PROFILE).length>8?1.25:1;try{if(parent!==window)parent.postMessage({type:"answer",game:g,ok:ok!==false,diff:d,k:w?(mode>=2?"L"+w.n:w.a):null,item:w?(w.a?w.a+" ":"")+w.w:null},"*")}catch(e){}}
 function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
 function bar(){return '<div class="cnt">'+(i+1)+' / '+deck.length+'</div><div class="bar"><i style="width:'+(i/deck.length*100)+'%"></i></div>'}
 var deck,i,good,missed,mode=0;
-function home(){if(window.START){parent.postMessage("hub-back","*");return}mode=0;bk.style.display="none";app.innerHTML='<h1>Deutsch</h1><div class="pills col menu"><button class="btn" id="m1">Der · Die · Das</button><button class="btn" id="m2">Finde das Wort</button></div>';document.getElementById("m1").onclick=start;document.getElementById("m2").onclick=start2}
+function home(){nokb();if(window.START){parent.postMessage("hub-back","*");return}mode=0;bk.style.display="none";app.innerHTML='<h1>Deutsch</h1><div class="pills col menu"><button class="btn" id="m1">Der · Die · Das</button><button class="btn" id="m2">Finde das Wort</button></div>';document.getElementById("m1").onclick=start;document.getElementById("m2").onclick=start2}
 // Exercice 1 : article
 // Leçons cochées dans les Paramètres (par profil)
 function pool(game,f){var sel=deSelected(game,window.PROFILE);return ALL.filter(function(x){return sel.indexOf(x.n)>=0&&f(x)})}
@@ -85,14 +93,40 @@ function show2(){
     if(p.dataset.w===w.w){if(!missed){good++;star(true,w)}app.querySelectorAll(".pill").forEach(function(x){x.disabled=true});p.classList.add("ok");say((w.a?w.a+" ":"")+w.w);setTimeout(function(){i++;i<deck.length?show2():end()},1500)}
     else{if(!missed)star(false,w);missed=true;p.classList.add("no","shake");p.disabled=true}}});
 }
-function end(){
+// Exercice 3 : écrire le mot (avec l'article pour les noms) au clavier
+var KB=null;
+function kb(o){if(KB)KB.destroy();KB=Clavier(o);document.body.classList.add("withkb")}
+function nokb(){if(KB){KB.destroy();KB=null}document.body.classList.remove("withkb")}
+function norm(t){return t.trim().replace(/\s+/g," ").toLowerCase()}
+// affichage : majuscule au nom après l'article (en allemand, les noms prennent une majuscule)
+function pretty(t,w){if(!w.a)return t;var m=t.match(/^(\s*\S+\s+)(\S)(.*)$/);return m?m[1]+m[2].toUpperCase()+m[3]:t}
+function start3(){mode=3;bk.style.display="block";var P=pool("sdw",function(x){return x.e});if(P.length<3){tooFew();return}deck=shuffle(P).slice(0,10);i=0;good=0;show3()}
+function show3(){
+  var w=deck[i],full=(w.a?w.a+" ":"")+w.w,val="",tries=0,lock=false;missed=false;
+  app.innerHTML=bar()+'<div class="pic">'+w.e+'</div><div class="typed" id="ty"> </div><div class="hint" id="hint">'+(w.a?"Écris le mot avec son article (der, die, das)":"Écris le mot")+'</div><div class="copy" id="copy"></div>';
+  var ty=document.getElementById("ty"),hint=document.getElementById("hint");
+  function paint(){ty.className="typed";ty.textContent=val?pretty(val,w):" "}
+  kb({acc:"äöüß",space:true,
+    onKey:function(k){if(lock||val.length>=24||(k===" "&&(!val||val.slice(-1)===" ")))return;val+=k;paint()},
+    onDel:function(){if(lock)return;val=val.slice(0,-1);paint()},
+    onOk:function(){if(lock||!val.trim())return;var v=norm(val),t=norm(full);
+      if(v===t){lock=true;KB.enable(false);if(!missed){good++;star(true,w)}ty.className="typed ok";ty.textContent=full;hint.textContent="Super!";document.getElementById("copy").textContent="";
+        say(full);setTimeout(function(){i++;i<deck.length?show3():end()},1800);return}
+      if(!missed)star(false,w);missed=true;tries++;lock=true;ty.className="typed ko shake";
+      var p=v.split(" "),noun=norm(w.w);
+      hint.textContent=w.a&&p.length===1&&p[0]===noun?"Le mot est juste : n'oublie pas l'article !":w.a&&p.length>1&&p.slice(1).join(" ")===noun?"Le mot est juste, mais pas l'article !":w.a&&p[0]===w.a?"Bon article ! Vérifie le mot.":"Essaie encore !";
+      if(tries>=2)say(full);
+      if(tries>=3)document.getElementById("copy").innerHTML="Recopie : <b>"+full+"</b>";
+      setTimeout(function(){lock=false;val="";paint()},900)}});
+}
+function end(){nokb();
   var n=Math.round(good/deck.length*10*2)/2,s=String(n).replace(".",",");
   app.innerHTML='<h1>Fertig!</h1><div class="big">'+s+' / 10</div><div class="cnt">'+good+' / '+deck.length+'</div><button class="btn" id="re">Nochmal</button><button class="btn btn2" id="mn">Menü</button>';
-  document.getElementById("re").onclick=function(){mode==2?start2():start()};
+  document.getElementById("re").onclick=function(){mode==3?start3():mode==2?start2():start()};
   document.getElementById("mn").onclick=home;
   say("Fertig! "+s+" von zehn");
 }
-window.START==2?start2():window.START==1?start():home();
+window.START==3?start3():window.START==2?start2():window.START==1?start():home();
 </script>
 </body>
 </html>

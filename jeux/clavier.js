@@ -1,5 +1,6 @@
 // Clavier virtuel simplifié pour enfants (AZERTY, minuscules, accents).
 // Usage : Clavier({onKey:function(lettre){}, onDel:function(){}, onOk:function(){}})
+// Options : acc = touches accentuées (défaut "éèêàç"), space = true pour une barre d'espace (ex. allemand : acc "äöüß").
 // Renvoie {el, show(), hide()}. Le clavier physique fonctionne aussi.
 (function () {
   var CSS =
@@ -10,6 +11,7 @@
     ".kb button.down{transform:translateY(3px);box-shadow:0 0 0 #b9c2cc;background:#dfe6ee}" +
     ".kb .acc{background:#f3ecff}" +
     ".kb .del{grid-column:span 4;background:#cfd6de;font-size:22px}" +
+    ".kb .sp{grid-column:span 3;font-size:16px;color:#5b6670}.kb .ok.s3{grid-column:span 3}" +
     ".kb .ok{grid-column:span 5;background:#22a861;color:#fff;box-shadow:0 3px 0 #17804a;font-size:24px}" +
     ".kb .ok.down{background:#1c9455}" +
     "@media (prefers-color-scheme:dark){.kb{--kb-bg:#1b2420}.kb button{background:#2c3a33;color:#eef6f1;box-shadow:0 3px 0 #111}.kb .acc{background:#3a3150}.kb .del{background:#46524c}}";
@@ -27,12 +29,13 @@
   }
   window.Clavier = function (opt) {
     if (!document.getElementById("kb-css")) { var st = document.createElement("style"); st.id = "kb-css"; st.textContent = CSS; document.head.appendChild(st); }
-    var el = document.createElement("div"), h = "";
+    var el = document.createElement("div"), h = "", acc = opt.acc || ACC, letters = ROWS.join("") + acc + (opt.space ? " " : "");
     el.className = "kb";
     ROWS.forEach(function (r) { for (var i = 0; i < r.length; i++) h += '<button type="button" data-k="' + r[i] + '">' + r[i] + "</button>"; });
     h += '<button type="button" class="del" data-a="del" aria-label="Effacer">⌫</button>';
-    for (var i = 0; i < ACC.length; i++) h += '<button type="button" class="acc" data-k="' + ACC[i] + '">' + ACC[i] + "</button>";
-    h += '<button type="button" class="ok" data-a="ok" aria-label="Valider">✓</button>';
+    for (var i = 0; i < acc.length; i++) h += '<button type="button" class="acc" data-k="' + acc[i] + '">' + acc[i] + "</button>";
+    if (opt.space) h += '<button type="button" class="sp" data-k=" " aria-label="Espace">espace</button>';
+    h += '<button type="button" class="ok' + (opt.space ? " s3" : "") + '" data-a="ok" aria-label="Valider">✓</button>';
     el.innerHTML = h;
     var enabled = true;
     function fire(k, a) {
@@ -54,7 +57,7 @@
       var k = e.key;
       if (k === "Backspace") { e.preventDefault(); fire(null, "del"); }
       else if (k === "Enter") { e.preventDefault(); fire(null, "ok"); }
-      else if (k && k.length === 1 && LETTERS.indexOf(k.toLowerCase()) >= 0) { e.preventDefault(); fire(k.toLowerCase()); }
+      else if (k && k.length === 1 && letters.indexOf(k.toLowerCase()) >= 0) { e.preventDefault(); fire(k.toLowerCase()); }
     }
     document.addEventListener("keydown", onKeydown);
     document.body.appendChild(el);

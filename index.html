@@ -216,7 +216,7 @@ body.nomoney .home-mon{display:none!important}
     <p class="sub">Choisis une matière</p>
     <button class="tile fr" data-go="francais"><span class="ic">📚</span><span>Français<small>Complète la phrase, conjugaison</small></span></button>
     <button class="tile math" data-go="maths"><span class="ic">🧮</span><span>Mathématiques<small>Calcul, téléphone, dis le nombre</small></span></button>
-    <button class="tile de" data-go="allemand"><span class="ic">🇩🇪</span><span>Allemand<small>Der · Die · Das, mots en images</small></span></button>
+    <button class="tile de" data-go="allemand"><span class="ic">🇩🇪</span><span>Allemand<small>Der · Die · Das, mots en images, écrire</small></span></button>
     <button class="tile lo" data-go="logique"><span class="ic">🧩</span><span>Logique<small>Code secret, petit robot</small></span></button>
     <button class="tile me" data-go="memoire"><span class="ic">🧠</span><span>Mémoire<small>Memory, liste des courses</small></span></button>
     <button class="tile mu" data-go="musique"><span class="ic">🎵</span><span>Musique<small>Trouve la note</small></span></button>
@@ -247,6 +247,7 @@ body.nomoney .home-mon{display:none!important}
   <div class="mid">
     <button class="game" data-play="article"><span class="ic">🔤</span><span>Der · Die · Das<small>Trouve le bon article</small></span></button>
     <button class="game" data-play="mot"><span class="ic">🖼️</span><span>Finde das Wort<small>Une image, trois mots</small></span></button>
+    <button class="game" data-play="schreib"><span class="ic">✍️</span><span>Schreib das Wort<small>Regarde l'image et écris le mot</small></span></button>
   </div>
 </section>
 
@@ -364,6 +365,7 @@ body.nomoney .home-mon{display:none!important}
   <div class="pg" id="pg-jeux" hidden>
     <button class="menuitem" data-lecons="dde"><span class="ic">🔤</span><span>Der · Die · Das<small id="j-dde"></small></span></button>
     <button class="menuitem" data-lecons="fdw"><span class="ic">🖼️</span><span>Finde das Wort<small id="j-fdw"></small></span></button>
+    <button class="menuitem" data-lecons="sdw"><span class="ic">✍️</span><span>Schreib das Wort<small id="j-sdw"></small></span></button>
     <button class="menuitem" data-lecons="mem"><span class="ic">🃏</span><span>Memory (image ↔ mot)<small id="j-mem"></small></span></button>
     <button class="menuitem" data-lecons="courses"><span class="ic">🧺</span><span>Die Einkaufsliste<small id="j-courses"></small></span></button>
   </div>
@@ -465,6 +467,7 @@ var GAMES={
  memory:{t:"Memory",app:"memory",subj:"memoire",eco:"memory"},
  courses:{t:"Die Einkaufsliste",app:"courses",subj:"memoire",eco:"courses"},
  morpion:{t:"Morpion",app:"morpion",subj:"jeux"},
+ schreib:{t:"Schreib das Wort",app:"deutsch",start:3,subj:"allemand",eco:"sdw"},
  mot:{t:"Finde das Wort",app:"deutsch",start:2,subj:"allemand",eco:"fdw"}
 };
 var $=function(i){return document.getElementById(i)};
@@ -541,7 +544,7 @@ function money(v,p){p=p||prof();v=r2(v);return v.toLocaleString("fr-FR",v%1?{min
    Les jeux envoient {type:"answer", game, ok, diff, q} à chaque réponse.
    Points = P(jeu) × difficulté × palier de série (×1, ×2 dès 5, ×3 dès 10) × qualité ; 10 points = 1 ⭐.
    Barème : objectif (min/jour) × 7 jours ≈ autant d'étoiles = maximum €/semaine ; le surplus est reporté. */
-var ECON={P:{calcul:.7,telephone:.9,dde:.5,fdw:.5,quique:1.1,phrase:1.1,note:.5,code:7,robot:5,boucles:6,reparateur:4,chenille:.8,memory:.6,courses:2.5,conj:.8,nombre:.6},PTS:10};
+var ECON={P:{calcul:.7,telephone:.9,dde:.5,fdw:.5,quique:1.1,phrase:1.1,note:.5,code:7,robot:5,boucles:6,reparateur:4,chenille:.8,memory:.6,courses:2.5,conj:.8,nombre:.6,sdw:1.1},PTS:10};
 function tierOf(st){return st>=10?3:st>=5?2:1}
 function pad(n){return(n<10?"0":"")+n}
 function dkey(d){d=d||new Date();return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())}
@@ -604,7 +607,7 @@ function recordStat(m){if(!GAMES[cur])return;var p=prof(),G=stG(p.id,cur),D=stDa
   var ks=Object.keys(G.it);if(ks.length>400){ks.sort(function(a,b){return G.it[a][2]<G.it[b][2]?-1:1});ks.slice(0,ks.length-400).forEach(function(x){delete G.it[x]})}}
  stSave(p.id)}
 var RS={pid:null,per:7};
-var RDESC={quique:"phrases justes du premier coup",phrase:"mots bien écrits du premier coup",calcul:"opérations justes du premier coup",telephone:"nombres composés justes du premier coup",article:"articles justes du premier coup",mot:"mots trouvés du premier coup",code:"codes trouvés en 5 essais ou moins",robot:"programmes réussis (chaque essai raté compte)",boucles:"programmes réussis (chaque essai raté compte)",reparateur:"programmes réparés (chaque essai raté compte)",chenille:"perles trouvées du premier coup",conj:"verbes bien écrits du premier coup",nombre:"nombres bien dits du premier coup (un nombre mal compris par le micro ne compte pas)",memory:"paires trouvées sans erreur de mémoire (une erreur = la carte jumelle avait déjà été vue)",courses:"listes retenues en entier",note:"notes reconnues du premier coup"};
+var RDESC={quique:"phrases justes du premier coup",phrase:"mots bien écrits du premier coup",calcul:"opérations justes du premier coup",telephone:"nombres composés justes du premier coup",article:"articles justes du premier coup",mot:"mots trouvés du premier coup",code:"codes trouvés en 5 essais ou moins",robot:"programmes réussis (chaque essai raté compte)",boucles:"programmes réussis (chaque essai raté compte)",reparateur:"programmes réparés (chaque essai raté compte)",chenille:"perles trouvées du premier coup",conj:"verbes bien écrits du premier coup",schreib:"mots bien écrits du premier coup (avec l'article)",nombre:"nombres bien dits du premier coup (un nombre mal compris par le micro ne compte pas)",memory:"paires trouvées sans erreur de mémoire (une erreur = la carte jumelle avait déjà été vue)",courses:"listes retenues en entier",note:"notes reconnues du premier coup"};
 function rKind(g,k){if(g==="calcul")return{add:"Additions",sub:"Soustractions",comp:"Compléments"}[k]||k;if(g==="telephone")return k+" à "+(+k+9);if(g==="mot")return"Leçon "+String(k).slice(1);return k}
 function rCls(o,t){if(!t)return"";var x=o/t;return x>=.9?"g":x>=.75?"g":x>=.6?"y":"r"}
 function rVerdict(o,t){if(t<10)return'<span class="rs-v n">Peu de réponses</span>';var x=o/t;
@@ -796,7 +799,7 @@ $("p-cls").onchange=function(){var v=this.value;upd(function(p){p.cls=v})};
 $("p-name").oninput=function(){var v=this.value.trim().slice(0,20);upd(function(p){p.name=v})};
 $("p-use").onclick=function(){PR.active=EDIT;saveP();renderProfil()};
 $("p-del").onclick=function(){var p=E();if(PR.list.length<2)return;if(!confirm("Supprimer le profil « "+pname(p)+" » et ses étoiles ?"))return;
- PR.list=PR.list.filter(function(x){return x.id!==p.id});if(PR.active===p.id)PR.active=PR.list[0].id;["robot_lvl","robot_best","stats","chenille_lvl","chenille_best","boucles_lvl","boucles_best","reparateur_lvl","reparateur_best","memory_lvl","memory_best","memory_mode","courses_lvl","courses_best","de_sel_mem","de_sel_courses"].forEach(function(k){try{localStorage.removeItem(k+"@"+p.id)}catch(e){}});delete STC[p.id];saveP();back()};
+ PR.list=PR.list.filter(function(x){return x.id!==p.id});if(PR.active===p.id)PR.active=PR.list[0].id;["robot_lvl","robot_best","stats","chenille_lvl","chenille_best","boucles_lvl","boucles_best","reparateur_lvl","reparateur_best","memory_lvl","memory_best","memory_mode","courses_lvl","courses_best","de_sel_mem","de_sel_courses","de_sel_sdw"].forEach(function(k){try{localStorage.removeItem(k+"@"+p.id)}catch(e){}});delete STC[p.id];saveP();back()};
 $("p-money").onchange=function(){var v=this.checked;upd(function(p){p.reward=v})};
 $("p-unit").oninput=function(){var v=this.value.trim();if(v)upd(function(p){p.unit=v})};
 $("p-unit").onblur=function(){if(!this.value.trim())this.value=E().unit};
@@ -819,14 +822,14 @@ function renderProgress(){var h="";PR.list.forEach(function(p){h+='<div class="c
 $("proglist").addEventListener("click",function(e){var b=e.target.closest("[data-reset]");if(!b)return;var g=PROGRESS[+b.dataset.reset],p=prof(b.dataset.pid);
  if(!confirm(g.n+" : recommencer au début pour "+pname(p)+" ?"))return;g.keys.forEach(function(k){try{localStorage.removeItem(k+"@"+p.id)}catch(e){}});renderProgress()});
 /* réglages des jeux : leçons du manuel d'allemand cochées par jeu et par profil */
-var LGAME=null,LPID=null,LNAME={dde:"Der · Die · Das",fdw:"Finde das Wort",mem:"Memory",courses:"Die Einkaufsliste"},LICON={dde:"🔤 ",fdw:"🖼️ ",mem:"🃏 ",courses:"🧺 "};
+var LGAME=null,LPID=null,LNAME={dde:"Der · Die · Das",fdw:"Finde das Wort",mem:"Memory",courses:"Die Einkaufsliste",sdw:"Schreib das Wort"},LICON={sdw:"✍️ ",dde:"🔤 ",fdw:"🖼️ ",mem:"🃏 ",courses:"🧺 "};
 function lfilt(g,w){return g==="dde"?!!w.a:g==="mem"?!!w.e:g==="courses"?!!(w.a&&w.e&&DE_BUY.indexOf(w.w)>=0):true}
 function selInfo(g,pid){var sel=deSelected(g,pid);var n=DE_WORDS.filter(function(w){return sel.indexOf(w.n)>=0&&lfilt(g,w)}).length;return sel.length+" leçon"+(sel.length>1?"s":"")+" · "+n+" mots"}
-function renderJeux(){$("j-dde").textContent="Leçons pour "+pname(prof())+" : "+selInfo("dde",PR.active);$("j-fdw").textContent="Leçons pour "+pname(prof())+" : "+selInfo("fdw",PR.active);$("j-mem").textContent="Leçons pour "+pname(prof())+" : "+selInfo("mem",PR.active);$("j-courses").textContent="Leçons pour "+pname(prof())+" : "+selInfo("courses",PR.active)}
+function renderJeux(){$("j-dde").textContent="Leçons pour "+pname(prof())+" : "+selInfo("dde",PR.active);$("j-fdw").textContent="Leçons pour "+pname(prof())+" : "+selInfo("fdw",PR.active);$("j-sdw").textContent="Leçons pour "+pname(prof())+" : "+selInfo("sdw",PR.active);$("j-mem").textContent="Leçons pour "+pname(prof())+" : "+selInfo("mem",PR.active);$("j-courses").textContent="Leçons pour "+pname(prof())+" : "+selInfo("courses",PR.active)}
 $("pg-jeux").addEventListener("click",function(e){var b=e.target.closest("[data-lecons]");if(!b)return;LGAME=b.dataset.lecons;LPID=PR.active;PTITLE.lecons=LICON[LGAME]+LNAME[LGAME];openPage("lecons")});
 function wordsOf(n){return DE_WORDS.filter(function(w){return w.n===n&&lfilt(LGAME,w)})}
 function renderLecons(){var sel=deSelected(LGAME,LPID),h="",lastP=0;
- $("lc-intro").textContent="Coche les leçons déjà vues en classe (manuel « Die Rappelkiste »). "+({dde:"Seuls les noms (avec der, die, das) sont utilisés.",fdw:"Les mots sans image ne sont pas proposés.",mem:"Seuls les mots avec une image sont utilisés ; s'il en manque, d'autres mots des leçons 1 à 14 complètent.",courses:"Seuls les objets qu'on peut acheter sont utilisés ; s'il en manque, d'autres objets complètent."})[LGAME];
+ $("lc-intro").textContent="Coche les leçons déjà vues en classe (manuel « Die Rappelkiste »). "+({dde:"Seuls les noms (avec der, die, das) sont utilisés.",fdw:"Les mots sans image ne sont pas proposés.",sdw:"Les mots sans image ne sont pas proposés. Les noms s'écrivent avec leur article.",mem:"Seuls les mots avec une image sont utilisés ; s'il en manque, d'autres mots des leçons 1 à 14 complètent.",courses:"Seuls les objets qu'on peut acheter sont utilisés ; s'il en manque, d'autres objets complètent."})[LGAME];
  $("lc-who").innerHTML=PR.list.length<2?"":PR.list.map(function(p){return '<button data-pid="'+p.id+'" class="'+(p.id===LPID?"on":"")+'">👤 '+esc(pname(p))+"</button>"}).join("");
  DE_MODULES.forEach(function(m){
   if(m.p!==lastP){lastP=m.p;h+='<div class="per">Période '+m.p+"</div>"}
