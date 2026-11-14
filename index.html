@@ -385,7 +385,7 @@ body.rw-gifts #purse{display:none!important}
         <span class="pg" style="gap:8px;flex:1"><label class="btn" style="text-align:center;cursor:pointer">📷 Choisir une photo<input type="file" id="p-photo" accept="image/*" hidden></label>
         <button class="btn danger" id="p-phdel">Retirer la photo</button></span></div>
       <label class="row"><span>Prénom</span><input class="field grow" id="p-name" maxlength="20" autocomplete="off"></label>
-      <label class="switch"><input type="checkbox" id="p-admin"><span class="grow">👑 Administrateur<small class="muted" style="display:block;font-size:16px">Tous les jeux disponibles, sans limite de temps, paramètres sans code. Le code parent est demandé pour ouvrir ce profil.</small></span></label>
+      <label class="switch"><input type="checkbox" id="p-admin"><span class="grow">👑 Administrateur<small class="muted" style="display:block;font-size:16px">Tous les jeux sont débloqués d'office, sans limite de temps, et les paramètres s'ouvrent sans code. Le code parent est demandé pour ouvrir ce profil.</small></span></label>
       <div class="row"><button class="btn okb grow" id="p-use">Utiliser ce profil</button><span class="muted grow" id="p-active">✅ Profil utilisé en ce moment</span><button class="btn danger" id="p-del">Supprimer</button></div>
     </div>
     <div class="card">
@@ -1051,6 +1051,8 @@ $("plist").addEventListener("click",function(e){var b=e.target.closest("[data-ed
 $("padd").onclick=function(){var id="p"+Date.now().toString(36);PR.list.push({id:id,name:"",reward:true,unit:"€",per:10,gain:1,stars:0,money:0});saveP();EDIT=id;openPage("profil");setTimeout(function(){$("p-name").focus()},100)};
 function renderProfil(){var p=prof(EDIT);if(p.id!==EDIT)EDIT=p.id;
  $("p-admin").checked=!!p.admin;
+ // administrateur : tous les jeux sont ouverts et sans limite → on masque les réglages inutiles
+ ["p-prz","dl-on","pl-on"].forEach(function(id){$(id).closest(".card").hidden=!!p.admin});
  var ix=PR.list.indexOf(p);$("p-av").setAttribute("style",avStyle(p,ix));$("p-av").className="av"+(p.photo?" ph":"");$("p-av").textContent=p.photo?"":pname(p).charAt(0).toUpperCase();$("p-phdel").hidden=!p.photo;
  if(document.activeElement!==$("p-name"))$("p-name").value=p.name;$("p-name").placeholder="Prénom de l'enfant";
  var act=p.id===PR.active;$("p-use").hidden=act;$("p-active").hidden=!act;$("p-del").hidden=PR.list.length<2;
