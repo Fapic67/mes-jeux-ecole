@@ -119,7 +119,7 @@ $("board").addEventListener("click",function(e){var b=e.target.closest(".cd");if
   seen[a.i]=seen[d.i]=1;
   setTimeout(function(){[a,d].forEach(function(x){var q=el(x.i);q.classList.remove("up")});open=[];lock=false;stat()},1200)}
  seen[c.i]=1;stat()});
-function win(){finish();
+function win(){finish();try{if(parent!==window)parent.postMessage({type:"roundEnd"},"*")}catch(e){}
  $("msg").textContent="🎉 Bravo ! Toutes les paires sont trouvées ("+moves+" coups).";say("Bravo !");
  [523,659,784,1047].forEach(function(f,k){tone(f,k*.1,.25,.22)});
  if(level<MAXL){var best=Math.max(parseInt(ls("memory_best"+PK))||1,level+1);ls("memory_best"+PK,best)}

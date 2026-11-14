@@ -134,7 +134,7 @@ function show3(){
       if(tries>=3)document.getElementById("copy").innerHTML="Recopie : <b>"+full+"</b>";
       setTimeout(function(){lock=false;val="";paint()},900)}});
 }
-function end(){nokb();
+function end(){nokb();try{if(parent!==window)parent.postMessage({type:"roundEnd"},"*")}catch(e){}
   var n=Math.round(good/deck.length*10*2)/2,s=String(n).replace(".",",");
   app.innerHTML='<h1>Fertig!</h1><div class="big">'+s+' / 10</div><div class="cnt">'+good+' / '+deck.length+'</div><button class="btn" id="re">Nochmal</button><button class="btn btn2" id="mn">Menü</button>';
   document.getElementById("re").onclick=function(){mode==3?start3():mode==2?start2():start()};

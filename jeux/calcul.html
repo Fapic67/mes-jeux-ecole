@@ -163,7 +163,7 @@ function diff(){return (S.max<=10?1:S.max<=20?1.25:S.max<=50?1.5:2)+(S.type==="m
 function answer(ok,d){try{if(parent!==window)parent.postMessage({type:"answer",game:"calcul",ok:ok,diff:d,k:cur.t,item:cur.t==="add"?cur.a+" + "+cur.b:cur.t==="sub"?cur.a+" − "+cur.b:cur.a+" + ? = "+cur.r},"*")}catch(e){}}
 function check(){
 if(ans==="")return;locked=true;var g=$("go");
-if(+ans===cur.ans){g.className="k go ok";win();score++;if(!cur.err)answer(true,diff());renderScore();if(score>=nextRun){runner();nextRun=score+rnd(6,8)};var nx=gen();say(textOp(true),function(){show(nx)});say(textOp(false,nx),null,nx,true)}
+if(+ans===cur.ans){try{if(parent!==window)parent.postMessage({type:"roundEnd"},"*")}catch(e){}g.className="k go ok";win();score++;if(!cur.err)answer(true,diff());renderScore();if(score>=nextRun){runner();nextRun=score+rnd(6,8)};var nx=gen();say(textOp(true),function(){show(nx)});say(textOp(false,nx),null,nx,true)}
 else{g.className="k go ko";g.innerHTML=CROSS;lose();if(!cur.err){cur.err=1;answer(false,diff())}setTimeout(function(){ans="";paint();resetGo();locked=false},1000)}}
 
 function settings(){

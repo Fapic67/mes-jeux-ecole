@@ -111,7 +111,7 @@ var n=-1,recent=[],missed=false,fails=0,busy=false,count=0,sel=null,lis=false,si
 function next(){var x,t=0;do{x=rnd(max+1)}while((recent.indexOf(x)>=0||(max>20&&x<10&&Math.random()<.7))&&++t<50);
  n=x;recent.push(x);if(recent.length>Math.min(8,max-2))recent.shift();missed=false;fails=0;busy=false;sel=null;
  $("num").textContent=n;$("num").className="";$("msg").innerHTML="";$("help").hidden=true;$("mic").hidden=false;$("mic").disabled=false;silent=0;setTimeout(listen,350)}
-function good(){busy=true;$("num").className="ok";$("mic").disabled=true;$("mic").className="";$("help").hidden=true;if(!missed)answer(true);count++;
+function good(){try{if(parent!==window)parent.postMessage({type:"roundEnd"},"*")}catch(e){}busy=true;$("num").className="ok";$("mic").disabled=true;$("mic").className="";$("help").hidden=true;if(!missed)answer(true);count++;
  [660,880].forEach(function(f,k){tone(f,k*.1,.18,.2)});$("msg").innerHTML=["Bravo !","Super !","Génial !","Oui !"][rnd(4)];
  say(n,function(){setTimeout(next,300)})}
 function wrong(heard){tone(200,0,.3,.2);var e=$("num");e.className="";void e.offsetWidth;e.className="ko";

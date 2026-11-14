@@ -213,7 +213,7 @@ body.nomoney .home-mon{display:none!important}
 
   <div class="mid">
     <h1 id="hello">Bonjour ! 👋</h1>
-    <p class="sub">Choisis une matière</p>
+    <p class="sub">Choisis une matière<span id="daytxt"></span></p>
     <button class="tile fr" data-go="francais"><span class="ic">📚</span><span>Français<small>Complète la phrase, conjugaison</small></span></button>
     <button class="tile math" data-go="maths"><span class="ic">🧮</span><span>Mathématiques<small>Calcul, téléphone, dis le nombre</small></span></button>
     <button class="tile de" data-go="allemand"><span class="ic">🇩🇪</span><span>Allemand<small>Der · Die · Das, mots en images, écrire</small></span></button>
@@ -330,6 +330,15 @@ body.nomoney .home-mon{display:none!important}
       </div>
     </div>
     <div class="card">
+      <h3>🌙 Temps par jour</h3>
+      <label class="switch"><input type="checkbox" id="dl-on"><span class="grow">Limiter le temps passé dans l'appli chaque jour</span></label>
+      <div class="pg" id="dl-opts" style="gap:10px">
+        <div class="muted">Maximum par jour :</div>
+        <div class="ratios" id="dl-min"></div>
+        <div class="muted" id="dl-txt"></div>
+      </div>
+    </div>
+    <div class="card">
       <h3>⏳ Temps de jeu</h3>
       <label class="switch"><input type="checkbox" id="pl-on"><span class="grow">Limiter les jeux par rapport à l'apprentissage</span></label>
       <div class="pg" id="pl-opts" style="gap:10px">
@@ -439,6 +448,14 @@ body.nomoney .home-mon{display:none!important}
   <div class="big">⏰</div><h2 style="justify-content:center">C'est l'heure d'apprendre !</h2>
   <div class="muted" id="tu-txt" style="font-size:19px"></div>
   <button class="btn okb" id="tu-ok" style="width:100%">Retour au menu</button>
+</div></div>
+
+<!-- Temps du jour écoulé -->
+<div class="sheet" id="dayover" hidden><div class="panel" style="text-align:center;align-items:center">
+  <div class="big">🌙</div><h2 style="justify-content:center">C'est fini pour aujourd'hui !</h2>
+  <div class="muted" style="font-size:19px">Tu as bien travaillé. À demain !</div>
+  <button class="btn okb" id="do-ok" style="width:100%">D'accord</button>
+  <button class="btn" id="do-parent" style="width:100%">🔑 Un parent peut ajouter 15 min</button>
 </div></div>
 
 <!-- Saisie du code -->
@@ -555,7 +572,7 @@ function pad(n){return(n<10?"0":"")+n}
 function dkey(d){d=d||new Date();return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())}
 function monday(d){d=new Date(d||new Date());d.setHours(12,0,0,0);d.setDate(d.getDate()-((d.getDay()+6)%7));return dkey(d)}
 function addDays(k,n){var d=new Date(k+"T12:00:00");d.setDate(d.getDate()+n);return dkey(d)}
-function ensureEcon(p){if(!p.play)p.play={on:true,ratio:.25,games:["morpion","code","robot"],bonus:{}};if(p.goal==null)p.goal=20;if(p.cap==null)p.cap=3;if(p.rate==null)p.rate=50;if(!p.econ)p.econ={streak:0,gauge:0,days:{},weeks:[],wk:monday(),best:0};return p.econ}
+function ensureEcon(p){if(!p.daily)p.daily={on:false,min:30,bonus:{}};if(!p.play)p.play={on:true,ratio:.25,games:["morpion","code","robot"],bonus:{}};if(p.goal==null)p.goal=20;if(p.cap==null)p.cap=3;if(p.rate==null)p.rate=50;if(!p.econ)p.econ={streak:0,gauge:0,days:{},weeks:[],wk:monday(),best:0};return p.econ}
 function target(p){return Math.max(1,Math.round(p.rate*p.cap))}          // étoiles pour atteindre le maximum de la semaine (taux × maximum)
 function eurOf(p,st){return Math.floor(Math.min(p.cap,st/p.rate)*10+1e-9)/10}
 function today(p){var E=ensureEcon(p),k=dkey(),d=E.days[k]||(E.days[k]={st:0,ok:0,tot:0,sec:0,best:0});if(d.learn==null){d.learn=0;d.play=0}return d}
@@ -670,19 +687,35 @@ function learnNeeded(p){var d=today(p),r=p.play.ratio;return Math.max(60,(d.play
 function mins(sec){return Math.max(1,Math.ceil(sec/60))}
 function lockMsg(p){var d=today(p),r=p.play.ratio,k=Math.round((1-r)/r*10)/10;
  return (d.learn<30&&!bonusToday(p)?"Fais d'abord un peu d'apprentissage. ":"")+"Encore "+mins(learnNeeded(p))+" min d'apprentissage pour pouvoir jouer ("+String(k).replace(".",",")+" min d'apprentissage = 1 min de jeu)."}
-function renderLocks(){var p=prof(),left=playLeft(p);
+/* ---------- Temps par jour (p.daily = {on, min, bonus:{d,sec}}) : temps actif dans les jeux (today().sec) ----------
+   À 0 : le jeu en cours se termine (fin de manche {type:"roundEnd"} ou 5 min de grâce), puis « C'est fini pour aujourd'hui ». */
+function dayOn(p){p=p||prof();ensureEcon(p);return !!p.daily.on}
+function dayLeft(p){p=p||prof();ensureEcon(p);var D=p.daily,b=D.bonus&&D.bonus.d===dkey()?D.bonus.sec:0;return D.min*60+b-today(p).sec}
+function dayOver(p){return dayOn(p)&&dayLeft(p)<=0}
+var dayUp=false,dayT=null,dayInGame=false;
+function endDay(){clearTimeout(dayT);dayT=null;if(!GAMES[cur])return;saveP();showDayOver(true)}
+function showDayOver(inGame){dayInGame=inGame;$("dayover").hidden=false}
+$("do-ok").onclick=function(){$("dayover").hidden=true;dayUp=false;if(dayInGame)back();renderLocks()};
+$("do-parent").onclick=function(){$("dayover").hidden=true;checkCode(function(){var p=prof(),D=p.daily,b=D.bonus&&D.bonus.d===dkey()?D.bonus.sec:0;
+ D.bonus={d:dkey(),sec:b+900+Math.max(0,-dayLeft(p))};dayUp=false;clearTimeout(dayT);saveP();renderLocks();renderTime();toast("🔑 +15 min pour aujourd'hui",2200)},function(){if(dayInGame&&dayOver())showDayOver(true)})};
+function renderLocks(){var p=prof(),left=playLeft(p),over=dayOver(p);
+ $("daytxt").textContent=dayOn(p)?(over?" · 🌙 fini pour aujourd'hui":" · 🌙 encore "+mins(dayLeft(p))+" min aujourd'hui"):"";
  document.querySelectorAll("[data-play]").forEach(function(b){var k=b.dataset.play,sm=b.querySelector("small");if(!sm)return;if(b.dataset.sub==null)b.dataset.sub=sm.innerHTML;
-  var lim=isPlay(k,p),lk=lim&&left<30;b.classList.toggle("locked",lk);
-  sm.innerHTML=b.dataset.sub+(lim?'<span class="pt">'+(lk?"🔒 apprends d'abord":"⏳ "+mins(left)+" min de jeu")+"</span>":"")});
+  var lim=isPlay(k,p),lk=lim&&left<30;b.classList.toggle("locked",lk||over);
+  sm.innerHTML=b.dataset.sub+(over?'<span class="pt">🌙 fini pour aujourd\'hui</span>':lim?'<span class="pt">'+(lk?"🔒 apprends d'abord":"⏳ "+mins(left)+" min de jeu")+"</span>":"")});
  document.querySelectorAll(".tile[data-go]").forEach(function(t){var ks=Object.keys(GAMES).filter(function(k){return GAMES[k].subj===t.dataset.go});
-  t.classList.toggle("locked",ks.length>0&&ks.every(function(k){return isPlay(k,p)})&&left<30)})}
+  t.classList.toggle("locked",over||(ks.length>0&&ks.every(function(k){return isPlay(k,p)})&&left<30))})}
 var timeUp=false,graceT=null,tick=0;
 function fmtClock(s){s=Math.max(0,Math.round(s));return Math.floor(s/60)+":"+pad(s%60)}
-function renderTime(){var lim=GAMES[cur]&&isPlay(cur),t=$("ptime");t.hidden=!lim;if(!lim)return;var l=playLeft();
+function renderTime(){var t=$("ptime");
+ if(GAMES[cur]&&dayOn()&&(dayUp||dayLeft()<300)){t.hidden=false;var dl=dayLeft();t.className=dayUp?"up":"warn";t.textContent=dayUp?"🌙 Termine ton jeu !":"🌙 "+fmtClock(dl);return}
+ var lim=GAMES[cur]&&isPlay(cur);t.hidden=!lim;if(!lim)return;var l=playLeft();
  t.className=timeUp?"up":l<60?"warn":"";t.textContent=timeUp?"⏳ Termine ta partie !":"⏳ "+fmtClock(l)}
 setInterval(function(){if(!GAMES[cur]||document.hidden||Date.now()-lastAct>60000)return;var p=prof(),d=today(p);d.sec++;if(isPlay(cur,p))d.play++;else d.learn++;stDay(stG(p.id,cur)).sec++;
  if(++tick%15===0){saveP();stSave(p.id)}
- if(isPlay(cur,p)){if(!timeUp&&playLeft(p)<=0){timeUp=true;toast("⏳ Le temps de jeu est fini : termine ta partie !",3500);graceT=setTimeout(endPlay,180000)}renderTime()}},1000);
+ if(dayOn(p)&&!dayUp&&dayLeft(p)<=0){dayUp=true;toast("🌙 C'est presque fini pour aujourd'hui : termine ton jeu !",3500);dayT=setTimeout(endDay,300000)}
+ if(isPlay(cur,p)&&!timeUp&&playLeft(p)<=0){timeUp=true;toast("⏳ Le temps de jeu est fini : termine ta partie !",3500);graceT=setTimeout(endPlay,180000)}
+ renderTime()},1000);
 function endPlay(){clearTimeout(graceT);graceT=null;if(!GAMES[cur]||!isPlay(cur))return;saveP();$("tu-txt").textContent="Tu pourras rejouer après "+mins(learnNeeded(prof()))+" min d'apprentissage.";$("timeup").hidden=false}
 $("tu-ok").onclick=function(){$("timeup").hidden=true;timeUp=false;back()};
 var lockKey=null;
@@ -778,7 +811,7 @@ function renderProfil(){var p=prof(EDIT);if(p.id!==EDIT)EDIT=p.id;
  $("p-moneyst").textContent=p.reward?"Les étoiles peuvent être converties en récompense.":"Pas de récompense : ce profil gagne seulement des étoiles.";
  if(document.activeElement!==$("p-unit"))$("p-unit").value=p.unit;if(document.activeElement!==$("p-cap"))$("p-cap").value=p.cap;if(document.activeElement!==$("p-goal"))$("p-goal").value=p.goal;
  if(document.activeElement!==$("p-rate"))$("p-rate").value=p.rate;$("p-unit4").textContent=p.unit;
- $("p-ratetxt").textContent=p.rate+" ⭐ = 1 "+p.unit+" · maximum "+money(p.cap,p)+" par semaine, atteint avec "+target(p)+" ⭐ (≈ "+Math.round(target(p)/7)+" ⭐ par jour). Les séries et les niveaux difficiles font gagner plus vite ; les étoiles en trop sont reportées.";renderBilan(p);renderPlay(p);
+ $("p-ratetxt").textContent=p.rate+" ⭐ = 1 "+p.unit+" · maximum "+money(p.cap,p)+" par semaine, atteint avec "+target(p)+" ⭐ (≈ "+Math.round(target(p)/7)+" ⭐ par jour). Les séries et les niveaux difficiles font gagner plus vite ; les étoiles en trop sont reportées.";renderBilan(p);renderPlay(p);renderDaily(p);
  $("p-unit2").textContent=$("p-unit3").textContent=p.unit;
  if(document.activeElement!==$("p-birth"))$("p-birth").value=p.birth||"";
  var ad=isAdult(p),ag=ageOf(p),ca=classAuto(p);$("p-clsrow").hidden=ad;
@@ -798,6 +831,12 @@ function renderBilan(p){var E=ensureEcon(p),w=weekSum(p,E.wk),d=today(p);
  else h+='<div class="muted">Le premier bilan arrivera lundi.</div>';
  $("p-bilan").innerHTML=h}
 var RATIOS=[[.2,"20 %"],[.25,"25 %"],[1/3,"33 %"],[.5,"50 %"]];
+var DMINS=[15,20,30,45,60,90];
+function renderDaily(p){ensureEcon(p);var D=p.daily;$("dl-on").checked=D.on;$("dl-opts").hidden=!D.on;
+ $("dl-min").innerHTML=DMINS.map(function(m){return '<button data-m="'+m+'" class="'+(m===D.min?"on":"")+'">'+m+" min</button>"}).join("");
+ $("dl-txt").textContent="Compte le temps actif dans les jeux. À la fin, le jeu en cours se termine, puis « C'est fini pour aujourd'hui ». Aujourd'hui : "+fmtMin(today(p).sec)+" utilisées"+(D.on?" · reste "+fmtMin(Math.max(0,dayLeft(p))):"")+"."}
+$("dl-on").onchange=function(){var v=this.checked;upd(function(p){ensureEcon(p);p.daily.on=v})};
+$("dl-min").addEventListener("click",function(e){var b=e.target.closest("[data-m]");if(!b)return;upd(function(p){ensureEcon(p);p.daily.min=+b.dataset.m})});
 function renderPlay(p){ensureEcon(p);var P=p.play;$("pl-on").checked=P.on;$("pl-opts").hidden=!P.on;
  $("pl-ratio").innerHTML=RATIOS.map(function(r,i){return '<button data-r="'+i+'" class="'+(Math.abs(r[0]-P.ratio)<.01?"on":"")+'">'+r[1]+"</button>"}).join("");
  var k=Math.round((1-P.ratio)/P.ratio*10)/10;$("pl-txt").textContent=String(k).replace(".",",")+" min d'apprentissage = 1 min de jeu. Les jeux limités sont grisés quand le temps est écoulé ; une partie commencée se termine toujours.";
@@ -898,7 +937,7 @@ function show(h){
  if(pendingReload&&!GAMES[h]){location.reload();return}
  document.querySelectorAll(".view").forEach(function(v){v.classList.remove("on")});
  renderPurse();
- if(GAMES[h]){var g=GAMES[h];ensureEcon(prof()).streak=0;lastDiff=ageBonus(prof(),h);ecoOff=false;timeUp=false;clearTimeout(graceT);lastAct=Date.now();$("v-"+g.subj).classList.add("on");$("ptitle").textContent=g.t;$("play").classList.add("on");renderEco();var tok=++loadTok;setFrame(null);load(g.app).then(function(t){if(tok===loadTok)setFrame(src(g,t))},function(){if(tok===loadTok)setFrame("<p style=\"font:20px sans-serif;padding:20px\">Impossible de charger le jeu. Vérifie la connexion puis réessaie.</p>")});return}
+ if(GAMES[h]){var g=GAMES[h];ensureEcon(prof()).streak=0;lastDiff=ageBonus(prof(),h);ecoOff=false;timeUp=false;clearTimeout(graceT);dayUp=false;clearTimeout(dayT);lastAct=Date.now();$("v-"+g.subj).classList.add("on");$("ptitle").textContent=g.t;$("play").classList.add("on");renderEco();var tok=++loadTok;setFrame(null);load(g.app).then(function(t){if(tok===loadTok)setFrame(src(g,t))},function(){if(tok===loadTok)setFrame("<p style=\"font:20px sans-serif;padding:20px\">Impossible de charger le jeu. Vérifie la connexion puis réessaie.</p>")});return}
  stopGame();
  ($("v-"+h)||$("v-home")).classList.add("on");
  if(h==="profil")renderProfilScreen();
@@ -922,13 +961,13 @@ window.addEventListener("popstate",function(){
   try{if(w&&w.hubBack&&w.hubBack()){history.pushState({d:(st.d||0)+1,r:cur},"",url(cur));return}}catch(e){}}
  show(h)});
 document.addEventListener("click",function(e){var b=e.target.closest("[data-go],[data-play],[data-back]");if(!b)return;
- if(b.dataset.back)back();else if(b.dataset.play!==undefined){if(isPlay(b.dataset.play)&&playLeft()<30){showLockInfo(b.dataset.play);return}go(b.dataset.play)}else go(b.dataset.go)});
+ if(b.dataset.back)back();else if(b.dataset.play!==undefined){if(dayOver()){showDayOver(false);return}if(isPlay(b.dataset.play)&&playLeft()<30){showLockInfo(b.dataset.play);return}go(b.dataset.play)}else go(b.dataset.go)});
 $("pback").onclick=back;
 window.addEventListener("message",function(e){
  if(e.source!==$("frame").contentWindow)return;
  if(e.data==="hub-back")back();
  else if(e.data&&e.data.type==="eco"){ecoOff=!e.data.on;renderEco()}
- else if(e.data&&e.data.type==="roundEnd"){if(timeUp){clearTimeout(graceT);graceT=setTimeout(endPlay,2500)}}
+ else if(e.data&&e.data.type==="roundEnd"){if(dayUp){clearTimeout(dayT);dayT=setTimeout(endDay,2500)}else if(timeUp){clearTimeout(graceT);graceT=setTimeout(endPlay,2500)}}
  else if(e.data&&e.data.type==="answer"){if(GAMES[cur]&&GAMES[cur].luck)return;recordStat(e.data);onAnswer(e.data)}
  else if(e.data&&e.data.type==="finish"){recordStat({ok:true,k:e.data.k});onFinish(e.data)}
  else if(e.data&&e.data.type==="stars")addStars(e.data.n)});

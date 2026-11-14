@@ -89,7 +89,7 @@ function press(k){
 function del(){if(busy||!playing)return;if(waitMode&&entry.length<=base)return;entry=entry.slice(0,-1);render()}
 function ring(){for(var i=0;i<2;i++)tone([440,480],i*2.2,1.2,.1)}
 function busyTone(){for(var i=0;i<4;i++)tone([480,620],i,.5,.1)}
-function end(m){entry="";render();busy=false;playing=false;target="";$("go").textContent="▶ Jouer";msg(m)}
+function end(m){try{if(parent!==window)parent.postMessage({type:"roundEnd"},"*")}catch(e){}entry="";render();busy=false;playing=false;target="";$("go").textContent="▶ Jouer";msg(m)}
 function call(){
  if(busy||!playing||!entry)return;ctx();busy=true;stopAll();msg("📞 Ça sonne…");
  if(entry===target){ring();setTimeout(function(){tone([900],0,.05,.2);wins++;ls("tel_wins",wins);var w=wins%10===0?(window.PRENOM?"Bravo "+window.PRENOM+" !":"Bravo champion !"):WIN[Math.floor(Math.random()*WIN.length)];msg("🎉 "+w+" +3 ⭐");say("Allô ? "+w,function(){end("Rejoue avec ▶ Jouer")},.85)},4600)}

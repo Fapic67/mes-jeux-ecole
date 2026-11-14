@@ -143,7 +143,7 @@ $("pills").addEventListener("click",function(e){var b=e.target.closest("button")
  if(b.dataset.l===n.l){lock=true;if(!missed)answer(true,n);b.classList.add("ok");play(freq(n),0,.6);msg("Bravo, c'est un "+NAME[n.l]+" !");var my=tk;
   setTimeout(function(){if(my!==tk)return;idx++;lock=false;if(idx<song.n.length){msg("Quelle est cette note ?");show()}else finish()},750)}
  else{errs++;if(!missed)answer(false,n);missed=true;b.classList.add("no");b.disabled=true;buzz();msg("Essaie encore !")}});
-function finish(){$("prog").style.width="100%";$("pills").hidden=true;$("end").hidden=false;$("title").textContent="🎶 "+song.t;
+function finish(){try{if(parent!==window)parent.postMessage({type:"roundEnd"},"*")}catch(e){}$("prog").style.width="100%";$("pills").hidden=true;$("end").hidden=false;$("title").textContent="🎶 "+song.t;
  msg(errs?"Tu as trouvé toutes les notes !":"Parfait, aucune erreur !");
  si=(si+1)%SONGS.length;ls("mus_i",si);ls("mus_order",JSON.stringify(order));
  lockReplay(true);var my=tk;setTimeout(function(){if(my===tk)playSong()},700)} // pas de voix : le titre est seulement affiché

@@ -169,7 +169,7 @@ function ask(){missed=false;lock=false;var t=seq[holes[hi]];drawCat();
  $("choices").onclick=function(e){var bt=e.target.closest("button");if(!bt||lock)return;var b=ch[+bt.dataset.i];
   if(same(b,t)){lock=true;seq[holes[hi]].found=2;tone(660,0,.12,.2);tone(880,.1,.18,.2);
    if(hi<holes.length-1){if(!missed){}hi++;setTimeout(function(){seq[holes[hi-1]].found=1;ask()},500);return}
-   if(!missed){answer(true,motifName);okCount++}
+   if(!missed){answer(true,motifName);okCount++}try{if(parent!==window)parent.postMessage({type:"roundEnd"},"*")}catch(e){}
    drawCat();var c=$("cat");c.classList.remove("wig");void c.offsetWidth;c.classList.add("wig");
    msg(missed?"Bravo, c'est ça !":["Bravo !","Super !","Génial !","Bien joué !"][rnd(4)]);drawScore();
    if(okCount>=GOAL){setTimeout(levelUp,1100);return}

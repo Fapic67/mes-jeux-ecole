@@ -111,13 +111,13 @@ function conjTable(){var tok=++cjTok,V=CONJ[cjSeq[cjI]],row=0,val="",lock=false,
    else{if(!missed)cjAnswer(false,cjSeq[cjI],r);missed=true;tries++;lock=true;el(row).className="r ko shake";hint.textContent="Essaie encore !";if(tries>=2)say(full);
     setTimeout(function(){if(tok!==cjTok)return;val="";el(row).className="r on";paint();lock=false},700)}}});
  activate()}
-function conjEnd(){nokb();var tot=cjSeq.length*6;
+function conjEnd(){nokb();try{if(parent!==window)parent.postMessage({type:"roundEnd"},"*")}catch(e){}var tot=cjSeq.length*6;
  app.innerHTML='<h1>Bravo !</h1><div class="big">'+cjGood+' / '+tot+'</div><div class="cnt">du premier coup</div><button class="btn" id="re">Encore</button><button class="btn btn2" id="mn">Autre verbe</button>';
  say("Bravo ! "+cjGood+" sur "+tot);
  document.getElementById("re").onclick=function(){cjI=0;cjGood=0;if(cjMix)cjSeq.reverse();conjTable()};
  document.getElementById("mn").onclick=conjMenu}
 function end(){
-  nokb();
+  nokb();try{if(parent!==window)parent.postMessage({type:"roundEnd"},"*")}catch(e){}
   var n=Math.round(good/deck.length*10*2)/2,s=String(n).replace(".",",");
   app.innerHTML='<h1>Bravo !</h1><div class="big">'+s+' / 10</div><div class="cnt">'+good+' / '+deck.length+' du premier coup</div><button class="btn" id="re">Rejouer</button><button class="btn btn2" id="mn">Menu</button>';
   document.getElementById("re").onclick=function(){startQ(cur)};

@@ -113,7 +113,7 @@ $("ear").onclick=function(){replays++;listen()};
 $("shelf").addEventListener("click",function(e){var b=e.target.closest("button");if(!b||b.disabled||lock)return;var w=shelf[+b.dataset.i],k=picked.indexOf(w);
  if(k>=0){picked.splice(k,1);b.classList.remove("in")}else{picked.push(w);b.classList.add("in");tone(600+picked.length*60,0,.08,.12)}
  drawBasket();if(picked.length===list.length)check()});
-function check(){lock=true;enableShelf(false);$("ear").disabled=true;var L=LV[level],marks,all;
+function check(){try{if(parent!==window)parent.postMessage({type:"roundEnd"},"*")}catch(e){}lock=true;enableShelf(false);$("ear").disabled=true;var L=LV[level],marks,all;
  if(L.o)marks=picked.map(function(w,i){return w===list[i]?"ok":"ko"});
  else marks=picked.map(function(w){return list.indexOf(w)>=0?"ok":"ko"});
  all=marks.every(function(m){return m==="ok"});drawBasket(marks);
