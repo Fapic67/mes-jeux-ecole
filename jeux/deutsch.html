@@ -36,8 +36,14 @@ h1{margin:0;font-size:34px}
 /* Schreib das Wort */
 body.withkb{justify-content:flex-start;padding-top:24px;padding-bottom:300px}
 body.withkb .pic{min-height:0;font-size:90px}body.withkb .pic svg{width:120px;height:120px}
-.typed{font-size:clamp(30px,9vw,42px);font-weight:700;min-height:56px;min-width:70%;border-bottom:4px solid var(--der);padding:0 6px;color:var(--der);white-space:pre}
-.typed.ok{color:var(--das);border-color:var(--das)}.typed.ko{color:var(--bad);border-color:var(--bad)}
+/* un trait par lettre, un espace visible entre l'article et le mot */
+.typed{display:flex;justify-content:center;align-items:flex-end;gap:var(--g,5px);flex-wrap:nowrap;min-height:58px;color:var(--der);font-weight:700;font-size:var(--fs,34px)}
+.typed .l{width:var(--sw,30px);border-bottom:4px solid var(--fg);text-align:center;line-height:1.25;min-height:1.3em;opacity:.95}
+.typed .l.cur{border-bottom-color:var(--der);animation:blink 1s infinite}
+.typed .sp{width:calc(var(--sw,30px) * .9)}
+.typed.ok{color:var(--das)}.typed.ok .l{border-bottom-color:var(--das)}
+.typed.ko{color:var(--bad)}.typed.ko .l{border-bottom-color:var(--bad)}
+@keyframes blink{50%{border-bottom-color:transparent}}
 .hint{color:var(--mut);font-size:19px;min-height:24px;font-weight:600}
 .copy{font-size:22px;color:var(--mut)}.copy b{color:var(--fg)}
 .back{position:fixed;top:10px;left:12px;min-height:52px;padding:0 16px;background:var(--card);border:3px solid var(--bd);border-radius:16px;font-size:18px;font-weight:700;color:var(--fg);cursor:pointer}
@@ -105,14 +111,23 @@ function show3(){
   var w=deck[i],full=(w.a?w.a+" ":"")+w.w,val="",tries=0,lock=false;missed=false;
   app.innerHTML=bar()+'<div class="pic">'+w.e+'</div><div class="typed" id="ty"> </div><div class="hint" id="hint">'+(w.a?"Écris le mot avec son article (der, die, das)":"Écris le mot")+'</div><div class="copy" id="copy"></div>';
   var ty=document.getElementById("ty"),hint=document.getElementById("hint");
-  function paint(){ty.className="typed";ty.textContent=val?pretty(val,w):" "}
+  // taille des traits selon la longueur du mot (tout tient sur une ligne)
+  var sw=Math.max(16,Math.min(34,Math.floor((Math.min(innerWidth,420)-30)/full.length)-5));
+  ty.style.setProperty("--sw",sw+"px");ty.style.setProperty("--fs",Math.round(sw*1.05)+"px");ty.style.setProperty("--g",(sw<22?3:5)+"px");
+  function paint(cls){var pv=pretty(val,w),h="";
+   for(var k=0;k<full.length;k++)h+=full[k]===" "?'<span class="sp"></span>':'<span class="l'+(!cls&&k===val.length?" cur":"")+'">'+(k<pv.length?pv[k]:"")+"</span>";
+   ty.className="typed"+(cls?" "+cls:"");ty.innerHTML=h}
+  paint();
   kb({acc:"äöüß",space:true,
-    onKey:function(k){if(lock||val.length>=24||(k===" "&&(!val||val.slice(-1)===" ")))return;val+=k;paint()},
-    onDel:function(){if(lock)return;val=val.slice(0,-1);paint()},
+    // l'espace se place tout seul quand on arrive au trou entre l'article et le mot
+    onKey:function(k){if(lock||val.length>=full.length)return;
+      if(k===" "){if(full[val.length]===" ")val+=" ";paint();return}
+      if(full[val.length]===" ")val+=" ";val+=k;paint()},
+    onDel:function(){if(lock)return;val=val.slice(0,-1);if(val.slice(-1)===" ")val=val.slice(0,-1);paint()},
     onOk:function(){if(lock||!val.trim())return;var v=norm(val),t=norm(full);
-      if(v===t){lock=true;KB.enable(false);if(!missed){good++;star(true,w)}ty.className="typed ok";ty.textContent=full;hint.textContent="Super!";document.getElementById("copy").textContent="";
+      if(v===t){lock=true;KB.enable(false);if(!missed){good++;star(true,w)}val=full.toLowerCase();paint("ok");hint.textContent="Super!";document.getElementById("copy").textContent="";
         say(full);setTimeout(function(){i++;i<deck.length?show3():end()},1800);return}
-      if(!missed)star(false,w);missed=true;tries++;lock=true;ty.className="typed ko shake";
+      if(!missed)star(false,w);missed=true;tries++;lock=true;paint("ko shake");
       var p=v.split(" "),noun=norm(w.w);
       hint.textContent=w.a&&p.length===1&&p[0]===noun?"Le mot est juste : n'oublie pas l'article !":w.a&&p.length>1&&p.slice(1).join(" ")===noun?"Le mot est juste, mais pas l'article !":w.a&&p[0]===w.a?"Bon article ! Vérifie le mot.":"Essaie encore !";
       if(tries>=2)say(full);
