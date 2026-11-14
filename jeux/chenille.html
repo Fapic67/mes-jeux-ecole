@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>La chenille des couleurs</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f6f1ff;--fg:#26204a;--mut:#665f93;--card:#fff;--bd:#ddd3f7;--lo:#9b6bff;--ok:#22a861;--bad:#e5484d;--cell:#efe9ff;box-sizing:border-box}
+@media (prefers-color-scheme:dark){:root{--bg:#17142b;--fg:#f1eeff;--mut:#aaa3d6;--card:#241f42;--bd:#3c3566;--cell:#2c2650}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--fg);font-family:"Fredoka",system-ui,sans-serif;user-select:none}
+button{font-family:inherit;touch-action:manipulation;cursor:pointer}
+#wrap{position:fixed;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y}
+#inner{max-width:480px;min-height:100%;margin:0 auto;padding:10px 12px calc(16px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:16px}
+header{display:flex;align-items:center;gap:8px}
+#hint{flex:1;font-size:17px;color:var(--mut);font-weight:600}
+.hb{min-height:56px;padding:0 14px;border:3px solid var(--bd);background:var(--card);color:var(--fg);border-radius:16px;font-weight:700;font-size:18px;white-space:nowrap}
+.stage{flex:1;display:flex;flex-direction:column;justify-content:center;gap:22px}
+/* la chenille */
+#cat,#cat2{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:2px;row-gap:10px;padding:14px 8px;background:var(--card);border:3px solid var(--bd);border-radius:24px;min-height:110px}
+#cat2:empty{display:none}#cat2 .b{width:42px;height:42px;animation:pop .45s}#cat2 svg{width:100%;height:100%}#cat2 .head{width:58px;height:58px;animation:none}
+#cat .b{width:40px;height:40px;flex:none;display:flex;align-items:center;justify-content:center}
+#cat .b svg{width:100%;height:100%}
+#cat .head{width:50px;height:50px}
+#cat .q{border:3px dashed var(--lo);border-radius:50%;color:var(--lo);font-size:24px;font-weight:700;width:40px;height:40px}
+#cat .q.on{background:var(--cell);animation:pulse 1s infinite}
+#cat .new{animation:pop .45s}
+#cat.wig .b{animation:wig .5s}
+#cat.wig .b:nth-child(2n){animation-delay:.06s}
+@keyframes wig{30%{transform:translateY(-8px)}70%{transform:translateY(3px)}}
+@keyframes pop{0%{transform:scale(.2)}70%{transform:scale(1.2)}}
+@keyframes pulse{50%{transform:scale(1.08)}}
+#msg{min-height:30px;text-align:center;font-size:22px;font-weight:700}
+#choices{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
+#choices button{width:84px;height:84px;border:3px solid var(--bd);border-radius:22px;background:var(--card);padding:12px}
+#choices button svg{width:100%;height:100%}
+#choices button:disabled{opacity:.3;position:relative}
+#choices button.shake{animation:sh .3s}
+@keyframes sh{25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+#score{display:flex;justify-content:center;gap:6px;font-size:24px}
+#score i{font-style:normal;opacity:.25}#score i.on{opacity:1}
+/* invente */
+#mine{display:flex;gap:6px;justify-content:center;min-height:70px;align-items:center;background:var(--card);border:3px dashed var(--lo);border-radius:20px;padding:8px}
+#mine:empty::before{content:"Ton motif (2 à 4 perles)";color:var(--mut);font-size:18px}
+#mine .b{width:50px;height:50px}#mine svg{width:100%;height:100%}
+#pal{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+#pal button{height:72px;border:3px solid var(--bd);border-radius:18px;background:var(--card);padding:10px}
+#pal svg{width:100%;height:100%}
+.acts{display:flex;gap:8px}
+.acts button{height:64px;border:0;border-radius:18px;font-size:22px;font-weight:700}
+.grey{flex:0 0 24%;background:var(--bd);color:var(--fg)}
+.go{flex:1;background:var(--ok);color:#fff;box-shadow:0 5px 0 #17804a}
+.vi{flex:1;background:var(--lo);color:#fff;box-shadow:0 5px 0 #6c43d1}
+button:disabled{opacity:.4}
+.sheet{position:fixed;inset:0;background:rgba(10,8,40,.55);display:flex;align-items:flex-end;justify-content:center;z-index:5}
+.panel{background:var(--bg);width:100%;max-width:520px;max-height:90%;overflow:auto;border-radius:28px 28px 0 0;padding:20px 18px calc(22px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px}
+.panel h2{margin:0;font-size:26px}
+#lvls{display:flex;flex-direction:column;gap:8px}
+#lvls button{min-height:58px;border:3px solid var(--bd);border-radius:16px;background:var(--card);color:var(--fg);font-size:19px;font-weight:700;text-align:left;padding:6px 14px}
+#lvls button.on{background:var(--lo);border-color:var(--lo);color:#fff}
+#lvls small{display:block;font-weight:500;font-size:16px;opacity:.8}
+.big{height:64px;border:0;border-radius:18px;background:var(--lo);color:#fff;font-size:22px;font-weight:700}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div id="wrap"><div id="inner">
+<header><div id="hint">Quelle perle vient ensuite ?</div><button class="hb" id="mk" aria-label="Invente ton motif">🎨</button><button class="hb" id="lvlb">Niveau 1</button></header>
+
+<div class="stage" id="game">
+  <div id="cat"></div>
+  <div id="msg"></div>
+  <div id="choices"></div>
+  <div id="score"></div>
+</div>
+
+<div class="stage" id="make" hidden>
+  <div id="cat2"></div>
+  <div id="mine"></div>
+  <div id="pal"></div>
+  <div class="acts"><button class="grey" id="mdel" aria-label="Effacer">⌫</button><button class="go" id="grow">▶ Fais grandir</button></div>
+  <div class="acts"><button class="vi" id="mback">Retour au jeu</button></div>
+</div>
+</div></div>
+
+<div class="sheet" id="sheet" hidden><div class="panel">
+  <h2>Choisis un niveau</h2>
+  <div id="lvls"></div>
+  <button class="big" id="close">Fermer</button>
+</div></div>
+
+<script>
+(function(){
+var $=function(i){return document.getElementById(i)};
+var PK=window.PROFILE?"@"+window.PROFILE:"";
+function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
+function rnd(n){return Math.floor(Math.random()*n)}
+function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=rnd(i+1),t=a[i];a[i]=a[j];a[j]=t}return a}
+
+/* perles : couleur + forme */
+var COL=["#e5484d","#2f7cf6","#f5b301","#22a861","#9b6bff"];
+var SH=["circle","square","tri","star"];
+function svg(b){var c=COL[b.c],p;
+ if(b.s==="square")p='<rect x="7" y="7" width="36" height="36" rx="7" fill="'+c+'"/>';
+ else if(b.s==="tri")p='<path d="M25 5 46 43H4z" fill="'+c+'" stroke="'+c+'" stroke-width="3" stroke-linejoin="round"/>';
+ else if(b.s==="star")p='<path d="M25 3l6.5 14 15 1.6-11.3 10.2 3.3 15L25 36l-13.5 7.8 3.3-15L3.5 18.6l15-1.6z" fill="'+c+'" stroke="'+c+'" stroke-width="2" stroke-linejoin="round"/>';
+ else p='<circle cx="25" cy="25" r="20" fill="'+c+'"/><circle cx="18" cy="18" r="5" fill="#fff" opacity=".35"/>';
+ return '<svg viewBox="0 0 50 50">'+p+"</svg>"}
+var HEAD='<svg viewBox="0 0 60 60"><path d="M22 10 16 2M38 10l6-8" stroke="#3a7d2c" stroke-width="3" stroke-linecap="round"/><circle cx="16" cy="2.5" r="3" fill="#3a7d2c"/><circle cx="44" cy="2.5" r="3" fill="#3a7d2c"/><circle cx="30" cy="33" r="25" fill="#7ccf5a"/><circle cx="21" cy="28" r="6" fill="#fff"/><circle cx="39" cy="28" r="6" fill="#fff"/><circle cx="22" cy="29" r="3" fill="#222"/><circle cx="40" cy="29" r="3" fill="#222"/><path d="M21 42q9 7 18 0" stroke="#2d5e21" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="14" cy="38" r="3.5" fill="#ff9aa8" opacity=".7"/><circle cx="46" cy="38" r="3.5" fill="#ff9aa8" opacity=".7"/></svg>';
+function same(a,b){return a.c===b.c&&a.s===b.s}
+
+/* sons et voix */
+var ac=null;
+function tone(f,t,d,v){try{if(!ac){var C=window.AudioContext||window.webkitAudioContext;if(!C)return;ac=new C()}if(ac.state==="suspended")ac.resume();var o=ac.createOscillator(),g=ac.createGain(),s=ac.currentTime+t;o.type="triangle";o.frequency.value=f;g.gain.setValueAtTime(.0001,s);g.gain.exponentialRampToValueAtTime(v||.2,s+.02);g.gain.exponentialRampToValueAtTime(.0001,s+d);o.connect(g);g.connect(ac.destination);o.start(s);o.stop(s+d+.05)}catch(e){}}
+var voice=null;function pick(){try{voice=speechSynthesis.getVoices().filter(function(v){return /^fr/i.test(v.lang)})[0]||null}catch(e){}}
+if(window.speechSynthesis){pick();speechSynthesis.onvoiceschanged=pick}
+function say(t){try{if(!window.speechSynthesis)return;speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.lang="fr-FR";if(voice)u.voice=voice;u.rate=.9;speechSynthesis.speak(u)}catch(e){}}
+
+/* niveaux */
+var LV=[null,
+ {t:"Deux couleurs",d:"rouge, bleu, rouge, bleu…"},
+ {t:"Trois perles",d:"motifs comme 🔴🔴🔵"},
+ {t:"Trois couleurs",d:"motifs comme 🔴🔵🟡"},
+ {t:"Quatre perles",d:"motifs plus longs"},
+ {t:"Formes et couleurs",d:"ronds, carrés, triangles, étoiles"},
+ {t:"La perle cachée",d:"il manque une perle au milieu"},
+ {t:"Deux règles",d:"la couleur et la forme changent chacune à leur rythme"},
+ {t:"Deux perles cachées",d:"retrouve les deux perles qui manquent"}];
+var MAXL=LV.length-1,GOAL=5;
+var level=Math.min(MAXL,Math.max(1,parseInt(ls("chenille_lvl"+PK))||1)),best=Math.min(MAXL,Math.max(level,parseInt(ls("chenille_best"+PK))||1));
+var MOTIFS={2:["AB"],3:["AAB","ABB"],4:["ABC","AABB","ABBC","ABCC"]};
+function diff(){return level<=2?1:level<=4?1.25:level<=6?1.5:2}
+function answer(ok,item){try{if(parent!==window)parent.postMessage({type:"answer",game:"chenille",ok:ok,diff:diff(),k:"Niveau "+level,item:item},"*")}catch(e){}}
+
+// fabrique une suite de perles et les positions à trouver
+var seq,holes,hi,okCount=0,missed=false,lock=false,motifName="";
+function tokens(n,shapes){var cs=shuffle([0,1,2,3,4]),ss=shuffle(SH),r=[];for(var i=0;i<n;i++)r.push({c:cs[i],s:shapes?ss[i]:"circle"});return r}
+function build(){
+ var L=level,m,len,toks;
+ if(L===7){ // deux règles : couleurs de période p, formes de période q
+  var p=2+rnd(2),q=p===2?3:2,cs=shuffle([0,1,2,3,4]).slice(0,p),ss=shuffle(SH).slice(0,q);len=Math.max(8,p*q+2);
+  seq=[];for(var i=0;i<len;i++)seq.push({c:cs[i%p],s:ss[i%q]});motifName="Couleurs ×"+p+", formes ×"+q;holes=[len-1];return}
+ var pool=L===1?MOTIFS[2]:L===2?MOTIFS[3]:L===3?["ABC"]:L===4?MOTIFS[4].concat(["ABAC"]):MOTIFS[3].concat(MOTIFS[4]);
+ if(L===5)pool=["AB","ABC","AAB","ABB"];
+ m=pool[rnd(pool.length)];motifName="Motif "+m;
+ var ids={},k=0;m.split("").forEach(function(ch){if(ids[ch]==null)ids[ch]=k++});
+ toks=tokens(k,L>=5);
+ len=Math.max(7,m.length*2+1);if(m.length===4)len=9;
+ seq=[];for(var i=0;i<len;i++)seq.push(toks[ids[m[i%m.length]]]);
+ if(L===6||L===8){var a=m.length+rnd(len-m.length-1);holes=[a];
+  if(L===8){var b;do{b=m.length+rnd(len-m.length)}while(Math.abs(b-a)<1);holes=[Math.min(a,b),Math.max(a,b)]}}
+ else holes=[len-1]}
+function choicesFor(t){var all=[],seen={};function add(b){var k=b.c+b.s;if(!seen[k]){seen[k]=1;all.push(b)}}
+ add(t);seq.forEach(add);
+ // une perle « piège » qui n'est pas dans la chenille
+ var extra;do{extra={c:rnd(5),s:level>=5?SH[rnd(4)]:"circle"}}while(seen[extra.c+extra.s]);add(extra);
+ if(level===7){add({c:t.c,s:SH.filter(function(s){return s!==t.s})[rnd(3)]});add({c:(t.c+1+rnd(4))%5,s:t.s})}
+ var right=all.shift();all=shuffle(all).slice(0,3);all.push(right);return shuffle(all)}
+function drawCat(){var h='<div class="b head">'+HEAD+"</div>";
+ seq.forEach(function(b,i){var hole=holes.indexOf(i)>=0;
+  h+=hole&&!b.found?'<div class="b q'+(i===holes[hi]?" on":"")+'">?</div>':'<div class="b'+(b.found===2?" new":"")+'">'+svg(b)+"</div>"});
+ $("cat").innerHTML=h}
+function drawScore(){var h="";for(var i=0;i<GOAL;i++)h+='<i class="'+(i<okCount?"on":"")+'">⭐</i>';$("score").innerHTML=h;$("lvlb").textContent="Niveau "+level}
+function question(){seq=null;build();seq=seq.map(function(b){return{c:b.c,s:b.s}});hi=0;ask()}
+function ask(){missed=false;lock=false;var t=seq[holes[hi]];drawCat();
+ var ch=choicesFor(t);$("choices").innerHTML=ch.map(function(b,i){return '<button data-i="'+i+'" aria-label="perle">'+svg(b)+"</button>"}).join("");
+ $("choices").onclick=function(e){var bt=e.target.closest("button");if(!bt||lock)return;var b=ch[+bt.dataset.i];
+  if(same(b,t)){lock=true;seq[holes[hi]].found=2;tone(660,0,.12,.2);tone(880,.1,.18,.2);
+   if(hi<holes.length-1){if(!missed){}hi++;setTimeout(function(){seq[holes[hi-1]].found=1;ask()},500);return}
+   if(!missed){answer(true,motifName);okCount++}
+   drawCat();var c=$("cat");c.classList.remove("wig");void c.offsetWidth;c.classList.add("wig");
+   msg(missed?"Bravo, c'est ça !":["Bravo !","Super !","Génial !","Bien joué !"][rnd(4)]);drawScore();
+   if(okCount>=GOAL){setTimeout(levelUp,1100);return}
+   setTimeout(function(){msg("");question()},1300)}
+  else{if(!missed)answer(false,motifName);missed=true;bt.disabled=true;bt.classList.add("shake");tone(180,0,.25,.22);msg("Regarde bien la chenille…")}};
+ }
+function levelUp(){okCount=0;
+ if(level<MAXL){level++;best=Math.max(best,level);ls("chenille_lvl"+PK,level);ls("chenille_best"+PK,best);
+  msg("🎉 Niveau "+level+" !");say("Bravo ! Niveau "+level);[523,659,784,1047].forEach(function(f,k){tone(f,k*.1,.25,.22)})}
+ else{msg("🏆 Tu es une championne des motifs !");say("Bravo !")}
+ drawScore();setTimeout(function(){msg("");question()},1600)}
+function msg(t){$("msg").textContent=t}
+
+/* choix du niveau */
+function lvls(){var h="";for(var i=1;i<=best;i++)h+='<button data-l="'+i+'" class="'+(i===level?"on":"")+'">Niveau '+i+" · "+LV[i].t+"<small>"+LV[i].d+"</small></button>";$("lvls").innerHTML=h}
+$("lvlb").onclick=function(){lvls();$("sheet").hidden=false};
+$("lvls").addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;level=+b.dataset.l;ls("chenille_lvl"+PK,level);okCount=0;$("sheet").hidden=true;showGame();drawScore();question()});
+$("close").onclick=function(){$("sheet").hidden=true};
+
+/* invente ton motif : la chenille le répète toute seule */
+var PAL=[{c:0,s:"circle"},{c:1,s:"circle"},{c:2,s:"circle"},{c:3,s:"circle"},{c:4,s:"circle"},{c:1,s:"square"},{c:2,s:"tri"},{c:0,s:"star"}],mine=[],growT=null;
+$("pal").innerHTML=PAL.map(function(b,i){return '<button data-i="'+i+'" aria-label="perle">'+svg(b)+"</button>"}).join("");
+function drawMine(){$("mine").innerHTML=mine.map(function(b){return '<div class="b">'+svg(b)+"</div>"}).join("");$("grow").disabled=mine.length<2;$("mdel").disabled=!mine.length}
+$("pal").onclick=function(e){var b=e.target.closest("button");if(!b||mine.length>=4)return;mine.push(PAL[+b.dataset.i]);tone(700,0,.06,.12);drawMine()};
+$("mdel").onclick=function(){mine.pop();drawMine()};
+$("grow").onclick=function(){clearInterval(growT);var n=0,c=$("cat2");c.innerHTML='<div class="b head">'+HEAD+"</div>";
+ growT=setInterval(function(){var d=document.createElement("div");d.className="b";d.innerHTML=svg(mine[n%mine.length]);c.appendChild(d);
+  tone(440+80*(n%mine.length),0,.12,.15);if(++n>=12){clearInterval(growT);say("Ta chenille a grandi !")}},350)};
+function showMake(){$("game").hidden=true;$("make").hidden=false;$("hint").textContent="Invente ton motif 🎨";mine=[];drawMine();$("cat2").innerHTML=""}
+function showGame(){clearInterval(growT);$("game").hidden=false;$("make").hidden=true;$("hint").textContent="Quelle perle vient ensuite ?"}
+$("mk").onclick=function(){$("make").hidden?showMake():showGame()};
+$("mback").onclick=showGame;
+window.hubBack=function(){if(!$("sheet").hidden){$("sheet").hidden=true;return true}if(!$("make").hidden){showGame();return true}return false};
+
+drawScore();question();say("Quelle perle vient ensuite ?");
+})();
+</script>
+</body>
+</html>

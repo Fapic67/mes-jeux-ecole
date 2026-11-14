@@ -250,8 +250,11 @@ body.nomoney .home-mon{display:none!important}
 <section class="view" id="v-logique">
   <div class="top"><button class="btn icon-btn" data-back="1" aria-label="Retour"><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 4.5 8.5 12l7 7.5"/></svg></button><h2 class="ttl">🧩 Logique</h2><span class="purse" style="flex:none"><span class="st">⭐ <span class="nst">0</span></span></span></div>
   <div class="mid">
+    <button class="game" data-play="chenille"><span class="ic">🐛</span><span>La chenille des couleurs<small>Trouve la perle qui vient ensuite</small></span></button>
     <button class="game" data-play="code"><span class="ic">🔐</span><span>Le code secret<small>Devine le code de chiffres caché</small></span></button>
     <button class="game" data-play="robot"><span class="ic">🤖</span><span>Le petit robot<small>Programme le chemin avec des flèches</small></span></button>
+    <button class="game" data-play="boucles"><span class="ic">🔁</span><span>Le robot qui répète<small>Moins de briques : répète avec ×2 ×3 ×4</small></span></button>
+    <button class="game" data-play="reparateur"><span class="ic">🔧</span><span>Le robot réparateur<small>Trouve l'erreur dans le programme</small></span></button>
   </div>
 </section>
 
@@ -434,6 +437,9 @@ var GAMES={
  article:{t:"Der · Die · Das",app:"deutsch",start:1,subj:"allemand",eco:"dde"},
  code:{t:"Le code secret",app:"code",subj:"logique",eco:"code"},
  robot:{t:"Le petit robot",app:"robot",subj:"logique",eco:"robot"},
+ chenille:{t:"La chenille des couleurs",app:"chenille",subj:"logique",eco:"chenille"},
+ boucles:{t:"Le robot qui répète",app:"robot",start:2,subj:"logique",eco:"boucles"},
+ reparateur:{t:"Le robot réparateur",app:"robot",start:3,subj:"logique",eco:"reparateur"},
  note:{t:"Trouve la note",app:"musique",subj:"musique",eco:"note"},
  morpion:{t:"Morpion",app:"morpion",subj:"jeux"},
  mot:{t:"Finde das Wort",app:"deutsch",start:2,subj:"allemand",eco:"fdw"}
@@ -496,7 +502,7 @@ function money(v,p){p=p||prof();v=r2(v);return v.toLocaleString("fr-FR",v%1?{min
    Les jeux envoient {type:"answer", game, ok, diff, q} à chaque réponse.
    Points = P(jeu) × difficulté × palier de série (×1, ×2 dès 5, ×3 dès 10) × qualité ; 10 points = 1 ⭐.
    Barème : objectif (min/jour) × 7 jours ≈ autant d'étoiles = maximum €/semaine ; le surplus est reporté. */
-var ECON={P:{calcul:.7,telephone:.9,dde:.5,fdw:.5,quique:1.1,phrase:1.1,note:.5,code:7,robot:5},PTS:10};
+var ECON={P:{calcul:.7,telephone:.9,dde:.5,fdw:.5,quique:1.1,phrase:1.1,note:.5,code:7,robot:5,boucles:6,reparateur:4,chenille:.8},PTS:10};
 function tierOf(st){return st>=10?3:st>=5?2:1}
 function pad(n){return(n<10?"0":"")+n}
 function dkey(d){d=d||new Date();return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())}
@@ -559,7 +565,7 @@ function recordStat(m){if(!GAMES[cur])return;var p=prof(),G=stG(p.id,cur),D=stDa
   var ks=Object.keys(G.it);if(ks.length>400){ks.sort(function(a,b){return G.it[a][2]<G.it[b][2]?-1:1});ks.slice(0,ks.length-400).forEach(function(x){delete G.it[x]})}}
  stSave(p.id)}
 var RS={pid:null,per:7};
-var RDESC={quique:"phrases justes du premier coup",phrase:"mots bien écrits du premier coup",calcul:"opérations justes du premier coup",telephone:"nombres composés justes du premier coup",article:"articles justes du premier coup",mot:"mots trouvés du premier coup",code:"codes trouvés en 5 essais ou moins",robot:"programmes réussis (chaque essai raté compte)",note:"notes reconnues du premier coup"};
+var RDESC={quique:"phrases justes du premier coup",phrase:"mots bien écrits du premier coup",calcul:"opérations justes du premier coup",telephone:"nombres composés justes du premier coup",article:"articles justes du premier coup",mot:"mots trouvés du premier coup",code:"codes trouvés en 5 essais ou moins",robot:"programmes réussis (chaque essai raté compte)",boucles:"programmes réussis (chaque essai raté compte)",reparateur:"programmes réparés (chaque essai raté compte)",chenille:"perles trouvées du premier coup",note:"notes reconnues du premier coup"};
 function rKind(g,k){if(g==="calcul")return{add:"Additions",sub:"Soustractions",comp:"Compléments"}[k]||k;if(g==="telephone")return k+" à "+(+k+9);if(g==="mot")return"Leçon "+String(k).slice(1);return k}
 function rCls(o,t){if(!t)return"";var x=o/t;return x>=.9?"g":x>=.75?"g":x>=.6?"y":"r"}
 function rVerdict(o,t){if(t<10)return'<span class="rs-v n">Peu de réponses</span>';var x=o/t;
@@ -734,7 +740,7 @@ function upd(f){f(E());saveP();renderProfil()}
 $("p-name").oninput=function(){var v=this.value.trim().slice(0,20);upd(function(p){p.name=v})};
 $("p-use").onclick=function(){PR.active=EDIT;saveP();renderProfil()};
 $("p-del").onclick=function(){var p=E();if(PR.list.length<2)return;if(!confirm("Supprimer le profil « "+pname(p)+" » et ses étoiles ?"))return;
- PR.list=PR.list.filter(function(x){return x.id!==p.id});if(PR.active===p.id)PR.active=PR.list[0].id;["robot_lvl","robot_best","stats"].forEach(function(k){try{localStorage.removeItem(k+"@"+p.id)}catch(e){}});delete STC[p.id];saveP();back()};
+ PR.list=PR.list.filter(function(x){return x.id!==p.id});if(PR.active===p.id)PR.active=PR.list[0].id;["robot_lvl","robot_best","stats","chenille_lvl","chenille_best","boucles_lvl","boucles_best","reparateur_lvl","reparateur_best"].forEach(function(k){try{localStorage.removeItem(k+"@"+p.id)}catch(e){}});delete STC[p.id];saveP();back()};
 $("p-money").onchange=function(){var v=this.checked;upd(function(p){p.reward=v})};
 $("p-unit").oninput=function(){var v=this.value.trim();if(v)upd(function(p){p.unit=v})};
 $("p-unit").onblur=function(){if(!this.value.trim())this.value=E().unit};
@@ -749,7 +755,8 @@ $("p-mo0").onclick=function(){if(!E().money||!confirm("Remettre la récompense �
 $("p-add").onclick=function(){var v=amt();if(!(v>0))return;$("p-mov").value="";upd(function(p){p.money=r2(p.money+v)})};
 $("p-sub").onclick=function(){var v=amt();if(!(v>0))return;$("p-mov").value="";upd(function(p){p.money=r2(Math.max(0,p.money-v))})};
 /* progression : jeux avec des niveaux (pour l'instant le petit robot) */
-var PROGRESS=[{n:"🤖 Le petit robot",keys:["robot_lvl","robot_best"],info:function(id){return "niveau "+(parseInt(ls("robot_lvl@"+id))||1)+" (record : "+(parseInt(ls("robot_best@"+id))||1)+")"}}];
+function lvInfo(k){return function(id){return "niveau "+(parseInt(ls(k+"_lvl@"+id))||1)+" (record : "+(parseInt(ls(k+"_best@"+id))||1)+")"}}
+var PROGRESS=[{n:"🐛 La chenille des couleurs",keys:["chenille_lvl","chenille_best"],info:lvInfo("chenille")},{n:"🤖 Le petit robot",keys:["robot_lvl","robot_best"],info:lvInfo("robot")},{n:"🔁 Le robot qui répète",keys:["boucles_lvl","boucles_best"],info:lvInfo("boucles")},{n:"🔧 Le robot réparateur",keys:["reparateur_lvl","reparateur_best"],info:lvInfo("reparateur")}];
 function renderProgress(){var h="";PR.list.forEach(function(p){h+='<div class="card"><h3>👤 '+esc(pname(p))+'</h3>';
  PROGRESS.forEach(function(g,gi){h+='<div class="row"><span class="grow">'+g.n+'<br><span class="muted">'+g.info(p.id)+'</span></span><button class="btn danger" data-reset="'+gi+'" data-pid="'+p.id+'">Recommencer</button></div>'});h+="</div>"});
  $("proglist").innerHTML=h}
@@ -818,7 +825,7 @@ function show(h){
  if(pendingReload&&!GAMES[h]){location.reload();return}
  document.querySelectorAll(".view").forEach(function(v){v.classList.remove("on")});
  renderPurse();
- if(GAMES[h]){var g=GAMES[h];ensureEcon(prof()).streak=0;lastDiff=1;ecoOff=false;timeUp=false;clearTimeout(graceT);lastAct=Date.now();$("v-"+g.subj).classList.add("on");$("ptitle").textContent=g.t;$("play").classList.add("on");var tok=++loadTok;setFrame(null);load(g.app).then(function(t){if(tok===loadTok)setFrame(src(g,t))},function(){if(tok===loadTok)setFrame("<p style=\"font:20px sans-serif;padding:20px\">Impossible de charger le jeu. Vérifie la connexion puis réessaie.</p>")});return}
+ if(GAMES[h]){var g=GAMES[h];ensureEcon(prof()).streak=0;lastDiff=1;ecoOff=false;timeUp=false;clearTimeout(graceT);lastAct=Date.now();$("v-"+g.subj).classList.add("on");$("ptitle").textContent=g.t;$("play").classList.add("on");renderEco();var tok=++loadTok;setFrame(null);load(g.app).then(function(t){if(tok===loadTok)setFrame(src(g,t))},function(){if(tok===loadTok)setFrame("<p style=\"font:20px sans-serif;padding:20px\">Impossible de charger le jeu. Vérifie la connexion puis réessaie.</p>")});return}
  stopGame();
  ($("v-"+h)||$("v-home")).classList.add("on");
  if(h==="profil")renderProfilScreen();

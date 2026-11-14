@@ -31,6 +31,12 @@ header{display:flex;align-items:center;gap:10px}
 #prog span{width:42px;height:42px;border-radius:12px;background:var(--cell);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;color:var(--lo)}
 #prog span.run{background:var(--lo);color:#fff}
 #prog span.ko{background:var(--bad);color:#fff}
+#prog span{position:relative}#prog span.wide{width:auto;padding:0 8px;gap:2px}#prog span b{font-size:19px;color:var(--ok)}
+#prog span.run b,#prog span.ko b{color:#fff}
+#prog span.sel{outline:4px solid #ffb020;outline-offset:1px}
+body.rep #prog span{cursor:pointer;width:50px;height:50px}
+.reps{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+.reps button{height:58px;border:3px solid var(--ok);border-radius:18px;background:var(--card);color:var(--ok);font-size:26px;font-weight:700}
 .arrows{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .arrows button{height:70px;border:0;border-radius:18px;background:var(--lo);color:#fff;font-size:38px;font-weight:700;box-shadow:0 5px 0 #6c43d1}
 .arrows button:active{transform:translateY(3px);box-shadow:0 2px 0 #6c43d1}
@@ -58,6 +64,7 @@ button:disabled{opacity:.4}
 <div id="prog"></div>
 <div id="edit">
   <div class="arrows"><button data-d="L" aria-label="Gauche">←</button><button data-d="U" aria-label="Haut">↑</button><button data-d="D" aria-label="Bas">↓</button><button data-d="R" aria-label="Droite">→</button></div>
+  <div class="reps" id="reps" hidden><button data-n="2">×2</button><button data-n="3">×3</button><button data-n="4">×4</button></div>
   <div class="acts" style="margin-top:8px"><button id="del" aria-label="Effacer la dernière flèche">⌫</button><button id="clr" aria-label="Tout effacer">🗑️</button><button id="go" aria-label="Lancer">▶ Go</button></div>
 </div>
 <div id="after" hidden><div class="acts"><button id="next">Niveau suivant ➜</button></div></div>
@@ -73,10 +80,13 @@ button:disabled{opacity:.4}
 (function(){
 var $=function(i){return document.getElementById(i)};
 var DIR={L:[-1,0],R:[1,0],U:[0,-1],D:[0,1]},ARW={L:"←",R:"→",U:"↑",D:"↓"},MAXP=24;
+// 3 modes : robot (flèches), boucles (×2 ×3 ×4 et nombre de briques limité), reparateur (corriger un programme)
+var MODE=window.START==2?"boucles":window.START==3?"reparateur":"robot",LOOP=MODE==="boucles",FIX=MODE==="reparateur";
+var maxB=MAXP,orig="",sel=-1;
 // progression propre à chaque profil (identifiant fourni par l'accueil)
-var PK=window.PROFILE?"@"+window.PROFILE:"";
+var PK=window.PROFILE?"@"+window.PROFILE:"",KL=MODE+"_lvl",KB=MODE+"_best";
 function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
-var level=Math.max(1,parseInt(ls("robot_lvl"+PK))||1),best=Math.max(level,parseInt(ls("robot_best"+PK))||1);
+var level=Math.max(1,parseInt(ls(KL+PK))||1),best=Math.max(level,parseInt(ls(KB+PK))||1);
 var N,rocks,start,goal,prog=[],running=false,fails=0,done=false;
 
 /* sons et voix */
@@ -86,13 +96,30 @@ var voice=null;function pick(){try{voice=speechSynthesis.getVoices().filter(func
 if(window.speechSynthesis){pick();speechSynthesis.onvoiceschanged=pick}
 function say(t){try{if(!window.speechSynthesis)return;speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.lang="fr-FR";if(voice)u.voice=voice;u.rate=.9;speechSynthesis.speak(u)}catch(e){}}
 // Étoiles : niveau réussi du premier coup = série ; chaque échec casse la série ; les grands niveaux comptent plus
-function answer(ok,q){var d=level<=3?1:level<=8?1.5:2;try{if(parent!==window)parent.postMessage({type:"answer",game:"robot",ok:ok,diff:d,q:q==null?1:q,k:level<=3?"Niveaux 1 à 3":level<=8?"Niveaux 4 à 8":"Niveaux 9 et +"},"*")}catch(e){}}
+function answer(ok,q){var d=level<=3?1:level<=8?1.5:2;try{if(parent!==window)parent.postMessage({type:"answer",game:MODE,ok:ok,diff:d,q:q==null?1:q,k:level<=3?"Niveaux 1 à 3":level<=8?"Niveaux 4 à 8":"Niveaux 9 et +"},"*")}catch(e){}}
 
 /* génération d'un niveau toujours faisable */
 function key(x,y){return x+","+y}
 function shortest(){var q=[[start[0],start[1],0]],seen={};seen[key(start[0],start[1])]=1;
  while(q.length){var p=q.shift();if(p[0]===goal[0]&&p[1]===goal[1])return p[2];
   for(var d in DIR){var x=p[0]+DIR[d][0],y=p[1]+DIR[d][1],k=key(x,y);if(x<0||y<0||x>=N||y>=N||rocks[k]||seen[k])continue;seen[k]=1;q.push([x,y,p[2]+1])}}return -1}
+function path(){var q=[[start[0],start[1]]],prev={};prev[key(start[0],start[1])]="";
+ while(q.length){var p=q.shift(),pk=key(p[0],p[1]);if(p[0]===goal[0]&&p[1]===goal[1]){var r=[],k=pk;while(prev[k]){r.unshift(prev[k][0]);k=prev[k].slice(1)}return r}
+  for(var d in DIR){var x=p[0]+DIR[d][0],y=p[1]+DIR[d][1],k2=key(x,y);if(x<0||y<0||x>=N||y>=N||rocks[k2]||prev[k2]!==undefined)continue;prev[k2]=d+pk;q.push([x,y])}}return null}
+// nombre minimum de briques (une brique = 1 à 4 pas tout droit)
+function minBlocks(){var q=[[start[0],start[1],0]],seen={};seen[key(start[0],start[1])]=1;
+ while(q.length){var p=q.shift();if(p[0]===goal[0]&&p[1]===goal[1])return p[2];
+  for(var d in DIR)for(var k=1;k<=4;k++){var x=p[0]+DIR[d][0]*k,y=p[1]+DIR[d][1]*k,kk=key(x,y);if(x<0||y<0||x>=N||y>=N||rocks[kk])break;if(!seen[kk]){seen[kk]=1;q.push([x,y,p[2]+1])}}}return -1}
+// simule un programme : true si le robot arrive sur l'étoile
+function works(pr){var x=start[0],y=start[1];for(var i=0;i<pr.length;i++)for(var j=0;j<pr[i].n;j++){var d=DIR[pr[i].d];x+=d[0];y+=d[1];if(x<0||y<0||x>=N||y>=N||rocks[key(x,y)])return false;if(x===goal[0]&&y===goal[1])return true}return false}
+function genLoop(n){N=n<=2?5:n<=6?6:7;var nr=n<=2?0:Math.min(n,N*N/4|0),lo=n<=2?1:n<=5?2:n<=9?3:4,hi=lo+1,slack=n<=3?1:0;
+ for(var t=0;t<4000;t++){rocks={};var r=function(){return Math.floor(Math.random()*N)};start=[r(),r()];goal=[r(),r()];if(key(start[0],start[1])===key(goal[0],goal[1]))continue;
+  for(var i=0;i<nr;i++){var x=r(),y=r(),k=key(x,y);if(k!==key(start[0],start[1])&&k!==key(goal[0],goal[1]))rocks[k]=1}
+  var b=minBlocks();if(b<lo||b>hi)continue;maxB=b+slack;if(shortest()>=maxB+2)return}
+ maxB=minBlocks()+1}
+function genFix(n){for(var t=0;t<200;t++){gen(n+1);var p=path();if(!p||p.length<2)continue;var pr=p.map(function(d){return{d:d,n:1}}),bugs=n<=6?1:2,ok=true;
+  for(var b=0;b<bugs;b++){var i=Math.floor(Math.random()*pr.length),o=Object.keys(DIR).filter(function(d){return d!==pr[i].d});pr[i]={d:o[Math.floor(Math.random()*3)],n:1}}
+  if(!works(pr)){prog=pr;orig=JSON.stringify(pr);return}}}
 function gen(n){
  N=n<=3?4:n<=8?5:6;
  var nr=n<=2?0:Math.min(n-1,N*N/3|0),minL=Math.min(n+1,N*2+2),maxL=minL+3;
@@ -110,39 +137,44 @@ function drawGrid(){
  var g=$("grid"),h="";g.style.gridTemplateColumns="repeat("+N+",1fr)";g.style.setProperty("--fs",(N<=4?44:N===5?36:30)+"px");
  for(var y=0;y<N;y++)for(var x=0;x<N;x++){var k=key(x,y);h+='<div class="c" data-k="'+k+'">'+(rocks[k]?"🪨":(x===goal[0]&&y===goal[1])?"⭐":"")+"</div>"}
  g.innerHTML=h+'<div id="bot">🤖</div>';requestAnimationFrame(function(){$("bot").style.transition="none";placeBot(start[0],start[1]);void $("bot").offsetWidth;$("bot").style.transition=""})}
-function drawProg(cur,ko){$("prog").innerHTML=prog.map(function(d,i){return '<span class="'+(i===ko?"ko":i===cur?"run":"")+'">'+ARW[d]+"</span>"}).join("");refresh()}
-function refresh(){var b=running||done;document.querySelectorAll(".arrows button").forEach(function(x){x.disabled=b||prog.length>=MAXP});$("del").disabled=b||!prog.length;$("clr").disabled=b||!prog.length;$("go").disabled=b||!prog.length}
+function drawProg(cur,ko){$("prog").innerHTML=prog.map(function(b,i){return '<span data-i="'+i+'" class="'+(i===ko?"ko":i===cur?"run":i===sel?"sel":"")+(b.n>1?" wide":"")+'">'+ARW[b.d]+(b.n>1?"<b>×"+b.n+"</b>":"")+"</span>"}).join("");refresh()}
+function refresh(){var b=running||done;document.querySelectorAll(".arrows button").forEach(function(x){x.disabled=b||(MODE==="robot"&&prog.length>=maxB)});$("del").disabled=b||!prog.length;$("clr").disabled=b||!prog.length;$("go").disabled=b||!prog.length;
+ document.querySelectorAll(".reps button").forEach(function(x){x.disabled=b||!prog.length;x.style.background=prog.length&&prog[prog.length-1].n===+x.dataset.n?"var(--ok)":"";x.style.color=prog.length&&prog[prog.length-1].n===+x.dataset.n?"#fff":""});
+ if(LOOP)$("hint").textContent="Briques : "+prog.length+" / "+maxB+" · répète avec ×2 ×3 ×4"}
 function msg(t){$("msg").textContent=t}
-function newLevel(){gen(level);prog=[];fails=0;done=false;running=false;$("lvlb").textContent="Niveau "+level;$("edit").hidden=false;$("after").hidden=true;
- msg("");drawGrid();drawProg()}
+function newLevel(){prog=[];sel=-1;if(LOOP)genLoop(level);else if(FIX)genFix(level);else gen(level);fails=0;done=false;running=false;$("lvlb").textContent="Niveau "+level;$("edit").hidden=false;$("after").hidden=true;
+ msg(FIX?"Appuie sur ▶ pour voir l'erreur, touche la flèche fausse puis la bonne flèche.":LOOP&&level===1?"Mets une flèche puis ×3 pour la répéter 3 fois !":"");drawGrid();drawProg()}
 function keepVisible(){setTimeout(function(){var w=$("wrap"),el=done?$("after"):$("edit"),r=el.getBoundingClientRect();if(r.bottom>w.clientHeight)w.scrollBy({top:r.bottom-w.clientHeight+12,behavior:"smooth"})},60)}
 
 /* exécution */
 function run(){
  if(running||!prog.length)return;running=true;refresh();msg("");
  document.querySelectorAll(".c.t").forEach(function(c){c.classList.remove("t")});
- var x=start[0],y=start[1],i=0;placeBot(x,y);
+ var x=start[0],y=start[1],i=0,S=[];sel=-1;prog.forEach(function(b,bi){for(var j=0;j<b.n;j++)S.push(bi)});placeBot(x,y);
  function step(){
-  if(i>=prog.length){finish(x===goal[0]&&y===goal[1],-1);return}
-  drawProg(i);var d=DIR[prog[i]],nx=x+d[0],ny=y+d[1];
-  if(nx<0||ny<0||nx>=N||ny>=N||rocks[key(nx,ny)]){var b=$("bot");b.classList.remove("bump");void b.offsetWidth;b.classList.add("bump");tone(160,0,.25,.25);drawProg(-1,i);
+  if(i>=S.length){finish(x===goal[0]&&y===goal[1],-1);return}
+  drawProg(S[i]);var d=DIR[prog[S[i]].d],nx=x+d[0],ny=y+d[1];
+  if(nx<0||ny<0||nx>=N||ny>=N||rocks[key(nx,ny)]){var b=$("bot");b.classList.remove("bump");void b.offsetWidth;b.classList.add("bump");tone(160,0,.25,.25);drawProg(-1,S[i]);
    msg(rocks[key(nx,ny)]?"Oups ! Le robot s'est cogné contre un rocher.":"Oups ! Le robot est sorti du chemin.");say("Oups !");setTimeout(function(){reset()},1300);return}
   var c=document.querySelector('.c[data-k="'+key(x,y)+'"]');if(c)c.classList.add("t");
   x=nx;y=ny;placeBot(x,y);tone(500+i*25,0,.08,.12);i++;
-  if(x===goal[0]&&y===goal[1]&&i<prog.length){setTimeout(function(){finish(true,i)},380);return}
+  if(x===goal[0]&&y===goal[1]&&i<S.length){setTimeout(function(){finish(true,i)},380);return}
   setTimeout(step,420)}
  setTimeout(step,250)}
 function finish(ok,extra){
  if(ok){done=true;running=false;var b=$("bot");b.classList.add("win");[523,659,784,1047].forEach(function(f,k){tone(f,k*.1,.25,.22)});
   answer(true,fails===0?1:.5);msg(fails===0?"🎉 Bravo ! Du premier coup !":"🎉 Bravo, tu as réussi !");say("Bravo !");
-  level++;best=Math.max(best,level);ls("robot_lvl"+PK,level);ls("robot_best"+PK,best);
+  level++;best=Math.max(best,level);ls(KL+PK,level);ls(KB+PK,best);
   $("edit").hidden=true;$("after").hidden=false;refresh();keepVisible();try{if(parent!==window)parent.postMessage({type:"roundEnd"},"*")}catch(e){}}
  else{tone(260,0,.3,.18);msg("Le robot n'est pas arrivé sur l'étoile. Essaie encore !");setTimeout(reset,1300)}}
-function reset(){fails++;answer(false);running=false;var b=$("bot");b.classList.remove("bump");b.style.transition="none";placeBot(start[0],start[1]);void b.offsetWidth;b.style.transition="";
+function reset(){if(!FIX||JSON.stringify(prog)!==orig){fails++;answer(false)}running=false;var b=$("bot");b.classList.remove("bump");b.style.transition="none";placeBot(start[0],start[1]);void b.offsetWidth;b.style.transition="";
  document.querySelectorAll(".c.t").forEach(function(c){c.classList.remove("t")});drawProg()}
 
 /* commandes */
-document.querySelector(".arrows").addEventListener("click",function(e){var b=e.target.closest("button");if(!b||running||done||prog.length>=MAXP)return;tone(700,0,.05,.1);prog.push(b.dataset.d);msg("");drawProg()});
+document.querySelector(".arrows").addEventListener("click",function(e){var b=e.target.closest("button");if(!b||running||done)return;tone(700,0,.05,.1);if(FIX){if(sel<0){msg("Touche d'abord la flèche à changer dans le programme.");return}prog[sel]={d:b.dataset.d,n:1};sel=-1;msg("");drawProg();return}
+ if(prog.length>=maxB){msg("Plus de brique ! Utilise ×2 ×3 ×4.");return}prog.push({d:b.dataset.d,n:1});msg("");drawProg()});
+$("reps").addEventListener("click",function(e){var b=e.target.closest("button");if(!b||running||done||!prog.length)return;var l=prog[prog.length-1],n=+b.dataset.n;l.n=l.n===n?1:n;tone(820,0,.06,.1);msg("");drawProg()});
+$("prog").addEventListener("click",function(e){var b=e.target.closest("[data-i]");if(!FIX||!b||running||done)return;sel=+b.dataset.i===sel?-1:+b.dataset.i;tone(600,0,.05,.1);msg(sel<0?"":"Choisis la bonne flèche.");drawProg()});
 $("del").onclick=function(){if(running||done)return;prog.pop();msg("");drawProg()};
 $("clr").onclick=function(){if(running||done)return;prog=[];msg("");drawProg()};
 $("go").onclick=run;
@@ -151,8 +183,11 @@ window.addEventListener("resize",function(){if(!running)placeBot(start[0],start[
 /* choix du niveau (parmi ceux déjà atteints) */
 function lvls(){var h="";for(var i=1;i<=best;i++)h+='<button data-l="'+i+'" class="'+(i===level?"on":"")+'">'+i+"</button>";$("lvls").innerHTML=h}
 $("lvlb").onclick=function(){if(running)return;lvls();$("sheet").hidden=false};
-$("lvls").addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;level=+b.dataset.l;ls("robot_lvl"+PK,level);$("sheet").hidden=true;newLevel()});
+$("lvls").addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;level=+b.dataset.l;ls(KL+PK,level);$("sheet").hidden=true;newLevel()});
 $("close").onclick=function(){$("sheet").hidden=true};
+if(LOOP)$("reps").hidden=false;
+if(FIX){document.body.classList.add("rep");$("del").hidden=$("clr").hidden=true;$("hint").textContent="Le programme a une erreur : répare-le ! 🔧"}
+if(!LOOP&&!FIX)maxB=MAXP;
 newLevel();
 })();
 // Bouton retour du téléphone : ferme d'abord le choix du niveau
