@@ -88,9 +88,9 @@ function voiceFor(l){try{return speechSynthesis.getVoices().filter(function(v){r
 function say(t,l){try{if(!window.speechSynthesis)return;speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.lang=l==="de"?"de-DE":"fr-FR";var v=voiceFor(l||"fr");if(v)u.voice=v;u.rate=.9;speechSynthesis.speak(u)}catch(e){}}
 if(window.speechSynthesis)speechSynthesis.onvoiceschanged=function(){};
 
-// Étoiles : paire trouvée = bonne réponse ; erreur de mémoire = la carte jumelle avait déjà été vue
+// Étoiles : jeu en partie de hasard → pas de série ni d'erreur ; on gagne des étoiles en terminant la partie (selon le nombre de paires)
 function diff(){return (LV[level].p<=4?1:LV[level].p===6?1.25:LV[level].p===8?1.5:2)+(mode==="de"?.25:0)}
-function answer(ok){try{if(parent!==window)parent.postMessage({type:"answer",game:"memory",ok:ok,diff:diff(),k:LV[level].p+" paires"+(mode==="de"?" · allemand":"")},"*")}catch(e){}}
+function finish(){try{if(parent!==window)parent.postMessage({type:"finish",game:"memory",n:LV[level].p,diff:diff(),k:LV[level].p+" paires"+(mode==="de"?" · allemand":"")},"*")}catch(e){}}
 
 var cards,open=[],lock=false,moves=0,found=0,seen={};
 function wordsPool(){var sel=typeof deSelected==="function"?deSelected("mem",window.PROFILE):[];
@@ -113,18 +113,14 @@ $("board").addEventListener("click",function(e){var b=e.target.closest(".cd");if
  if(mode==="de"&&/class="w"/.test(c.h))say(c.say,"de");
  if(open.length<2)return;
  moves++;lock=true;var a=open[0],d=open[1];
- if(a.id===d.id){a.done=d.done=true;found++;answer(true);
+ if(a.id===d.id){a.done=d.done=true;found++;
   setTimeout(function(){[a,d].forEach(function(x){var q=el(x.i);q.classList.remove("up");q.classList.add("ok")});tone(660,0,.12,.2);tone(880,.1,.18,.2);if(mode==="de")say(a.say,"de");open=[];lock=false;stat();if(found===LV[level].p)win()},450)}
  else{
-  // erreur de mémoire : la jumelle d'une des deux cartes avait déjà été retournée
-  var twin=function(x){return cards.some(function(y){return y!==x&&y.id===x.id&&seen[y.i]})};
-  if(twin(a)||twin(d))answer(false);
   seen[a.i]=seen[d.i]=1;
-  setTimeout(function(){[a,d].forEach(function(x){el(x.i).classList.add("ko")})},350);
-  setTimeout(function(){[a,d].forEach(function(x){var q=el(x.i);q.classList.remove("up","ko")});open=[];lock=false;stat()},1300)}
+  setTimeout(function(){[a,d].forEach(function(x){var q=el(x.i);q.classList.remove("up")});open=[];lock=false;stat()},1200)}
  seen[c.i]=1;stat()});
-function win(){var P=LV[level].p,good=moves<=Math.round(P*1.6)+1;
- $("msg").textContent=good?"🎉 Bravo ! Super mémoire : "+moves+" coups !":"🎉 Bravo ! Trouvé en "+moves+" coups.";say(good?"Super mémoire !":"Bravo !");
+function win(){finish();
+ $("msg").textContent="🎉 Bravo ! Toutes les paires sont trouvées ("+moves+" coups).";say("Bravo !");
  [523,659,784,1047].forEach(function(f,k){tone(f,k*.1,.25,.22)});
  if(level<MAXL){var best=Math.max(parseInt(ls("memory_best"+PK))||1,level+1);ls("memory_best"+PK,best)}
  $("next").hidden=level>=MAXL;$("after").hidden=false;

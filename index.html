@@ -464,7 +464,7 @@ var GAMES={
  boucles:{t:"Le robot qui répète",app:"robot",start:2,subj:"logique",eco:"boucles"},
  reparateur:{t:"Le robot réparateur",app:"robot",start:3,subj:"logique",eco:"reparateur"},
  note:{t:"Trouve la note",app:"musique",subj:"musique",eco:"note"},
- memory:{t:"Memory",app:"memory",subj:"memoire",eco:"memory"},
+ memory:{t:"Memory",app:"memory",subj:"memoire",eco:"memory",luck:1}, // luck : jeu en partie de hasard → pas de série 🔥, étoiles à la fin de la partie
  courses:{t:"Die Einkaufsliste",app:"courses",subj:"memoire",eco:"courses"},
  morpion:{t:"Morpion",app:"morpion",subj:"jeux"},
  schreib:{t:"Schreib das Wort",app:"deutsch",start:3,subj:"allemand",eco:"sdw"},
@@ -544,7 +544,7 @@ function money(v,p){p=p||prof();v=r2(v);return v.toLocaleString("fr-FR",v%1?{min
    Les jeux envoient {type:"answer", game, ok, diff, q} à chaque réponse.
    Points = P(jeu) × difficulté × palier de série (×1, ×2 dès 5, ×3 dès 10) × qualité ; 10 points = 1 ⭐.
    Barème : objectif (min/jour) × 7 jours ≈ autant d'étoiles = maximum €/semaine ; le surplus est reporté. */
-var ECON={P:{calcul:.7,telephone:.9,dde:.5,fdw:.5,quique:1.1,phrase:1.1,note:.5,code:7,robot:5,boucles:6,reparateur:4,chenille:.8,memory:.6,courses:2.5,conj:.8,nombre:.6,sdw:1.1},PTS:10};
+var ECON={P:{calcul:.7,telephone:.9,dde:.5,fdw:.5,quique:1.1,phrase:1.1,note:.5,code:7,robot:5,boucles:6,reparateur:4,chenille:.8,memory:1,courses:2.5,conj:.8,nombre:.6,sdw:1.1},PTS:10};
 function tierOf(st){return st>=10?3:st>=5?2:1}
 function pad(n){return(n<10?"0":"")+n}
 function dkey(d){d=d||new Date();return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())}
@@ -577,7 +577,7 @@ function renderPurse(bump){var p=prof(),E=ensureEcon(p),d=today(p),w=weekSum(p,E
 var lastDiff=1,lastAct=0;
 function renderEco(){var p=prof(),E=ensureEcon(p),t=tierOf(E.streak),g=GAMES[cur]&&ECON.P[GAMES[cur].eco]!=null;
  $("eco").hidden=!g||noStars();$("pstars").hidden=!!(GAMES[cur]&&GAMES[cur].subj==="jeux");var s=$("pstreak");
- s.className=E.streak?(t===3?"t3":t===2?"t2":""):"off";
+ s.hidden=!!(GAMES[cur]&&GAMES[cur].luck);s.className=E.streak?(t===3?"t3":t===2?"t2":""):"off";
  s.innerHTML=(t===3?"🔥🔥🔥":t===2?"🔥🔥":"🔥")+" "+E.streak+(t>1?'<span class="x">×'+t+"</span>":"");
  $("pgauge").firstChild.style.width=Math.min(100,E.gauge/ECON.PTS*100)+"%";
  $("pdiff").textContent=lastDiff>1?"⭐×"+String(r2(lastDiff)).replace(".",","):"";document.body.classList.toggle("ecoon",g)}
@@ -620,7 +620,9 @@ function renderResults(){RS.pid=prof(EDIT).id;var p=prof(RS.pid),S=st(p.id),per=
  $("rs-per").innerHTML=[[7,"7 jours"],[30,"30 jours"],[0,"Depuis le début"]].map(function(x){return '<button data-per="'+x[0]+'" class="'+(x[0]===per?"on":"")+'">'+x[1]+"</button>"}).join("");
  var to=dkey(),from=per?dayOff(per-1):"0000",pf=per?dayOff(2*per-1):"",pt=per?dayOff(per):"";
  var h='<div class="muted">Résultats de <b>'+esc(pname(p))+"</b>, enregistrés depuis le "+new Date(S.since+"T12:00:00").toLocaleDateString("fr-FR")+". La réussite compte les réponses justes <b>du premier coup</b>.</div>",n=0,sum={g:[],y:[],r:[]};
- Object.keys(GAMES).forEach(function(g){var G=S.g[g];if(!G)return;var r=rSum(G,from,to);if(!r.tot&&r.sec<30)return;n++;if(RDESC[g]&&r.tot>=10){var x=r.ok/r.tot;sum[x>=.75?"g":x>=.6?"y":"r"].push(GAMES[g].t)}
+ Object.keys(GAMES).forEach(function(g){var G=S.g[g];if(!G)return;var r=rSum(G,from,to);if(!r.tot&&r.sec<30)return;n++;if(RDESC[g]&&!GAMES[g].luck&&r.tot>=10){var x=r.ok/r.tot;sum[x>=.75?"g":x>=.6?"y":"r"].push(GAMES[g].t)}
+  if(GAMES[g].luck){var lk=Object.keys(r.k).sort(function(a,b){return parseInt(a)-parseInt(b)});
+   h+='<div class="card"><div class="rs-g"><h3>'+esc(GAMES[g].t)+'</h3></div><div><span class="rs-pct">'+r.tot+'</span> <span class="muted">partie'+(r.tot>1?"s":"")+" terminée"+(r.tot>1?"s":"")+" (jeu en partie de hasard : pas de note)</span></div>"+'<div class="muted">⏱️ '+fmtMin(r.sec)+" · "+r.days+" jour"+(r.days>1?"s":"")+" d'activité</div>"+(lk.length?'<div class="rs-k">'+lk.map(function(k){return"<span>"+esc(k)+" : "+r.k[k][1]+"</span>"}).join("")+"</div>":"")+"</div>";return}
   var c='<div class="card"><div class="rs-g"><h3>'+esc(GAMES[g].t)+"</h3>"+(RDESC[g]?rVerdict(r.ok,r.tot):"")+"</div>";
   if(RDESC[g]&&r.tot){c+='<div><span class="rs-pct">'+Math.round(r.ok/r.tot*100)+' %</span> <span class="muted">'+r.ok+" / "+r.tot+" "+RDESC[g]+"</span></div>";
    if(per){var pr=rSum(G,pf,pt);if(pr.tot>=5){var dl=Math.round(r.ok/r.tot*100)-Math.round(pr.ok/pr.tot*100);c+='<div class="muted">'+(dl>=3?"↗️ En progrès : +"+dl:dl<=-3?"↘️ En baisse : "+dl:"➡️ Stable : "+(dl>0?"+":"")+dl)+" points par rapport aux "+per+" jours d'avant</div>"}}}
@@ -646,6 +648,12 @@ function isAdult(p){var a=ageOf(p);return a!=null&&a>=18}
 function classAuto(p){if(!p.birth)return null;var n=new Date(),y=n.getMonth()>=8?n.getFullYear():n.getFullYear()-1,i=y-(+p.birth.slice(0,4))-3;return i<0?null:CLASSES[Math.min(i,CLASSES.length-1)]}
 function classOf(p){return isAdult(p)?null:(p.cls||classAuto(p))}
 function ageBonus(p,g){var c=classOf(p),t=AGEBONUS[g];return(t&&c&&t[c])||1}
+/* Jeux en partie de hasard (GAMES[x].luck, ex. Memory) : ni série 🔥 ni erreur ; on gagne des étoiles en terminant la partie.
+   Le jeu envoie {type:"finish", game, n (taille de la partie, ex. nombre de paires), diff} ; points = P × n × difficulté. */
+function onFinish(m){if(noStars())return;var p=prof(),E=ensureEcon(p),P=ECON.P[m.game];if(P==null)return;rollWeek(p);
+ var d=today(p),diff=Math.max(1,Math.min(3,(+m.diff||1)*ageBonus(p,cur))),n=0;lastDiff=diff;lastAct=Date.now();
+ E.gauge=r2(E.gauge+P*(+m.n||1)*diff);while(E.gauge>=ECON.PTS){E.gauge=r2(E.gauge-ECON.PTS);n++}
+ if(n){p.stars+=n;d.st+=n;toast("+"+n+" ⭐",2000)}saveP();renderPurse(n>0)}
 function addStars(n){onAnswer({game:"calcul",ok:true})} // ancien message {type:"stars"} (compatibilité)
 // temps de jeu : un jeu ouvert et une réponse dans les 90 dernières secondes
 /* ---------- Temps de jeu limité par rapport à l'apprentissage ----------
@@ -916,7 +924,8 @@ window.addEventListener("message",function(e){
  if(e.data==="hub-back")back();
  else if(e.data&&e.data.type==="eco"){ecoOff=!e.data.on;renderEco()}
  else if(e.data&&e.data.type==="roundEnd"){if(timeUp){clearTimeout(graceT);graceT=setTimeout(endPlay,2500)}}
- else if(e.data&&e.data.type==="answer"){recordStat(e.data);onAnswer(e.data)}
+ else if(e.data&&e.data.type==="answer"){if(GAMES[cur]&&GAMES[cur].luck)return;recordStat(e.data);onAnswer(e.data)}
+ else if(e.data&&e.data.type==="finish"){recordStat({ok:true,k:e.data.k});onFinish(e.data)}
  else if(e.data&&e.data.type==="stars")addStars(e.data.n)});
 if(ls("bk_restored")){localStorage.removeItem("bk_restored");setTimeout(function(){var t=document.createElement("div");t.className="toast";t.style.animationDuration="4s";t.textContent="💾 Profils restaurés depuis config.json";document.body.appendChild(t);setTimeout(function(){t.remove()},4200)},400)}
 if(/[?&]maj=/.test(location.search)){try{history.replaceState(null,"",location.pathname+location.hash)}catch(e){}}
