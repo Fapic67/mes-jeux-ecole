@@ -30,7 +30,7 @@ Le but est d'en faire une **appli Android installable (APK)** et partageable à 
 - Migrations : ancienne cagnotte `rw`/`rw_cfg`/`hub_prenom` → premier profil `p1` ; ancienne cagnotte du Téléphone (`rw_mig`) ; `robot_lvl` → `robot_lvl@p1`.
 
 ## Âge, classe et bonus d'étoiles (dans `index.html`)
-- Fiche profil → carte « 🎂 Âge et classe » : `p.birth` (AAAA-MM-JJ, champ date) et `p.cls` (PS … Terminale ; vide = d'après l'âge : `classAuto` = année de la rentrée − année de naissance − 3, donc 6 ans dans l'année = CP). Adulte (`ageOf` ≥ 18) : la classe est masquée, pas de bonus.
+- Fiche profil → carte « 🎂 Âge et classe » : `p.birth` (stocké AAAA-MM-JJ ; saisi dans un champ texte **jj/mm/aaaa**, pavé numérique, « / » ajoutés tout seuls, enregistré quand la date est complète et valide — `birthIso` refuse 31/02, dates futures ou avant 1900 ; date incomplète ou impossible = message, l'ancienne date reste ; champ vidé puis quitté = date effacée) et `p.cls` (PS … Terminale ; vide = d'après l'âge : `classAuto` = année de la rentrée − année de naissance − 3, donc 6 ans dans l'année = CP). Adulte (`ageOf` ≥ 18) : la classe est masquée, pas de bonus.
 - `AGEBONUS[jeu][classe]` multiplie la difficulté dans `onAnswer` (plafond ×3) et le chip ⭐× dès l'ouverture du jeu. Pour l'instant seulement **Conjugue être et avoir** : PS/MS/GS ×2, CP ×1,5, CE1 ×1,25, ensuite ×1.
 
 ## Temps par jour (dans `index.html`)

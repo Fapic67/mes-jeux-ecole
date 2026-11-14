@@ -312,7 +312,8 @@ body.nomoney .home-mon{display:none!important}
     </div>
     <div class="card">
       <h3>🎂 Âge et classe</h3>
-      <label class="row"><span class="grow">Date de naissance</span><input class="field" id="p-birth" type="date" max="2100-12-31"></label>
+      <label class="row"><span class="grow">Date de naissance</span><input class="field" id="p-birth" type="text" inputmode="numeric" maxlength="10" placeholder="jj/mm/aaaa" autocomplete="off" style="width:190px;letter-spacing:1px"></label>
+      <div class="muted" id="p-birtherr" style="color:var(--ko)"></div>
       <label class="row" id="p-clsrow"><span class="grow">Classe</span><select class="field" id="p-cls"></select></label>
       <div class="muted" id="p-agetxt"></div>
     </div>
@@ -813,7 +814,7 @@ function renderProfil(){var p=prof(EDIT);if(p.id!==EDIT)EDIT=p.id;
  if(document.activeElement!==$("p-rate"))$("p-rate").value=p.rate;$("p-unit4").textContent=p.unit;
  $("p-ratetxt").textContent=p.rate+" ⭐ = 1 "+p.unit+" · maximum "+money(p.cap,p)+" par semaine, atteint avec "+target(p)+" ⭐ (≈ "+Math.round(target(p)/7)+" ⭐ par jour). Les séries et les niveaux difficiles font gagner plus vite ; les étoiles en trop sont reportées.";renderBilan(p);renderPlay(p);renderDaily(p);
  $("p-unit2").textContent=$("p-unit3").textContent=p.unit;
- if(document.activeElement!==$("p-birth"))$("p-birth").value=p.birth||"";
+ if(document.activeElement!==$("p-birth")){$("p-birth").value=p.birth?p.birth.slice(8,10)+"/"+p.birth.slice(5,7)+"/"+p.birth.slice(0,4):"";$("p-birtherr").textContent=""}
  var ad=isAdult(p),ag=ageOf(p),ca=classAuto(p);$("p-clsrow").hidden=ad;
  $("p-cls").innerHTML='<option value="">'+(ca?"D'après l'âge ("+ca+")":"Choisir…")+"</option>"+CLASSES.map(function(c){return '<option value="'+c+'"'+(p.cls===c?" selected":"")+">"+c+"</option>"}).join("");
  var bl=Object.keys(AGEBONUS).filter(function(g){return ageBonus(p,g)>1}).map(function(g){return GAMES[g].t+" ⭐×"+String(ageBonus(p,g)).replace(".",",")});
@@ -846,7 +847,14 @@ $("pl-ratio").addEventListener("click",function(e){var b=e.target.closest("[data
 $("pl-games").addEventListener("change",function(e){var g=e.target.dataset.g,v=e.target.checked;if(!g)return;upd(function(p){ensureEcon(p);var a=p.play.games.filter(function(x){return x!==g});if(v)a.push(g);p.play.games=a})});
 function E(){return prof(EDIT)}
 function upd(f){f(E());saveP();renderProfil()}
-$("p-birth").onchange=function(){var v=this.value;if(v&&!/^\d{4}-\d{2}-\d{2}$/.test(v))return;upd(function(p){p.birth=v})};
+// date de naissance saisie en jj/mm/aaaa : les « / » se placent tout seuls, enregistrement quand la date est complète et valide
+function birthIso(t){var m=/^(\d{2})\/(\d{2})\/(\d{4})$/.exec(t);if(!m)return null;var d=+m[1],mo=+m[2],y=+m[3],dt=new Date(y,mo-1,d);
+ if(dt.getFullYear()!==y||dt.getMonth()!==mo-1||dt.getDate()!==d||y<1900||dt>new Date())return null;return m[3]+"-"+m[2]+"-"+m[1]}
+$("p-birth").oninput=function(e){var el=this,del=e.inputType&&e.inputType.indexOf("delete")===0,d=el.value.replace(/\D/g,"").slice(0,8),v=d;
+ if(d.length>4)v=d.slice(0,2)+"/"+d.slice(2,4)+"/"+d.slice(4);else if(d.length>2)v=d.slice(0,2)+"/"+d.slice(2);
+ if(!del&&(d.length===2||d.length===4))v+="/";el.value=v;$("p-birtherr").textContent="";
+ if(d.length===8){var iso=birthIso(v);if(iso)upd(function(p){p.birth=iso});else $("p-birtherr").textContent="Date impossible : vérifie le jour, le mois et l'année."}};
+$("p-birth").onblur=function(){var d=this.value.replace(/\D/g,"");if(!d.length){upd(function(p){p.birth=""});return}if(d.length<8)$("p-birtherr").textContent="Date incomplète : écris jj/mm/aaaa (ex. 10/03/2020)."};
 $("p-cls").onchange=function(){var v=this.value;upd(function(p){p.cls=v})};
 $("p-name").oninput=function(){var v=this.value.trim().slice(0,20);upd(function(p){p.name=v})};
 $("p-use").onclick=function(){PR.active=EDIT;saveP();renderProfil()};
