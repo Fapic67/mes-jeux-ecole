@@ -215,6 +215,7 @@ body.rw-shop #purse{display:none!important}
 .panel h2{margin:0;font-size:28px;display:flex;align-items:center;justify-content:space-between}
 .card{background:var(--card);border:var(--bw) solid var(--line);border-radius:22px;padding:16px;display:flex;flex-direction:column;gap:12px}
 .card h3{margin:0;font-size:21px}
+.fa-code{font:700 30px "Fredoka",sans-serif;letter-spacing:3px;text-align:center;padding:10px;border:3px dashed var(--line);border-radius:16px;user-select:all}
 /* Bilan : temps par jeu (barres, défilement horizontal) et réussite par matière (courbes + compétences) */
 .bl-h{display:flex;align-items:baseline;gap:8px;font-weight:700;font-size:18px;margin-top:4px}.bl-h span{margin-left:auto;color:var(--soft);font-weight:600;font-size:16px}
 .bl-bars{display:flex;align-items:flex-end;gap:6px;overflow-x:auto;padding:4px 2px 6px;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity}
@@ -583,6 +584,22 @@ body.rw-shop #purse{display:none!important}
     <div class="row"><button class="btn grow" id="dw-del" hidden>🗑️ Supprimer</button><button class="btn okb grow" id="dw-save">Enregistrer</button></div>
   </div>
 
+  <div class="pg" id="pg-family" hidden>
+    <div class="card" id="fa-off">
+      <button class="btn pri" id="fa-new">Créer une famille</button>
+      <input class="field" id="fa-code" placeholder="Code de la famille" autocomplete="off" autocapitalize="characters" spellcheck="false" style="text-align:center;letter-spacing:2px">
+      <button class="btn" id="fa-join">Rejoindre</button>
+    </div>
+    <div class="card" id="fa-on">
+      <div class="fa-code" id="fa-show"></div>
+      <button class="btn" id="fa-share">📤 Partager le code</button>
+      <div class="muted" id="fa-st"></div>
+      <button class="btn pri" id="fa-now">🔄 Synchroniser</button>
+      <button class="btn" id="fa-leave">Quitter la famille</button>
+    </div>
+    <div class="card" id="fa-na"><div class="muted">Synchronisation pas encore configurée.</div></div>
+  </div>
+
   <div class="pg" id="pg-results" hidden>
     <div class="pills2" id="rs-per"></div>
     <div id="rs-body" class="pg"></div>
@@ -640,6 +657,7 @@ body.rw-shop #purse{display:none!important}
       <button class="btn pri" id="s-upd">🔄 Mettre à jour maintenant</button>
       <div class="muted" id="s-updst">Les profils, les étoiles et les réglages sont conservés.</div>
     </div>
+    <button class="menuitem" data-page="family"><span class="ic">👨‍👩‍👧</span><span>Famille<small id="m-fam"></small></span></button>
     <button class="menuitem" data-page="save"><span class="ic">💾</span><span>Sauvegarde<small id="m-save">Enregistrer ou restaurer les profils</small></span></button>
     <button class="menuitem" data-page="code"><span class="ic">🔒</span><span>Code parent<small id="m-code"></small></span></button>
   </div>
@@ -968,8 +986,8 @@ function shopItems(){return shop().items.filter(function(it){return it.on&&(!it.
 function itState(p,it){ensureShop(p);if(it.game?!isLockedPrize(it.game,p):(!it.rep&&p.shopBought[it.id]))return "own";return p.stars>=it.price?"ok":"need"}
 function unlockGame(p,k){ensureShop(p);if(p.games.indexOf(k)<0)p.games.push(k);if(p.play&&p.play.games.indexOf(k)<0)p.play.games.push(k)}
 function buyItem(p,it){if(itState(p,it)!=="ok")return false;p.stars-=it.price;p.shopBought[it.id]=(p.shopBought[it.id]||0)+1;
- if(it.game)unlockGame(p,it.game);else p.shopPend.push({id:Date.now().toString(36),ic:it.ic,t:it.t,d:dkey()});
- p.shopLog.unshift({d:dkey(),ic:it.ic,t:it.t,price:it.price});p.shopLog=p.shopLog.slice(0,80);saveP();return true}
+ if(it.game)unlockGame(p,it.game);else p.shopPend.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),ic:it.ic,t:it.t,d:dkey()});
+ p.shopLog.unshift({d:dkey(),ic:it.ic,t:it.t,price:it.price,u:Date.now().toString(36)+Math.random().toString(36).slice(2,6)});p.shopLog=p.shopLog.slice(0,80);saveP();return true}
 /* ---------- Affichage de la boutique ---------- */
 function hubSay(t){try{if(!window.speechSynthesis)return;speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.lang="fr-FR";var v=(speechSynthesis.getVoices()||[]).filter(function(x){return /^fr/i.test(x.lang)})[0];if(v)u.voice=v;u.rate=.95;speechSynthesis.speak(u)}catch(e){}}
 function gTone(f,t,d){try{var C=window.AudioContext||window.webkitAudioContext;if(!C)return;var a=gTone.ac||(gTone.ac=new C());if(a.state==="suspended")a.resume();var o=a.createOscillator(),g=a.createGain(),s=a.currentTime+(t||0);o.type="triangle";o.frequency.value=f;g.gain.setValueAtTime(.0001,s);g.gain.exponentialRampToValueAtTime(.18,s+.02);g.gain.exponentialRampToValueAtTime(.0001,s+(d||.15));o.connect(g);g.connect(a.destination);o.start(s);o.stop(s+(d||.15)+.05)}catch(e){}}
@@ -1186,11 +1204,11 @@ function newCode(ok,why){askCode((why||"")+"Choisis un code à 4 chiffres",funct
 window.hubGate=function(ok){checkCode(ok)};
 
 /* ---------- Paramètres : menu et pages ---------- */
-var PG=[],EDIT=null,PTITLE={menu:"⚙️ Paramètres",profils:"👤 Profils",profil:"👤 Profil",progress:"🔄 Progression",results:"📈 Résultats",shop:"🛍️ La boutique",jeux:"🎮 Réglages des jeux",lecons:"Leçons",dewords:"📖 Mots d'allemand",deword:"📖 Le mot",save:"💾 Sauvegarde",code:"🔒 Code parent",app:"📱 Application"};
+var PG=[],EDIT=null,PTITLE={menu:"⚙️ Paramètres",profils:"👤 Profils",profil:"👤 Profil",progress:"🔄 Progression",results:"📈 Résultats",shop:"🛍️ La boutique",jeux:"🎮 Réglages des jeux",lecons:"Leçons",family:"👨‍👩‍👧 Famille",dewords:"📖 Mots d'allemand",deword:"📖 Le mot",save:"💾 Sauvegarde",code:"🔒 Code parent",app:"📱 Application"};
 function renderPage(){var top=PG[PG.length-1]||"menu";
  document.querySelectorAll("#spanel .pg[id^=pg-]").forEach(function(d){d.hidden=d.id!=="pg-"+top});
  $("stitle").textContent=PTITLE[top];$("sback").hidden=!PG.length;
- ({menu:renderMenu,profils:renderProfils,profil:renderProfil,progress:renderProgress,results:renderResults,shop:renderShopAdmin,code:renderCode,app:showVersion,save:renderSave,jeux:renderJeux,lecons:renderLecons,dewords:renderDeWords,deword:renderDeWord})[top]();
+ ({menu:renderMenu,profils:renderProfils,profil:renderProfil,progress:renderProgress,results:renderResults,shop:renderShopAdmin,code:renderCode,app:showVersion,save:renderSave,jeux:renderJeux,lecons:renderLecons,dewords:renderDeWords,deword:renderDeWord,family:renderFamily})[top]();
  $("spanel").scrollTop=0}
 function openPage(n){PG.push(n);var k="pg"+PG.length;OV.push(k);history.pushState({d:depth()+1,r:cur,ov:k},"",location.href);renderPage()}
 $("spanel").addEventListener("click",function(e){var b=e.target.closest("[data-page]");if(b)openPage(b.dataset.page)});
@@ -1311,6 +1329,17 @@ $("dw-save").onclick=function(){var x=dwCur(),u=deUser(),key=x?x.w:null;
 (function(){document.querySelectorAll("#pg-profil > .card").forEach(function(c,i){var h=c.querySelector(":scope > h3");if(!h)return;c.classList.add("xp");
  if(i===0||c.id==="p-gpendc")c.classList.add("open");h.setAttribute("role","button");h.tabIndex=0;
  h.addEventListener("click",function(){c.classList.toggle("open")});h.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();c.classList.toggle("open")}})})})();
+/* ---------- 👨‍👩‍👧 Famille (synchronisation, voir sync.js) ---------- */
+function famTime(t){if(!t)return"jamais";var m=Math.round((Date.now()-t)/60000);return m<1?"à l'instant":m<60?"il y a "+m+" min":new Date(t).toLocaleString("fr-FR",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}
+function renderFamily(){var S=window.SYNC,ok=S&&S.ready();$("fa-na").hidden=ok;$("fa-off").hidden=!ok||!!S.fam;$("fa-on").hidden=!ok||!S.fam;if(!ok)return;
+ if(S.fam){var n=Object.keys(S.peers).length;$("fa-show").textContent=S.fmt(S.fam);$("fa-st").textContent=(S.busy?"🔄 Synchronisation…":S.err?"⚠️ "+S.err:"✅ Synchronisé "+famTime(S.last))+" · "+n+" autre"+(n>1?"s":"")+" appareil"+(n>1?"s":"")}}
+function famMenu(){var S=window.SYNC;$("m-fam").textContent=!S||!S.ready()?"":S.fam?S.fmt(S.fam)+" · "+famTime(S.last):"Plusieurs téléphones"}
+$("fa-new").onclick=function(){var b=this;b.disabled=true;window.SYNC.create().then(function(ok){b.disabled=false;toast(ok?"👨‍👩‍👧 Famille créée":"⚠️ Pas de connexion",2000);renderFamily()})};
+$("fa-join").onclick=function(){var c=$("fa-code").value;if(!confirm("Les profils de ce téléphone seront remplacés par ceux de la famille. Continuer ?"))return;
+ window.SYNC.join(c).catch(function(e){toast(e.message==="code"?"Le code a 12 caractères":e.message==="inconnu"?"Famille introuvable":"⚠️ Pas de connexion",2400)})};
+$("fa-now").onclick=function(){window.SYNC.now().then(renderFamily);renderFamily()};
+$("fa-share").onclick=function(){var t="Code de la famille pour Mes jeux d'école : "+window.SYNC.fmt(window.SYNC.fam);if(navigator.share)navigator.share({text:t}).catch(function(){});else{try{navigator.clipboard.writeText(window.SYNC.fam);toast("📋 Code copié",1500)}catch(e){}}};
+$("fa-leave").onclick=function(){if(!confirm("Ce téléphone ne sera plus synchronisé. Les profils restent sur ce téléphone."))return;window.SYNC.leave();renderFamily()};
 function renderProfils(){$("plist").innerHTML=PR.list.map(function(p){return '<button class="menuitem" data-edit="'+p.id+'"><span class="ic">'+(p.photo?'<span class="mini-av" style="width:40px;height:40px;background-image:url('+p.photo+')"></span>':"👤")+'</span><span>'+esc(pname(p))+(p.id===PR.active?'<span class="badge">actif</span>':'')+'<small>⭐ '+p.stars+({none:" · sans récompense",stars:" · étoiles seules",shop:" · 🛍️ boutique"})[p.rmode||"shop"]+'</small></span></button>'}).join("")}
 $("plist").addEventListener("click",function(e){var b=e.target.closest("[data-edit]");if(!b)return;EDIT=b.dataset.edit;openPage("profil")});
 $("padd").onclick=function(){var id="p"+Date.now().toString(36);PR.list.push({id:id,name:"",reward:true,unit:"€",per:10,gain:1,stars:0,money:0});saveP();EDIT=id;openPage("profil");setTimeout(function(){$("p-name").focus()},100)};
@@ -1396,7 +1425,7 @@ function renderRmode(p){renderPrize(p);ensureShop(p);$("p-rmode").innerHTML=RMOD
  $("p-goalrow").hidden=p.rmode==="none";$("p-gopts").hidden=p.rmode!=="shop";$("p-stc").hidden=p.rmode==="none";$("p-gpendc").hidden=p.rmode!=="shop";
  $("p-gpend").innerHTML=p.shopPend.length?p.shopPend.map(function(x){return '<div class="row"><span style="font-size:26px">'+x.ic+'</span><span class="grow">'+esc(x.t)+'<small class="muted" style="display:block">'+new Date(x.d+"T12:00:00").toLocaleDateString("fr-FR")+'</small></span><button class="btn okb" data-give="'+x.id+'">✅ Donné</button></div>'}).join(""):'<div class="muted">Rien à remettre pour l\'instant.</div>'}
 $("p-rmode").addEventListener("click",function(e){var b=e.target.closest("[data-rm]");if(!b)return;upd(function(p){p.rmode=b.dataset.rm;p.reward=p.rmode==="shop"})});
-$("p-gpend").addEventListener("click",function(e){var b=e.target.closest("[data-give]");if(!b)return;upd(function(p){ensureShop(p);p.shopPend=p.shopPend.filter(function(x){return x.id!==b.dataset.give})});toast("✅ Donné",1500)});
+$("p-gpend").addEventListener("click",function(e){var b=e.target.closest("[data-give]");if(!b)return;upd(function(p){ensureShop(p);p.shopPend=p.shopPend.filter(function(x){return x.id!==b.dataset.give});(p.shopGiven||(p.shopGiven=[])).push(b.dataset.give);p.shopGiven=p.shopGiven.slice(-300)});toast("✅ Donné",1500)});
 function renderPathAdm(p){var P=ensurePath(p),pr=pathProg(p);$("pa-on").checked=P.on;$("pa-opts").hidden=!P.on;
  var opts=Object.keys(GAMES).map(function(k){return[k,GAMES[k].t]}).sort(function(a,b){return a[1].localeCompare(b[1],"fr")});
  $("pa-list").innerHTML=P.steps.map(function(st,i){return '<div class="pa-row'+(i<pr.i?" done":"")+'" data-i="'+i+'"><select class="field" data-f="g">'+opts.map(function(o){return '<option value="'+o[0]+'"'+(o[0]===st.g?" selected":"")+">"+(GICON[o[0]]||"")+" "+esc(o[1])+"</option>"}).join("")+'</select><input class="field num" data-f="n" type="number" inputmode="numeric" min="1" max="999" value="'+st.n+'"><select class="field" data-f="t">'+Object.keys(PUNIT).map(function(u){return '<option value="'+u+'"'+(u===st.t?" selected":"")+">"+unitTxt({t:u,g:st.g},2)+"</option>"}).join("")+'</select><button class="btn" data-a="up"'+(i?"":" disabled")+'>↑</button><button class="btn" data-a="del">✕</button></div>'}).join("");
@@ -1441,7 +1470,7 @@ $("p-name").oninput=function(){var v=this.value.trim().slice(0,20);upd(function(
 $("p-use").onclick=function(){PR.active=EDIT;saveP();renderProfil()};
 $("p-admin").onchange=function(){var v=this.checked;upd(function(p){if(v)p.admin=true;else delete p.admin});renderLocks();renderTime();toast(v?"👑 Profil administrateur":"Profil normal",1600)};
 $("p-del").onclick=function(){var p=E();if(PR.list.length<2)return;if(!confirm("Supprimer le profil « "+pname(p)+" » et ses étoiles ?"))return;
- PR.list=PR.list.filter(function(x){return x.id!==p.id});if(PR.active===p.id)PR.active=PR.list[0].id;["robot_lvl","robot_best","stats","chenille_lvl","chenille_best","boucles_lvl","boucles_best","reparateur_lvl","reparateur_best","memory_lvl","memory_best","memory_mode","courses_lvl","courses_best","de_sel_mem","de_sel_courses","de_sel_sdw"].forEach(function(k){try{localStorage.removeItem(k+"@"+p.id)}catch(e){}});delete STC[p.id];saveP();back()};
+ (PR.del||(PR.del={}))[p.id]=Date.now();PR.list=PR.list.filter(function(x){return x.id!==p.id});if(PR.active===p.id)PR.active=PR.list[0].id;["robot_lvl","robot_best","stats","chenille_lvl","chenille_best","boucles_lvl","boucles_best","reparateur_lvl","reparateur_best","memory_lvl","memory_best","memory_mode","courses_lvl","courses_best","de_sel_mem","de_sel_courses","de_sel_sdw"].forEach(function(k){try{localStorage.removeItem(k+"@"+p.id)}catch(e){}});delete STC[p.id];saveP();back()};
 $("p-goal").oninput=function(){var v=parseInt(this.value);if(v>=5&&v<=120)upd(function(p){p.goal=v})};
 $("p-stset").onclick=function(){var v=parseInt($("p-stv").value);if(!(v>=0))return;$("p-stv").value="";upd(function(p){p.stars=Math.min(v,99999)})};
 $("p-st0").onclick=function(){if(!E().stars||!confirm("Remettre les étoiles à 0 ?"))return;upd(function(p){p.stars=0})};
@@ -1487,7 +1516,7 @@ function renderCode(){$("s-pinst").textContent=CFG.pin&&CFG.pin!==DEF_PIN?"🔒 
 function renderSettings(){renderPage()}
 /* ---------- Mise à jour forcée ---------- */
 function installedVersion(){if(!window.caches)return Promise.resolve("");return caches.keys().then(function(k){return k.filter(function(x){return x.indexOf("jeux-ecole-")===0}).map(function(x){return x.slice(11)}).join(", ")}).catch(function(){return ""})}
-function showVersion(){installedVersion().then(function(v){$("s-ver").textContent=v||"(pas encore installée hors-ligne)"})}
+function showVersion(){try{famMenu()}catch(e){}installedVersion().then(function(v){$("s-ver").textContent=v||"(pas encore installée hors-ligne)"})}
 $("s-upd").onclick=function(){var b=this,st=$("s-updst");b.disabled=true;st.textContent="Vérification…";
  fetch("sw.js?t="+Date.now(),{cache:"no-store"}).then(function(r){if(!r.ok)throw 0;return r.text()}).then(function(t){
   var m=t.match(/VERSION = "([^"]+)"/),online=m?m[1]:"?";st.textContent="Version en ligne : "+online+". Mise à jour…";
@@ -1571,5 +1600,7 @@ if("serviceWorker" in navigator){
  window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").then(function(r){r.update()}).catch(function(){})});
  document.addEventListener("visibilitychange",function(){if(!document.hidden)navigator.serviceWorker.getRegistration().then(function(r){r&&r.update()})})}
 </script>
+<script src="sync.js"></script>
+<script>if(window.SYNC)SYNC.after=function(){try{renderPurse();if(!$("settings").hidden){var top=PG[PG.length-1]||"menu";if(top==="family"||top==="menu")renderPage()}}catch(e){}};</script>
 </body>
 </html>
