@@ -663,7 +663,6 @@ body.rw-shop #purse{display:none!important}
   <div class="big" id="pd-ic">✅</div><h2 style="justify-content:center" id="pd-t"></h2>
   <div class="muted" id="pd-h" style="font-size:19px"></div>
   <button class="btn okb" id="pd-go" style="width:100%"></button>
-  <button class="btn" id="pd-stay" style="width:100%">Rester ici</button>
 </div></div>
 <!-- Jeu grisé : explication -->
 <div class="sheet" id="lockinfo" hidden><div class="panel" style="text-align:center;align-items:center">
@@ -1060,6 +1059,9 @@ function pathCur(p){p=p||prof();return pathActive(p)&&!pathDone(p)?p.path.steps[
 var PATHHIDE={calcul:"#gear",telephone:"#gear",francais:"#mn",deutsch:"#mn",code:"#lvlb",robot:"#lvlb",chenille:"#lvlb,#mk",memory:"#setb",courses:"#lvlb",musique:"#gear",glissant:"#lvlb",pizzeria:"#lvlb",tuyaux:"#lvlb",ocean:"#setb"};
 function pathHideCss(k,g){if(!pathIsCur(k))return"";var sel=PATHHIDE[g.app];if(!sel||(g.app==="francais"&&g.start===5))return"<script>window.PATHMODE=1<\/script>";
  return"<style>"+sel+"{display:none!important}</style><script>window.PATHMODE=1<\/script>"}
+// en jeu pendant le parcours : pas de retour (ni bouton ←, ni retour du téléphone) tant que l'étape n'est pas finie ou que « Étape réussie » est affichée
+function pathStay(){return !!(GAMES[cur]&&!dayUp&&!dayOver()&&(pathIsCur(cur)||!$("pathdone").hidden))}
+function updPback(){$("pback").style.visibility=pathStay()?"hidden":""}
 function pathIsCur(k,p){var c=pathCur(p);return !!(c&&c.g===k)}
 function pathLocked(k,p){var c=pathCur(p);return !!(c&&c.g!==k)}
 function pathGoal(st){return st.t==="min"?st.n*60:st.n}
@@ -1073,9 +1075,8 @@ function pathAdd(kind,n){var p=prof(),c=pathCur(p);if(!c||c.g!==cur||c.t!==kind)
  if(pr.c>=pathGoal(c)){pr.i++;pr.c=0;pr.q=0;pathProg(p);saveP();renderPathbar();pathStepDone(p)}}
 function pathStepDone(p){var nx=pathCur(p),P=p.path;$("pd-ic").textContent=nx?"✅":"🎉";$("pd-t").textContent=nx?"Étape réussie !":"Parcours terminé !";
  $("pd-h").textContent=nx?"Étape "+(P.prog.i+1)+" / "+P.steps.length+" : "+GAMES[nx.g].t:"Tu peux jouer à ce que tu veux.";
- $("pd-go").textContent=nx?"▶ Étape suivante":"Super !";$("pd-stay").hidden=!nx;$("pathdone").hidden=false;try{say&&0}catch(e){}}
-$("pd-go").onclick=function(){$("pathdone").hidden=true;var nx=pathCur();if(!nx)return;if(GAMES[cur]){back();setTimeout(function(){go(nx.g)},350)}else go(nx.g)};
-$("pd-stay").onclick=function(){$("pathdone").hidden=true};
+ $("pd-go").textContent=nx?"▶ Étape suivante":"Super !";$("pathdone").hidden=false;updPback();try{say&&0}catch(e){}}
+$("pd-go").onclick=function(){$("pathdone").hidden=true;updPback();var nx=pathCur();if(!nx||nx.g===cur)return;if(GAMES[cur]){back();setTimeout(function(){go(nx.g)},350)}else go(nx.g)};
 function renderPathbar(){var p=prof(),on=pathActive(p),b=$("pathbar");b.hidden=!on;if(!on)return;var P=p.path,c=pathCur(p);
  $("pb-t").textContent=c?"Parcours "+(P.prog.i+1)+" / "+P.steps.length+" · "+GAMES[c.g].t:"Parcours terminé ✅";$("pb-h").textContent=c?pathLeft(p):"";b.classList.toggle("can",!!c)}
 $("pathbar").onclick=function(){var c=pathCur();if(c)go(c.g)};
@@ -1120,7 +1121,7 @@ function renderLocks(){var p=prof(),left=playLeft(p),over=dayOver(p);
   t.classList.toggle("locked",over||(ks.length>0&&ks.every(function(k){return isPlay(k,p)})&&left<30)||(ks.length>0&&ks.every(function(k){return pathLocked(k,p)})))});renderPathbar()}
 var timeUp=false,graceT=null,tick=0;
 function fmtClock(s){s=Math.max(0,Math.round(s));return Math.floor(s/60)+":"+pad(s%60)}
-function renderTime(){var t=$("ptime");
+function renderTime(){var t=$("ptime");updPback();
  if(GAMES[cur]&&dayOn()&&(dayUp||dayLeft()<300)){t.hidden=false;var dl=dayLeft();t.className=dayUp?"up":"warn";t.textContent=dayUp?"⏱️ Termine ton jeu !":"⏱️ "+fmtClock(dl);return}
  var lim=GAMES[cur]&&isPlay(cur);t.hidden=!lim;if(!lim)return;var l=playLeft();
  t.className=timeUp?"up":l<60?"warn":"";t.textContent=timeUp?"⏳ Termine ta partie !":"⏳ "+fmtClock(l)}
@@ -1524,6 +1525,7 @@ function show(h){
 
 function go(h){if(h===cur)return;history.pushState({d:depth()+1,r:h},"",url(h));show(h)}
 function back(){if(OV.length){closeOv(OV[OV.length-1]);return}
+ if(pathStay())return; // Parcours : on ne quitte pas l'étape en cours (ni la fenêtre « Étape réussie »)
  if(depth()>0){history.back();return}
  var p=parentOf(cur);if(p===cur){return}history.replaceState({d:0,r:p},"",url(p));show(p)}
 /* fenêtres (paramètres, code) : le retour les ferme d'abord */
@@ -1537,7 +1539,8 @@ window.addEventListener("popstate",function(){
  if(OV.length&&OV[OV.length-1]!==st.ov){while(OV.length&&OV[OV.length-1]!==st.ov)hideOv(OV.pop());var c=ovCb;ovCb=null;c&&c();if(st.r===cur)return}
  // en jeu : le jeu peut d'abord fermer sa propre fenêtre (réglages, choix du niveau…)
  if(GAMES[cur]&&h!==cur){var w=null;try{w=$("frame").contentWindow}catch(e){}
-  try{if(w&&w.hubBack&&w.hubBack()){history.pushState({d:(st.d||0)+1,r:cur},"",url(cur));return}}catch(e){}}
+  try{if(w&&w.hubBack&&w.hubBack()){history.pushState({d:(st.d||0)+1,r:cur},"",url(cur));return}}catch(e){}
+  if(pathStay()){history.pushState({d:(st.d||0)+1,r:cur},"",url(cur));return}}
  show(h)});
 document.addEventListener("click",function(e){var b=e.target.closest("[data-go],[data-play],[data-back]");if(!b)return;
  if(b.dataset.back)back();else if(b.dataset.play!==undefined){if(isLockedPrize(b.dataset.play)){toast(prof().rmode==="shop"?"🛍️ Ce jeu s'achète dans la boutique !":"🔒 Un parent peut débloquer ce jeu",2600);return}if(dayOver()){showDayOver(false);return}if(pathLocked(b.dataset.play)){toast("🧭 Ton parcours : "+GAMES[pathCur().g].t,2400);return}if(isPlay(b.dataset.play)&&playLeft()<30){showLockInfo(b.dataset.play);return}go(b.dataset.play)}else{var gk=Object.keys(GAMES).filter(function(k){return GAMES[k].subj===b.dataset.go});if(gk.length&&gk.every(function(k){return pathLocked(k)})&&!dayOver()){toast("🧭 Ton parcours : "+GAMES[pathCur().g].t,2400);return}go(b.dataset.go)}});
