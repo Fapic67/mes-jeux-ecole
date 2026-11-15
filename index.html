@@ -1097,7 +1097,8 @@ function lockMsg(p){var d=today(p),r=p.play.ratio,k=Math.round(4*r/(1-r)*10)/10;
  return (d.learn<30&&!bonusToday(p)?"Fais d'abord un peu d'apprentissage. ":"")+"Encore "+mins(learnNeeded(p))+" min d'apprentissage pour pouvoir jouer ("+"4 min d'apprentissage = "+String(k).replace(".",",")+" min de jeu)."}
 /* ---------- Temps par jour (p.daily = {on, min, bonus:{d,sec}}) : temps actif dans les jeux (today().sec) ----------
    À 0 : le jeu en cours se termine (fin de manche {type:"roundEnd"} ou 5 min de grâce), puis « C'est fini pour aujourd'hui ». */
-function dayOn(p){p=p||prof();ensureEcon(p);return !!(!p.admin&&p.daily.on)}
+// la limite par jour ne s'applique pas pendant un parcours non terminé : elle reprend à la fin du parcours
+function dayOn(p){p=p||prof();ensureEcon(p);return !!(!p.admin&&p.daily.on)&&!(pathActive(p)&&!pathDone(p))}
 // daily.rs = {d, sec} : temps déjà compté au moment d'un « Réinitialiser » par un parent (le compteur du jour repart de 0, le bilan garde le vrai temps)
 function dayRs(p){var r=p.daily.rs;return r&&r.d===dkey()?r.sec:0}
 function dayUsed(p){p=p||prof();ensureEcon(p);return Math.max(0,today(p).sec-dayRs(p))}
