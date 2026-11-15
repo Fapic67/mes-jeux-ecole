@@ -797,8 +797,8 @@ window.hubListen=function(lang,opts){lang=lang||"fr-FR";opts=opts||{};
   r.onresult=function(e){got=[];var x=e.results[0];for(var i=0;i<x.length;i++)got.push(x[i].transcript)};
   r.onerror=function(e){sp(false);ko(e.error==="not-allowed"?"denied":e.error||"error")};
   r.onend=function(){sp(false);if(REC===r)REC=null;ok(got||[])};try{r.start()}catch(e){ko("error")}})};
-document.addEventListener("visibilitychange",function(){if(document.hidden){window.hubListenStop();try{saveP()}catch(e){}}});
-window.addEventListener("pagehide",function(){try{saveP()}catch(e){}});
+document.addEventListener("visibilitychange",function(){if(document.hidden){window.hubListenStop();try{saveP();stSave(prof().id)}catch(e){}}});
+window.addEventListener("pagehide",function(){try{saveP();stSave(prof().id)}catch(e){}});
 window.hubListenStop=function(){try{if(NATIVE){var SR=plug("SpeechRecognition");SR&&SR.stop()}else if(REC)REC.stop()}catch(e){}};
 // sauvegarde automatique : Documents/MesJeuxEcole/config.json, réécrit dès qu'une donnée change
 var lastAuto="";
@@ -1518,7 +1518,7 @@ function parentOf(h){return GAMES[h]?GAMES[h].subj:h===""||h==="profil"?"profil"
 function depth(){return(history.state&&history.state.d)||0}
 function url(h){return h?"#"+h:location.pathname+location.search}
 function show(h){
- if(h===cur)return;if(GAMES[cur])try{saveP()}catch(e){}cur=h;window.hubListenStop&&window.hubListenStop();
+ if(h===cur)return;if(GAMES[cur])try{saveP();stSave(prof().id)}catch(e){}cur=h;window.hubListenStop&&window.hubListenStop();
  if(pendingReload&&!GAMES[h]){location.reload();return}
  document.querySelectorAll(".view").forEach(function(v){v.classList.remove("on")});
  renderPurse();
