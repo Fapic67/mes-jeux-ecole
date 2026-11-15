@@ -399,8 +399,7 @@ body.rw-shop #purse{display:none!important}
     <button class="menuitem" data-page="profils"><span class="ic">👤</span><span>Profils et récompenses<small id="m-prof"></small></span></button>
     <button class="menuitem" data-page="dewords"><span class="ic">📖</span><span>Mots d'allemand<small id="m-de">Mots utilisés dans les exercices, images, ajouts</small></span></button>
     <button class="menuitem" data-page="progress"><span class="ic">🔄</span><span>Progression<small>Remettre à zéro les niveaux</small></span></button>
-    <button class="menuitem" data-page="code"><span class="ic">🔒</span><span>Code parent<small id="m-code"></small></span></button>
-    <button class="menuitem" data-page="app"><span class="ic">📱</span><span>Application<small id="m-app">Version, mise à jour et sauvegarde</small></span></button>
+    <button class="menuitem" data-page="app"><span class="ic">📱</span><span>Application<small id="m-app">Version, mise à jour, sauvegarde et code parent</small></span></button>
   </div>
 
   <div class="pg" id="pg-profils" hidden>
@@ -594,6 +593,7 @@ body.rw-shop #purse{display:none!important}
       <div class="muted" id="s-updst">Les profils, les étoiles et les réglages sont conservés.</div>
     </div>
     <button class="menuitem" data-page="save"><span class="ic">💾</span><span>Sauvegarde<small id="m-save">Enregistrer ou restaurer les profils</small></span></button>
+    <button class="menuitem" data-page="code"><span class="ic">🔒</span><span>Code parent<small id="m-code"></small></span></button>
   </div>
 </div></div>
 
@@ -1095,7 +1095,7 @@ if(CAPP)try{CAPP.addListener("backButton",function(){if(!OV.length&&depth()===0&
 try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persisted().then(function(p){if(!p)navigator.storage.persist()})}catch(e){}
 
 function renderMenu(){var p=prof();try{$("m-de").textContent=deOn(PR.active).length+" mots activés pour "+pname(p)+" · images, ajouts"}catch(e){}$("m-prof").textContent=PR.list.length+" profil"+(PR.list.length>1?"s":"")+" · actif : "+pname(p);
- var bt=ls("bk_last");$("m-save").textContent=bt?"Dernière sauvegarde : "+new Date(+bt).toLocaleDateString("fr-FR"):"Aucune sauvegarde pour l'instant";$("m-code").textContent=CFG.pin&&CFG.pin!==DEF_PIN?"Code personnel":"Code par défaut : 0000";installedVersion().then(function(v){$("m-app").textContent="Version "+(v||"?")+" · mise à jour et sauvegarde"})}
+ var bt=ls("bk_last");$("m-save").textContent=bt?"Dernière sauvegarde : "+new Date(+bt).toLocaleDateString("fr-FR"):"Aucune sauvegarde pour l'instant";$("m-code").textContent=CFG.pin&&CFG.pin!==DEF_PIN?"Code personnel":"Code par défaut : 0000";installedVersion().then(function(v){$("m-app").textContent="Version "+(v||"?")+" · mise à jour, sauvegarde, code parent"})}
 /* ---------- Photo du profil : une photo existante, recadrée en rond (glisser + zoom), enregistrée en 192×192 JPEG dans p.photo ---------- */
 function avStyle(p,i){return p.photo?'background:url('+p.photo+') center/cover':'background:'+AVC[(i||0)%AVC.length]}
 var PH={img:null,s:1,x:0,y:0,base:1};
