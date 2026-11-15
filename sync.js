@@ -34,7 +34,7 @@ function hash(s){var h=5381;for(var i=0;i<s.length;i++)h=(h*33+s.charCodeAt(i))|
 var ADDF=["st","ok","tot","sec","learn","play"];
 
 /* --- part de ce téléphone --- */
-var LOCALP=["stars","econ","shopBought","shopPend","shopLog","shopGiven"]; // champs d'un profil qui ne sont pas des « réglages »
+var LOCALP=["stars","econ","shopBought","shopPend","shopLog","shopGiven","photo"]; // photo : reste sur chaque téléphone (demande de l'utilisateur) // champs d'un profil qui ne sont pas des « réglages »
 function settingsOf(p){var o={};Object.keys(p).forEach(function(k){if(LOCALP.indexOf(k)<0)o[k]=p[k]});if(o.path){o.path=clone(o.path);delete o.path.prog}return o}
 function addPart(p){var E=p.econ||{},days={},best={};Object.keys(E.days||{}).forEach(function(d){var x=E.days[d],y={};ADDF.forEach(function(f){if(x[f])y[f]=x[f]});days[d]=y;if(x.best)best[d]=x.best});
  return{add:{stars:p.stars||0,days:days,bought:p.shopBought||{}},best:best}}
