@@ -103,8 +103,8 @@ function push(fam,o){var body=JSON.stringify(o);return tok().then(function(t){re
 /* --- synchronisation : lire les autres, fusionner, publier sa part --- */
 SY.now=function(){if(!SY.fam||!SY.ready()||SY.busy||window.NOSAVE)return Promise.resolve(false);SY.busy=true;
  return pull(SY.fam).then(function(r){
-  if(SY.joining){SY.joining=false;PR.list=[];gkeys().forEach(function(k){SY.h["g:"+k]=hash(localStorage.getItem(k)||"");SY.mt["g:"+k]=0})} // téléphone qui rejoint : rien de local ne doit l'emporter
-  apply(r.N);var o=own(),h=hash(JSON.stringify(o));return h===SY.pushed?null:push(SY.fam,o)}).then(function(){SY.last=Date.now();localStorage.setItem("sync_last",SY.last);SY.err="";SY.busy=false;SY.after&&SY.after();return true})
+  if(SY.joining){if(!Object.keys(r.N).length)throw new Error("famille vide");PR.list=[];gkeys().forEach(function(k){SY.h["g:"+k]=hash(localStorage.getItem(k)||"");SY.mt["g:"+k]=0})} // téléphone qui rejoint : rien de local ne doit l'emporter
+  apply(r.N);var o=own(),h=hash(JSON.stringify(o));return h===SY.pushed?null:push(SY.fam,o)}).then(function(){if(SY.joining){SY.joining=false;localStorage.removeItem("sync_join");setTimeout(function(){location.reload()},300)}SY.last=Date.now();localStorage.setItem("sync_last",SY.last);SY.err="";SY.busy=false;SY.after&&SY.after();return true})
  .catch(function(e){SY.err=String(e&&e.message||e);SY.busy=false;SY.after&&SY.after();return false})};
 var AL="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 function newCode(){var a=new Uint8Array(12),s="";crypto.getRandomValues(a);for(var i=0;i<12;i++)s+=AL[a[i]%32];return s}
@@ -113,13 +113,13 @@ SY.create=function(){var c=newCode();SY.fam=c;localStorage.setItem("sync_fam",c)
 // rejoindre : les profils de ce téléphone sont remplacés par ceux de la famille
 SY.join=function(code){code=String(code||"").toUpperCase().replace(/[^A-Z0-9]/g,"");if(code.length!==12)return Promise.reject(new Error("code"));
  return pull(code).then(function(r){if(!Object.keys(r.N).length)throw new Error("inconnu");
-  window.NOSAVE=true;["profiles","sync_peers","sync_mt","sync_h"].forEach(function(k){localStorage.removeItem(k)});
+  window.NOSAVE=true;["sync_peers","sync_mt","sync_h","sync_last"].forEach(function(k){localStorage.removeItem(k)});
   for(var i=localStorage.length-1;i>=0;i--){var k=localStorage.key(i);if(/^stats@|^de_off@|_(lvl|best)(_[a-z0-9]+)?@/.test(k))localStorage.removeItem(k)}
   localStorage.setItem("sync_fam",code);localStorage.setItem("sync_join","1");location.reload()})};
 SY.leave=function(){["sync_fam","sync_peers","sync_mt","sync_h","sync_last"].forEach(function(k){localStorage.removeItem(k)});SY.fam="";SY.peers={};SY.last=0};
 // juste après « Rejoindre » (page rechargée) : profils de la famille, sans rien ajouter de ce téléphone
-if(localStorage.getItem("sync_join")){localStorage.removeItem("sync_join");SY.joining=true}
-setTimeout(function(){if(!SY.fam)return;var first=SY.joining;SY.now().then(function(ok){if(first&&ok)location.reload()})},SY.joining?0:1500);
+if(localStorage.getItem("sync_join"))SY.joining=true;
+setTimeout(function(){if(SY.fam)SY.now()},SY.joining?300:1500);
 setInterval(function(){if(SY.fam&&!document.hidden)SY.now()},45000);
 document.addEventListener("visibilitychange",function(){if(SY.fam)SY.now()});
 })();
