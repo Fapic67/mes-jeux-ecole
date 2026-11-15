@@ -200,6 +200,11 @@ body.rw-shop #purse{display:none!important}
 .panel h2{margin:0;font-size:28px;display:flex;align-items:center;justify-content:space-between}
 .card{background:var(--card);border:var(--bw) solid var(--line);border-radius:22px;padding:16px;display:flex;flex-direction:column;gap:12px}
 .card h3{margin:0;font-size:21px}
+/* sections repliables de la fiche profil */
+.card.xp>h3{display:flex;align-items:center;gap:8px;cursor:pointer;min-height:44px;margin:-6px 0;user-select:none}
+.card.xp>h3::after{content:"";margin-left:auto;width:12px;height:12px;border-right:3px solid var(--soft);border-bottom:3px solid var(--soft);transform:rotate(45deg);transition:transform .2s;flex:none}
+.card.xp.open>h3::after{transform:rotate(-135deg)}
+.card.xp:not(.open)>*:not(h3){display:none!important}
 .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .row>.grow{flex:1;min-width:0}
 .big{font-size:30px;font-weight:700}
@@ -1180,6 +1185,10 @@ $("dw-save").onclick=function(){var x=dwCur(),u=deUser(),key=x?x.w:null;
  u.hide=u.hide.filter(function(h){return h!==key});if(x&&DW.hid)u.hide.push(key);
  try{deUserSave(u)}catch(e){toast("Plus de place sur le téléphone pour les images",2600);return}
  toast(x?"✅ Enregistré":"✅ Mot ajouté",1500);back()};
+// Fiche profil : chaque carte devient une section repliable (titre = bouton) ; « Profil » et « Achats à remettre » ouverts par défaut, état gardé pendant la session
+(function(){document.querySelectorAll("#pg-profil > .card").forEach(function(c,i){var h=c.querySelector(":scope > h3");if(!h)return;c.classList.add("xp");
+ if(i===0||c.id==="p-gpendc")c.classList.add("open");h.setAttribute("role","button");h.tabIndex=0;
+ h.addEventListener("click",function(){c.classList.toggle("open")});h.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();c.classList.toggle("open")}})})})();
 function renderProfils(){$("plist").innerHTML=PR.list.map(function(p){return '<button class="menuitem" data-edit="'+p.id+'"><span class="ic">'+(p.photo?'<span class="mini-av" style="width:40px;height:40px;background-image:url('+p.photo+')"></span>':"👤")+'</span><span>'+esc(pname(p))+(p.id===PR.active?'<span class="badge">actif</span>':'')+'<small>⭐ '+p.stars+({none:" · sans récompense",stars:" · étoiles seules",shop:" · 🛍️ boutique"})[p.rmode||"shop"]+'</small></span></button>'}).join("")}
 $("plist").addEventListener("click",function(e){var b=e.target.closest("[data-edit]");if(!b)return;EDIT=b.dataset.edit;openPage("profil")});
 $("padd").onclick=function(){var id="p"+Date.now().toString(36);PR.list.push({id:id,name:"",reward:true,unit:"€",per:10,gain:1,stars:0,money:0});saveP();EDIT=id;openPage("profil");setTimeout(function(){$("p-name").focus()},100)};
