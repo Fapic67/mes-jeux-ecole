@@ -247,6 +247,14 @@ body.rw-shop #purse{display:none!important}
 .p-avrow{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
 .p-avrow .av{width:84px;height:84px;font-size:40px;background:var(--math)}
 #phedit .panel{align-items:center;text-align:center}
+#phedit.sq #ph-box{background:#fff}#phedit.sq #ph-box::after{border-radius:14px}
+.dw-row{display:flex;align-items:center;gap:12px;width:100%;min-height:62px;padding:6px 4px;border:0;border-top:2px solid var(--line);background:none;color:var(--ink);font:600 19px "Fredoka",sans-serif;text-align:left;cursor:pointer}
+.dw-row .im{font-size:34px;width:48px;height:48px;display:flex;align-items:center;justify-content:center;flex:none}
+.dw-row .im img{width:48px!important;height:48px!important;vertical-align:0!important}
+.dw-row.hid{opacity:.45}.dw-row small{display:block;color:var(--mut);font-size:15px;font-weight:600}
+.dw-les{font-weight:700;color:var(--mut);margin:14px 0 2px;font-size:17px}
+.dw-big{font-size:150px;line-height:1;display:flex;justify-content:center;min-height:160px;align-items:center}
+.dw-big .none{font-size:20px;color:var(--mut);border:3px dashed var(--line);border-radius:20px;width:190px;height:150px;display:flex;align-items:center;justify-content:center;text-align:center}
 #ph-box{position:relative;width:280px;height:280px;border-radius:20px;overflow:hidden;touch-action:none;background:#000;cursor:grab}
 #ph-box canvas{position:absolute;inset:0}
 #ph-box::after{content:"";position:absolute;inset:0;border-radius:50%;box-shadow:0 0 0 400px rgba(0,0,0,.55);border:3px solid #fff;pointer-events:none}
@@ -387,6 +395,7 @@ body.rw-shop #purse{display:none!important}
   <div class="pg" id="pg-menu">
     <button class="menuitem" data-page="profils"><span class="ic">👤</span><span>Profils et récompenses<small id="m-prof"></small></span></button>
     <button class="menuitem" data-page="jeux"><span class="ic">🎮</span><span>Réglages des jeux<small>Choisir ce que chaque jeu propose</small></span></button>
+    <button class="menuitem" data-page="dewords"><span class="ic">📖</span><span>Mots d'allemand<small id="m-de">Ajouter des mots, changer les images</small></span></button>
     <button class="menuitem" data-page="progress"><span class="ic">🔄</span><span>Progression<small>Remettre à zéro les niveaux</small></span></button>
     <button class="menuitem" data-page="code"><span class="ic">🔒</span><span>Code parent<small id="m-code"></small></span></button>
     <button class="menuitem" data-page="save"><span class="ic">💾</span><span>Sauvegarde<small id="m-save">Enregistrer ou restaurer les profils</small></span></button>
@@ -492,6 +501,34 @@ body.rw-shop #purse{display:none!important}
     <div id="lc-list" class="pg"></div>
   </div>
 
+  <div class="pg" id="pg-dewords" hidden>
+    <div class="muted">Tous les mots des jeux d'allemand (Der · Die · Das, Finde das Wort, Schreib das Wort, Memory, Die Einkaufsliste). Touche un mot pour changer son image ou le masquer. Les mots ajoutés vont par défaut dans le <b>📖 Dictionnaire</b>, coché d'office dans tous les jeux.</div>
+    <div class="row"><button class="btn pri grow" id="dw-add">+ Ajouter un mot</button></div>
+    <div class="card" id="dw-miss" hidden>
+      <h3>🖼️ Mots sans image</h3>
+      <div class="muted" id="dw-misst"></div>
+      <button class="btn" id="dw-copy">📋 Copier la consigne pour Gemini</button>
+      <textarea class="field" id="dw-prompt" rows="6" readonly hidden style="font-size:15px;min-height:140px"></textarea>
+    </div>
+    <input class="field" id="dw-q" placeholder="🔍 Chercher un mot" autocomplete="off">
+    <div id="dw-list" class="pg" style="gap:0"></div>
+  </div>
+
+  <div class="pg" id="pg-deword" hidden>
+    <div class="dw-big" id="dw-pic"></div>
+    <div class="row"><label class="btn grow" style="position:relative">📷 Choisir une image<input type="file" id="dw-file" accept="image/*" style="position:absolute;inset:0;opacity:0;width:100%"></label><button class="btn grow" id="dw-imgdel" hidden>↩︎ Image d'origine</button></div>
+    <div class="card" id="dw-form">
+      <label class="row"><span style="width:90px">Article</span><select class="field grow" id="dw-a"><option value="der">der</option><option value="die">die</option><option value="das">das</option><option value="">(aucun : verbe, adjectif…)</option></select></label>
+      <label class="row"><span style="width:90px">Mot</span><input class="field grow" id="dw-w" maxlength="30" placeholder="Ex. Banane" autocomplete="off" spellcheck="false"></label>
+      <label class="row"><span style="width:90px">Leçon</span><select class="field grow" id="dw-n"></select></label>
+      <label class="row" style="align-items:flex-start"><span style="width:90px;padding-top:12px">Image à dessiner</span><textarea class="field grow" id="dw-fr" rows="2" maxlength="160" placeholder="En français, pour la consigne Gemini. Ex. une banane jaune"></textarea></label>
+      <label class="switch"><input type="checkbox" id="dw-buy"><span class="grow">Dans la liste des courses<small class="muted" style="display:block;font-size:16px">Un objet qu'on peut acheter (Die Einkaufsliste)</small></span></label>
+    </div>
+    <div class="muted" id="dw-info"></div>
+    <label class="switch" id="dw-hidrow"><input type="checkbox" id="dw-hid"><span class="grow">Masquer ce mot dans les jeux</span></label>
+    <div class="row"><button class="btn grow" id="dw-del" hidden>🗑️ Supprimer</button><button class="btn okb grow" id="dw-save">Enregistrer</button></div>
+  </div>
+
   <div class="pg" id="pg-results" hidden>
     <div class="pills2" id="rs-per"></div>
     <div id="rs-body" class="pg"></div>
@@ -574,8 +611,8 @@ body.rw-shop #purse{display:none!important}
 
 <!-- Recadrage de la photo du profil -->
 <div class="sheet" id="phedit" hidden><div class="panel">
-  <h2 style="justify-content:center">📷 Ta photo</h2>
-  <div class="muted">Fais glisser la photo et zoome pour bien placer le visage dans le rond.</div>
+  <h2 style="justify-content:center" id="ph-t">📷 Ta photo</h2>
+  <div class="muted" id="ph-m">Fais glisser la photo et zoome pour bien placer le visage dans le rond.</div>
   <div id="ph-box"><canvas id="ph-cv" width="560" height="560" style="width:280px;height:280px"></canvas></div>
   <input type="range" id="ph-zoom" min="1" max="4" step="0.01" value="1" aria-label="Zoom">
   <div class="row" style="width:100%"><button class="btn grow" id="ph-no">Annuler</button><button class="btn okb grow" id="ph-ok">Valider</button></div>
@@ -1014,11 +1051,11 @@ function newCode(ok,why){askCode((why||"")+"Choisis un code à 4 chiffres",funct
 window.hubGate=function(ok){checkCode(ok)};
 
 /* ---------- Paramètres : menu et pages ---------- */
-var PG=[],EDIT=null,PTITLE={menu:"⚙️ Paramètres",profils:"👤 Profils",profil:"👤 Profil",progress:"🔄 Progression",results:"📈 Résultats",shop:"🛍️ La boutique",jeux:"🎮 Réglages des jeux",lecons:"Leçons",save:"💾 Sauvegarde",code:"🔒 Code parent",app:"📱 Application"};
+var PG=[],EDIT=null,PTITLE={menu:"⚙️ Paramètres",profils:"👤 Profils",profil:"👤 Profil",progress:"🔄 Progression",results:"📈 Résultats",shop:"🛍️ La boutique",jeux:"🎮 Réglages des jeux",lecons:"Leçons",dewords:"📖 Mots d'allemand",deword:"📖 Le mot",save:"💾 Sauvegarde",code:"🔒 Code parent",app:"📱 Application"};
 function renderPage(){var top=PG[PG.length-1]||"menu";
  document.querySelectorAll("#spanel .pg[id^=pg-]").forEach(function(d){d.hidden=d.id!=="pg-"+top});
  $("stitle").textContent=PTITLE[top];$("sback").hidden=!PG.length;
- ({menu:renderMenu,profils:renderProfils,profil:renderProfil,progress:renderProgress,results:renderResults,shop:renderShopAdmin,code:renderCode,app:showVersion,save:renderSave,jeux:renderJeux,lecons:renderLecons})[top]();
+ ({menu:renderMenu,profils:renderProfils,profil:renderProfil,progress:renderProgress,results:renderResults,shop:renderShopAdmin,code:renderCode,app:showVersion,save:renderSave,jeux:renderJeux,lecons:renderLecons,dewords:renderDeWords,deword:renderDeWord})[top]();
  $("spanel").scrollTop=0}
 function openPage(n){PG.push(n);var k="pg"+PG.length;OV.push(k);history.pushState({d:depth()+1,r:cur,ov:k},"",location.href);renderPage()}
 $("spanel").addEventListener("click",function(e){var b=e.target.closest("[data-page]");if(b)openPage(b.dataset.page)});
@@ -1055,11 +1092,14 @@ function renderMenu(){var p=prof();$("m-prof").textContent=PR.list.length+" prof
 function avStyle(p,i){return p.photo?'background:url('+p.photo+') center/cover':'background:'+AVC[(i||0)%AVC.length]}
 var PH={img:null,s:1,x:0,y:0,base:1};
 function phDraw(){var c=$("ph-cv"),g=c.getContext("2d"),im=PH.img,W=c.width,k=PH.base*PH.s,w=im.width*k,h=im.height*k;
- PH.x=Math.min(0,Math.max(W-w,PH.x));PH.y=Math.min(0,Math.max(W-h,PH.y));g.fillStyle="#000";g.fillRect(0,0,W,W);g.drawImage(im,PH.x,PH.y,w,h)}
-$("p-photo").onchange=function(){var f=this.files&&this.files[0];this.value="";if(!f)return;var r=new FileReader();
- r.onload=function(){var im=new Image();im.onload=function(){var W=$("ph-cv").width;PH.img=im;PH.s=1;PH.base=W/Math.min(im.width,im.height);
+ PH.x=w<=W?(W-w)/2:Math.min(0,Math.max(W-w,PH.x));PH.y=h<=W?(W-h)/2:Math.min(0,Math.max(W-h,PH.y));g.fillStyle=PH.cb?"#fff":"#000";g.fillRect(0,0,W,W);g.drawImage(im,PH.x,PH.y,w,h)}
+// ouvre l'éditeur : profil (rond, PH.cb nul) ou image d'un mot (carré, image entière visible au départ, PH.cb(url))
+function phOpen(f,cb){PH.cb=cb||null;$("phedit").classList.toggle("sq",!!cb);$("ph-t").textContent=cb?"🖼️ Image du mot":"📷 Ta photo";
+ $("ph-m").textContent=cb?"Fais glisser et zoome pour bien cadrer l'image dans le carré.":"Fais glisser la photo et zoome pour bien placer le visage dans le rond.";
+ var r=new FileReader();r.onload=function(){var im=new Image();im.onload=function(){var W=$("ph-cv").width;PH.img=im;PH.s=1;PH.base=W/(cb?Math.max(im.width,im.height):Math.min(im.width,im.height));
   PH.x=(W-im.width*PH.base)/2;PH.y=(W-im.height*PH.base)/2;$("ph-zoom").value=1;phDraw();$("phedit").hidden=false};
-  im.onerror=function(){toast("Cette image ne peut pas être ouverte",2200)};im.src=r.result};r.readAsDataURL(f)};
+  im.onerror=function(){toast("Cette image ne peut pas être ouverte",2200)};im.src=r.result};r.readAsDataURL(f)}
+$("p-photo").onchange=function(){var f=this.files&&this.files[0];this.value="";if(!f)return;phOpen(f)};
 (function(){var box=$("ph-box"),drag=null,pts={};
  function sc(){return $("ph-cv").width/box.clientWidth}
  box.addEventListener("pointerdown",function(e){box.setPointerCapture(e.pointerId);pts[e.pointerId]={x:e.clientX,y:e.clientY};drag={x:e.clientX,y:e.clientY,px:PH.x,py:PH.y}});
@@ -1068,10 +1108,60 @@ $("p-photo").onchange=function(){var f=this.files&&this.files[0];this.value="";i
  function up(e){delete pts[e.pointerId];drag=null}box.addEventListener("pointerup",up);box.addEventListener("pointercancel",up);
  // zoom autour du centre du rond
  $("ph-zoom").oninput=function(){if(!PH.img)return;var W=$("ph-cv").width,c=W/2,old=PH.s,n=+this.value;PH.x=c-(c-PH.x)*n/old;PH.y=c-(c-PH.y)*n/old;PH.s=n;phDraw()}})();
-$("ph-no").onclick=function(){$("phedit").hidden=true;PH.img=null};
-$("ph-ok").onclick=function(){if(!PH.img)return;var o=document.createElement("canvas"),S=192,src=$("ph-cv");o.width=o.height=S;o.getContext("2d").drawImage(src,0,0,S,S);
+$("ph-no").onclick=function(){$("phedit").hidden=true;PH.img=null;PH.cb=null};
+$("ph-ok").onclick=function(){if(!PH.img)return;var o=document.createElement("canvas"),S=PH.cb?256:192,src=$("ph-cv");o.width=o.height=S;o.getContext("2d").drawImage(src,0,0,S,S);
+ if(PH.cb){var u2=o.toDataURL("image/webp",.82);if(u2.indexOf("data:image/webp")!==0)u2=o.toDataURL("image/jpeg",.85);$("phedit").hidden=true;PH.img=null;var cb=PH.cb;PH.cb=null;cb(u2);return}
  var url=o.toDataURL("image/jpeg",.85);$("phedit").hidden=true;PH.img=null;upd(function(p){p.photo=url});toast("📷 Photo enregistrée",1600)};
 $("p-phdel").onclick=function(){if(!E().photo)return;upd(function(p){delete p.photo})};
+/* ---------- 📖 Mots d'allemand : liste, mots ajoutés, images choisies sur le téléphone, mots masqués (localStorage « de_words », voir allemand-mots.js) ---------- */
+var DW=null; // mot en cours : {w} (mot existant) ou {nouveau:true}
+function dwLabel(x){return (x.a?x.a+" ":"")+x.w}
+function dwLes(n){return n>=100?"📖 Dictionnaire (hors manuel)":"Leçon "+n+" · "+DE_LETTERS[n]}
+function dwPrompt(list){var n=list.length,r=Math.ceil(n/5);
+ return "Génère UNE planche de "+n+" illustration"+(n>1?"s":"")+", en grille régulière de "+Math.min(5,n)+" colonne"+(n>1?"s":"")+" et "+r+" ligne"+(r>1?"s":"")+", toutes les cases de la même taille, dans l'ordre de la liste. Exactement "+n+" case"+(n>1?"s":"")+", un espace blanc entre les cases. Elles servent à une appli d'apprentissage de l'allemand pour une enfant de 6 ans.\n\nStyle identique pour toutes : illustration douce aux crayons de couleur, couleurs douces, contours fins, un seul sujet bien centré dans chaque case, fond blanc uni, aucun texte, aucune lettre, aucun chiffre écrit.\n\nSujets :\n"+
+  list.map(function(x,i){return (i+1)+". "+(x.fr?x.fr.charAt(0).toUpperCase()+x.fr.slice(1):"Le mot allemand « "+dwLabel(x)+" »")+"."}).join("\n")}
+function renderDeWords(){var q=($("dw-q").value||"").trim().toLowerCase(),h="",last=null;
+ var miss=DE_ALL.filter(function(x){return !x.e&&!x.hid});$("dw-miss").hidden=!miss.length;$("dw-prompt").hidden=true;
+ if(miss.length){$("dw-misst").textContent=miss.length+" mot"+(miss.length>1?"s":"")+" sans image : "+miss.map(dwLabel).join(", ")+". Copie la consigne, colle-la dans Gemini, puis choisis l'image de chaque mot (📷), ou envoie la planche à Claude.";$("dw-prompt").value=dwPrompt(miss)}
+ DE_ALL.slice().sort(function(a,b){return a.n-b.n}).forEach(function(x){if(q&&dwLabel(x).toLowerCase().indexOf(q)<0)return;
+  if(x.n!==last){last=x.n;h+='<div class="dw-les">'+esc(dwLes(x.n))+"</div>"}
+  h+='<button class="dw-row'+(x.hid?" hid":"")+'" data-dw="'+esc(x.w)+'"><span class="im">'+(x.e||"❔")+'</span><span class="grow">'+esc(dwLabel(x))+"<small>"+[x.user?"➕ ajouté":"",x.own?"📷 image du téléphone":"",x.hid?"🙈 masqué":"",x.e?"":"sans image"].filter(Boolean).join(" · ")+"</small></span><span>›</span></button>"});
+ $("dw-list").innerHTML=h||'<div class="muted">Aucun mot trouvé.</div>';
+ $("m-de").textContent=DE_WORDS.length+" mots"}
+$("dw-q").oninput=renderDeWords;
+$("dw-list").addEventListener("click",function(e){var b=e.target.closest("[data-dw]");if(!b)return;DW={w:b.dataset.dw};openPage("deword")});
+$("dw-add").onclick=function(){DW={nouveau:true};openPage("deword")};
+$("dw-copy").onclick=function(){var t=$("dw-prompt").value;$("dw-prompt").hidden=false;
+ try{navigator.clipboard.writeText(t).then(function(){toast("📋 Consigne copiée : colle-la dans Gemini",2200)},function(){$("dw-prompt").select()})}catch(e){$("dw-prompt").select()}};
+function dwCur(){return DW&&!DW.nouveau?DE_ALL.filter(function(x){return x.w===DW.w})[0]:null}
+function renderDeWord(){var x=dwCur(),nv=!x,u=deUser();
+ PTITLE.deword=nv?"➕ Nouveau mot":"📖 "+dwLabel(x);$("stitle").textContent=PTITLE.deword;
+ if(!$("dw-n").options.length)$("dw-n").innerHTML=DE_MODULES.map(function(m){return m.l.map(function(n){return '<option value="'+n+'">'+esc(dwLes(n))+"</option>"}).join("")}).join("");
+ var pic=nv?(DW.img?deImgSrc(DW.img):""):(DW.img?deImgSrc(DW.img):x.e);
+ $("dw-pic").innerHTML=pic||'<span class="none">Pas encore d\'image</span>';
+ var editable=nv||x.user;$("dw-form").hidden=!editable;
+ if(editable){var y=nv?{a:"die",w:"",n:100,fr:"",buy:false}:x;if(!DW.init){DW.init=1;$("dw-a").value=y.a;$("dw-w").value=y.w;$("dw-n").value=y.n;$("dw-fr").value=y.fr||"";$("dw-buy").checked=!!y.buy}}
+ $("dw-info").textContent=nv?"Le mot sera proposé dans tous les jeux d'allemand dont la leçon est cochée (le Dictionnaire l'est d'office).":(x.user?"Mot ajouté · ":"Mot du manuel · ")+dwLes(x.n)+(x.own?" · image choisie sur le téléphone":"");
+ $("dw-imgdel").hidden=nv||!(x.own||DW.img);$("dw-imgdel").textContent=x&&x.user?"🗑️ Retirer l'image":"↩︎ Image d'origine";
+ $("dw-hidrow").hidden=nv;if(!nv&&DW.hid===undefined)DW.hid=x.hid;$("dw-hid").checked=!!DW.hid;
+ $("dw-del").hidden=!(x&&x.user)}
+$("dw-file").onchange=function(){var f=this.files&&this.files[0];this.value="";if(!f)return;phOpen(f,function(url){DW.img=url;DW.imgdel=false;renderDeWord()})};
+$("dw-imgdel").onclick=function(){DW.img=null;DW.imgdel=true;var x=dwCur();$("dw-pic").innerHTML=x&&!x.user&&!x.own?x.e:'<span class="none">'+(x&&!x.user?"Image d'origine (après Enregistrer)":"Pas d\'image")+"</span>";this.hidden=true};
+$("dw-hid").onchange=function(){DW.hid=this.checked};
+$("dw-del").onclick=function(){var x=dwCur();if(!x||!confirm("Supprimer le mot « "+dwLabel(x)+" » ?"))return;var u=deUser();
+ u.add=u.add.filter(function(y){return y.w!==x.w});delete u.img[x.w];u.hide=u.hide.filter(function(w){return w!==x.w});deUserSave(u);toast("🗑️ Mot supprimé",1500);back()};
+$("dw-save").onclick=function(){var x=dwCur(),u=deUser(),key=x?x.w:null;
+ if(!x||x.user){var w=$("dw-w").value.trim().replace(/\s+/g," "),a=$("dw-a").value;
+  if(!w){toast("Écris le mot",1800);$("dw-w").focus();return}
+  if(a)w=w.charAt(0).toUpperCase()+w.slice(1); // un nom allemand prend une majuscule
+  if(DE_ALL.some(function(y){return y.w.toLowerCase()===w.toLowerCase()&&y.w!==key})){toast("Ce mot existe déjà",2000);return}
+  var rec={id:x?x.id:"u"+Date.now().toString(36),n:+$("dw-n").value,a:a,w:w,fr:$("dw-fr").value.trim(),buy:$("dw-buy").checked&&!!a};
+  if(x){u.add=u.add.map(function(y){return y.w===key?rec:y});if(key!==w){if(u.img[key]){u.img[w]=u.img[key];delete u.img[key]}u.hide=u.hide.map(function(h){return h===key?w:h})}}else u.add.push(rec);
+  key=w}
+ if(DW.img)u.img[key]=DW.img;else if(DW.imgdel)delete u.img[key];
+ u.hide=u.hide.filter(function(h){return h!==key});if(x&&DW.hid)u.hide.push(key);
+ try{deUserSave(u)}catch(e){toast("Plus de place sur le téléphone pour les images",2600);return}
+ toast(x?"✅ Enregistré":"✅ Mot ajouté",1500);back()};
 function renderProfils(){$("plist").innerHTML=PR.list.map(function(p){return '<button class="menuitem" data-edit="'+p.id+'"><span class="ic">'+(p.photo?'<span class="mini-av" style="width:40px;height:40px;background-image:url('+p.photo+')"></span>':"👤")+'</span><span>'+esc(pname(p))+(p.id===PR.active?'<span class="badge">actif</span>':'')+'<small>⭐ '+p.stars+({none:" · sans récompense",stars:" · étoiles seules",shop:" · 🛍️ boutique"})[p.rmode||"shop"]+'</small></span></button>'}).join("")}
 $("plist").addEventListener("click",function(e){var b=e.target.closest("[data-edit]");if(!b)return;EDIT=b.dataset.edit;openPage("profil")});
 $("padd").onclick=function(){var id="p"+Date.now().toString(36);PR.list.push({id:id,name:"",reward:true,unit:"€",per:10,gain:1,stars:0,money:0});saveP();EDIT=id;openPage("profil");setTimeout(function(){$("p-name").focus()},100)};

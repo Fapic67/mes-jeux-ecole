@@ -102,7 +102,8 @@ var DE_SVG={
 function deSlug(w){return w.replace(/ä/g,"ae").replace(/ö/g,"oe").replace(/ü/g,"ue").replace(/Ä/g,"Ae").replace(/Ö/g,"Oe").replace(/Ü/g,"Ue").replace(/ß/g,"ss")}
 function deImg(w){return '<img class="deimg" src="jeux/img/de/'+deSlug(w)+'.webp" alt="" draggable="false" style="width:1.3em;height:1.3em;vertical-align:-.25em;border-radius:.18em;object-fit:contain">'}
 var DE_IMG=["Ampel","Anker","Apfel","Aprikose","Auge","Bach","Ball","Baum","Berg","Besen","Biene","Bleistift","Blume","Bohne","Brot","Brunnen","Buch","Bus","Butter","Bäcker","Bäume","Dieb","Dose","Dreieck","Durst","Ei","Europa","Fahne","Feder","Flöte","Freund","Freundin","Friseur","Friseurin","Fuß","Füße","Gabel","Gans","Giraffe","Glas","Gras","Hahn","Hamster","Hand","Haus","Hexe","Himmel","Hände","Häslein","Häuser","Idee","Jacke","Jahr","Junge","Jäger","Kajak","Katze","Keks","Kerze","Kessel","Kind","Kinder","Kiste","Klasse","Kleber","Klecks","Kleider","Klementine","Knicks","Koffer","Korb","Kreuzung","Kuh","Küken","Kürbis","Laterne","Lied","Lineal","Maler","Mantel","Mauer","Maus","Maßband","Milch","Mond","Musik","Mädchen","Mäppchen","Mäuse","Möhre","Nase","Nebel","Obst","Ohr","Orangensaft","Pause","Pfeife","Pferd","Pinsel","Preis","Puppe","Pyramide","Qualle","Radiergummi","Regen","Reihe","Rezept","Sand","Schatz","Schnee","Schornsteinfeger","Schule","Schulhof","Schulranzen","Schwanz","Schüler","Schülerin","Spinne","Spitze","Spitzer","Spritzgebäck","Stamm","Stiel","Strauß","Streifen","Süßigkeit","Tafel","Tannenbaum","Tasse","Tisch","Traube","Uhr","Unkraut","Vase","Viereck","Vogel","Vögel","Wachsmalkreide","Wald","Weg","Wiese","Winter","Zeh","Zeitung","Ziege","angeln","arbeiten","backen","basteln","beugen","blau","blühen","brauchen","braun","brennen","brüten","bunt","böse","denken","dunkel","durch","fallen","falten","flattern","fliegen","froh","füttern","gelb","gießen","größer","gut","helfen","hell","hinter","hören","ich","jubeln","jung","kalt","klein","klopfen","kneten","lachen","laut","lesen","leuchten","lila","links","malen","mixen","neun","piksen","pusten","raus","rechts","reißen","richtig","riechen","riesig","rot","rutschen","sauber","schnell","schwarz","schwimmen","sechs","sieben","singen","sonnig","springen","stampfen","suchen","säen","tanzen","teilen","trinken","unter","verstecken","viel","voll","warm","waschen","weich","weiß","wenig","wünschen","zwei","zwölf","öffnen","über"]; // mots illustrés par une image Gemini (jeux/img/de/<mot>.webp), prioritaires sur emoji et dessins
-var DE_WORDS=DE_RAW.map(function(s){var p=s.split("|");return{n:+p[0],a:p[1],w:p[2],e:DE_IMG.indexOf(p[2])>=0?deImg(p[2]):(p[3]||DE_SVG[p[2]]||"")}});
+function deImgSrc(src){return '<img class="deimg" src="'+src+'" alt="" draggable="false" style="width:1.3em;height:1.3em;vertical-align:-.25em;border-radius:.18em;object-fit:contain">'}
+var DE_WORDS=[],DE_ALL=[],DE_BUY=[]; // calculés par deBuild() (en bas du fichier)
 var DE_DEFAULT=[1,2,3,4,5,6,7,8,9,10]; // leçons cochées par défaut (les mots de l'ancienne liste)
 // Leçons cochées pour un jeu ("dde" = Der · Die · Das, "fdw" = Finde das Wort) et un profil
 function deSelected(game,pid){var v=null;try{v=JSON.parse(localStorage.getItem("de_sel_"+game+"@"+(pid||"p1")))}catch(e){}if(!Array.isArray(v))v=DE_DEFAULT.slice();
@@ -110,4 +111,19 @@ function deSelected(game,pid){var v=null;try{v=JSON.parse(localStorage.getItem("
  return v.filter(function(n){return n>0})}
 function deSave(game,pid,list){if(list.indexOf(DE_DICT)<0)list=list.concat([-DE_DICT]);try{localStorage.setItem("de_sel_"+game+"@"+(pid||"p1"),JSON.stringify(list))}catch(e){}}
 // Mots « qu'on peut acheter » pour la Liste des courses (noms avec article et image)
-var DE_BUY=["Klementine","Tasse","Vase","Feder","Süßigkeit","Strauß","Glas","Wachsmalkreide","Milch","Möhre","Zeitung","Apfel","Brot","Orangensaft","Traube","Butter","Keks","Kerze","Ball","Bleistift","Puppe","Pinsel","Lineal","Korb","Blume","Aprikose","Dose","Ei","Buch","Koffer","Besen","Mantel","Schulranzen","Kürbis","Laterne","Uhr","Gabel","Kiste","Obst","Tannenbaum"];
+var DE_BUY0=["Klementine","Tasse","Vase","Feder","Süßigkeit","Strauß","Glas","Wachsmalkreide","Milch","Möhre","Zeitung","Apfel","Brot","Orangensaft","Traube","Butter","Keks","Kerze","Ball","Bleistift","Puppe","Pinsel","Lineal","Korb","Blume","Aprikose","Dose","Ei","Buch","Koffer","Besen","Mantel","Schulranzen","Kürbis","Laterne","Uhr","Gabel","Kiste","Obst","Tannenbaum"];
+
+// --- Mots gérés par un parent dans Paramètres → 📖 Mots d'allemand (localStorage « de_words », commun à tous les profils) ---
+// {add:[{id,n,a,w,fr,buy}], img:{Mot:"data:image/…"}, hide:["Mot",…]} : mots ajoutés, images choisies sur le téléphone, mots masqués.
+function deUser(){var u=null;try{u=JSON.parse(localStorage.getItem("de_words"))}catch(e){}u=u||{};u.add=u.add||[];u.img=u.img||{};u.hide=u.hide||[];return u}
+function deUserSave(u){localStorage.setItem("de_words",JSON.stringify(u));deBuild()}
+function deBuild(){var u=deUser();
+ var base=DE_RAW.map(function(s){var p=s.split("|");return{n:+p[0],a:p[1],w:p[2],e0:p[3]||""}});
+ // un mot ajouté sur le téléphone puis intégré au dépôt par Claude (avec son image) : la version du dépôt l'emporte
+ var known={};base.forEach(function(x){known[x.w]=1});
+ var add=u.add.filter(function(x){return !known[x.w]}).map(function(x){return{n:+x.n,a:x.a||"",w:x.w,e0:"",user:1,id:x.id,fr:x.fr||"",buy:!!x.buy}});
+ DE_ALL=base.concat(add).map(function(x){x.own=!!u.img[x.w];x.hid=u.hide.indexOf(x.w)>=0;
+  x.e=u.img[x.w]?deImgSrc(u.img[x.w]):DE_IMG.indexOf(x.w)>=0?deImg(x.w):(x.e0||DE_SVG[x.w]||"");return x});
+ DE_WORDS=DE_ALL.filter(function(x){return !x.hid});
+ DE_BUY=DE_BUY0.concat(add.filter(function(x){return x.buy&&x.a&&DE_BUY0.indexOf(x.w)<0}).map(function(x){return x.w}))}
+deBuild();
