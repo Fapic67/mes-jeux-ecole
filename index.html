@@ -461,7 +461,7 @@ body.rw-shop #purse{display:none!important}
       <h3>⏳ Temps par jeu</h3>
       <label class="switch"><input type="checkbox" id="pl-on"><span class="grow">Limiter les jeux par rapport à l'apprentissage</span></label>
       <div class="pg" id="pl-opts" style="gap:10px">
-        <div class="muted">Part maximum du temps passée sur les jeux :</div>
+        <div class="muted">Apprentissage → jeu :</div>
         <div class="ratios" id="pl-ratio"></div>
         <div class="muted" id="pl-txt"></div>
         <div class="muted">Jeux limités :</div>
@@ -783,7 +783,7 @@ function pad(n){return(n<10?"0":"")+n}
 function dkey(d){d=d||new Date();return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())}
 function monday(d){d=new Date(d||new Date());d.setHours(12,0,0,0);d.setDate(d.getDate()-((d.getDay()+6)%7));return dkey(d)}
 function addDays(k,n){var d=new Date(k+"T12:00:00");d.setDate(d.getDate()+n);return dkey(d)}
-function ensureEcon(p){if(p.rmode==null)p.rmode=p.reward===false?"stars":"shop";if(p.rmode==="gifts"){p.rmode="shop";if(p.gifts)p.stars=Math.max(p.stars||0,0)}if(!p.daily)p.daily={on:false,min:30,bonus:{}};if(!p.play)p.play={on:true,ratio:.25,games:["morpion","code","robot"],bonus:{}};if(p.goal==null)p.goal=20;if(p.cap==null)p.cap=3;if(p.rate==null)p.rate=50;if(!p.econ)p.econ={streak:0,gauge:0,days:{},weeks:[],wk:monday(),best:0};return p.econ}
+function ensureEcon(p){if(p.rmode==null)p.rmode=p.reward===false?"stars":"shop";if(p.rmode==="gifts"){p.rmode="shop";if(p.gifts)p.stars=Math.max(p.stars||0,0)}if(!p.daily)p.daily={on:false,min:30,bonus:{}};if(!p.play)p.play={on:true,ratio:5/13,games:["morpion","code","robot"],bonus:{},v2:1};if(!p.play.v2){p.play.ratio=5/13;p.play.v2=1};if(p.goal==null)p.goal=20;if(p.cap==null)p.cap=3;if(p.rate==null)p.rate=50;if(!p.econ)p.econ={streak:0,gauge:0,days:{},weeks:[],wk:monday(),best:0};return p.econ}
 function target(p){return Math.max(1,Math.round(p.rate*p.cap))}          // étoiles pour atteindre le maximum de la semaine (taux × maximum)
 function eurOf(p,st){return Math.floor(Math.min(p.cap,st/p.rate)*10+1e-9)/10}
 function today(p){var E=ensureEcon(p),k=dkey(),d=E.days[k]||(E.days[k]={st:0,ok:0,tot:0,sec:0,best:0});if(d.learn==null){d.learn=0;d.play=0}return d}
@@ -982,8 +982,8 @@ function bonusToday(p){var b=p.play.bonus||{};return b.d===dkey()?b.sec:0}
 function playLeft(p){p=p||prof();var d=today(p),r=p.play.ratio;return d.learn*r/(1-r)+bonusToday(p)-d.play}
 function learnNeeded(p){var d=today(p),r=p.play.ratio;return Math.max(60,(d.play+60-bonusToday(p))*(1-r)/r-d.learn)} // secondes d'apprentissage pour 1 min de jeu
 function mins(sec){return Math.max(1,Math.ceil(sec/60))}
-function lockMsg(p){var d=today(p),r=p.play.ratio,k=Math.round((1-r)/r*10)/10;
- return (d.learn<30&&!bonusToday(p)?"Fais d'abord un peu d'apprentissage. ":"")+"Encore "+mins(learnNeeded(p))+" min d'apprentissage pour pouvoir jouer ("+String(k).replace(".",",")+" min d'apprentissage = 1 min de jeu)."}
+function lockMsg(p){var d=today(p),r=p.play.ratio,k=Math.round(4*r/(1-r)*10)/10;
+ return (d.learn<30&&!bonusToday(p)?"Fais d'abord un peu d'apprentissage. ":"")+"Encore "+mins(learnNeeded(p))+" min d'apprentissage pour pouvoir jouer ("+"4 min d'apprentissage = "+String(k).replace(".",",")+" min de jeu)."}
 /* ---------- Temps par jour (p.daily = {on, min, bonus:{d,sec}}) : temps actif dans les jeux (today().sec) ----------
    À 0 : le jeu en cours se termine (fin de manche {type:"roundEnd"} ou 5 min de grâce), puis « C'est fini pour aujourd'hui ». */
 function dayOn(p){p=p||prof();ensureEcon(p);return !!(!p.admin&&p.daily.on)}
@@ -1224,7 +1224,7 @@ function renderBilan(p){var E=ensureEcon(p),w=weekSum(p,E.wk),d=today(p);
   E.weeks.slice(0,10).forEach(function(x){var dt=new Date(x.w+"T12:00:00");h+="<tr><td>"+dt.toLocaleDateString("fr-FR",{day:"numeric",month:"short"})+"</td><td>"+x.days+"</td><td>"+x.min+"</td><td>"+x.st+"</td><td>"+acc(x.ok,x.tot)+"</td><td>"+money(x.eur,p)+"</td><td>"+(x.gifts||0)+"</td></tr>"});h+="</table>"}
  else h+='<div class="muted">Le premier bilan arrivera lundi.</div>';
  $("p-bilan").innerHTML=h}
-var RATIOS=[[.2,"20 %"],[.25,"25 %"],[1/3,"33 %"],[.5,"50 %"]];
+var RATIOS=[[.2,"4 → 1 min"],[1/3,"4 → 2 min"],[5/13,"4 → 2,5 min"],[.5,"4 → 4 min"]]; // r = jeu / (apprentissage + jeu)
 var DMINS=[15,20,30,45,60,90];
 /* fiche profil : type de récompense et réglages des cadeaux */
 var RMODES=[["none","🚫 Pas de récompense","Ni étoiles ni boutique : on joue pour apprendre."],["stars","⭐ Étoiles seules","Un compteur d'étoiles et l'objectif du jour."],["shop","🛍️ Boutique","Les étoiles s'échangent contre des récompenses et des jeux."]];
@@ -1250,7 +1250,7 @@ $("dl-min").onchange=function(){var t=this.value.trim();if(t===""){upd(function(
 $("dl-min").onkeydown=function(e){if(e.key==="Enter")this.blur()};
 function renderPlay(p){ensureEcon(p);var P=p.play;$("pl-on").checked=P.on;$("pl-opts").hidden=!P.on;
  $("pl-ratio").innerHTML=RATIOS.map(function(r,i){return '<button data-r="'+i+'" class="'+(Math.abs(r[0]-P.ratio)<.01?"on":"")+'">'+r[1]+"</button>"}).join("");
- var k=Math.round((1-P.ratio)/P.ratio*10)/10;$("pl-txt").textContent=String(k).replace(".",",")+" min d'apprentissage = 1 min de jeu. Les jeux limités sont grisés quand le temps est écoulé ; une partie commencée se termine toujours.";
+ var k=Math.round(4*P.ratio/(1-P.ratio)*10)/10;$("pl-txt").textContent="4 min d'apprentissage = "+String(k).replace(".",",")+" min de jeu. Les jeux limités sont grisés quand le temps est écoulé ; une partie commencée se termine toujours.";
  $("pl-games").innerHTML=Object.keys(GAMES).map(function(g){return '<label class="switch"><input type="checkbox" data-g="'+g+'"'+(P.games.indexOf(g)>=0?" checked":"")+'><span class="grow">'+esc(GAMES[g].t)+"</span></label>"}).join("")}
 $("pl-on").onchange=function(){var v=this.checked;upd(function(p){ensureEcon(p);p.play.on=v})};
 $("pl-ratio").addEventListener("click",function(e){var b=e.target.closest("[data-r]");if(!b)return;upd(function(p){ensureEcon(p);p.play.ratio=RATIOS[+b.dataset.r][0]})});
