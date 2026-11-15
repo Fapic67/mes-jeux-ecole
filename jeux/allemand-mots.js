@@ -29,7 +29,7 @@ var DE_RAW=[
  "6|das|Gras|🌱","6||basteln|✂️","6||raus|🚪🏃","6|die|Kiste|📦","6|der|Bus|🚌","6|der|Kürbis|🎃",
  "7|die|Blume|🌸","7|die|Uhr|🕐","7||suchen|🔍","7||pusten|🌬️","7|die|Schule|🏫","7||gut|👍",
  "8|die|Maus|🐭","8||malen|🎨","8|die|Musik|🎶","8|die|Ampel|🚦","8|das|Mäppchen|","8||schwimmen|🏊",
- "9|die|Traube|🍇","9|die|Laterne|🏮","9||leuchten|🔦","9||teilen|🤝","9||falten|📄","9||bunt|🌈",
+ "9|die|Traube|🍇","9|die|Laterne|🏮","9||leuchten|🔦","9||teilen|","9||falten|📄","9||bunt|🌈",
  "10|die|Nase|👃","10|die|Gans|","10|der|Mantel|🧥","10|der|Nebel|🌫️","10||brennen|🔥","10||neun|9️⃣",
  "11|der|Wald|🌲","11||weiß|⚪","11||warm|☀️","11||wünschen|🎁","11|der|Winter|❄️","11||schwarz|⚫",
  "12|die|Kerze|🕯️","12|der|Korb|🧺","12||kalt|🥶","12|der|Keks|🍪","12|das|Kind|🧒","12||trinken|🥤",
@@ -57,6 +57,8 @@ var DE_RAW=[
 // Dessins maison partagés par tous les jeux (quand un seul emoji ne suffit pas) : taille = 1,3em (comme un emoji)
 var DE_SVG={
  // Obst = les fruits : une corbeille de fruits (banane, raisin, pomme, orange)
+ // teilen = partager : une tablette de chocolat cassée en deux, une moitié pour chaque enfant (choix de l'utilisateur ; 🤝 faisait penser à « saluer »)
+ "teilen":'<svg class="desvg" viewBox="0 0 100 100" width="1.3em" height="1.3em" style="vertical-align:-.25em"><g transform="rotate(-8 32 42)"><rect x="14" y="20" width="34" height="42" rx="4" fill="#7b4a2a"/><path d="M14 34h34M14 48h34M31 20v42" stroke="#5a3218" stroke-width="2.5"/><path d="M48 20l-3 6 3 5-3 6 3 5-3 6 3 5-3 6 3 3" fill="none" stroke="#5a3218" stroke-width="2"/></g><g transform="rotate(8 68 42)"><rect x="52" y="20" width="34" height="42" rx="4" fill="#7b4a2a"/><path d="M52 34h34M52 48h34M69 20v42" stroke="#5a3218" stroke-width="2.5"/></g><circle cx="22" cy="84" r="10" fill="#f6c89a"/><path d="M12 80q10-12 20 0" fill="#7a4a24"/><path d="M18 87q4 4 8 0" stroke="#5a3218" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="18.5" cy="82" r="1.4" fill="#3a2416"/><circle cx="25.5" cy="82" r="1.4" fill="#3a2416"/><circle cx="78" cy="84" r="10" fill="#f6c89a"/><path d="M68 82q10-16 20 0" fill="#e0a43a"/><path d="M74 87q4 4 8 0" stroke="#5a3218" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="74.5" cy="82" r="1.4" fill="#3a2416"/><circle cx="81.5" cy="82" r="1.4" fill="#3a2416"/></svg>',
  "Obst":'<svg class="desvg" viewBox="0 0 100 100" width="1.3em" height="1.3em" style="vertical-align:-.25em"><path d="M20 47C22 30 36 18 58 17c2 0 3 2 1 3-14 4-23 13-27 27z" fill="#ffd23f" stroke="#d4a900" stroke-width="2" stroke-linejoin="round"/><g fill="#8e44ad"><circle cx="27" cy="44" r="6"/><circle cx="36" cy="41" r="6"/><circle cx="31" cy="35" r="6"/><circle cx="40" cy="33" r="5"/></g><path d="M35 29l3-6" stroke="#3a7d2c" stroke-width="2.5" stroke-linecap="round"/><circle cx="74" cy="43" r="11" fill="#ff9f1a"/><circle cx="71" cy="39" r="2.5" fill="#fff" opacity=".4"/><circle cx="55" cy="42" r="13" fill="#e5484d"/><circle cx="50" cy="37" r="3" fill="#fff" opacity=".4"/><path d="M55 30q1-6 4-8" stroke="#6b3e1f" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M58 27q8-6 12 0q-7 4-12 0z" fill="#3fae49"/><path d="M14 52h72l-8 34q-28 7-56 0z" fill="#c48a4a"/><path d="M17 64h66M19 75h62" stroke="#8b5a2b" stroke-width="2.5"/><path d="M32 54l3 34M50 54v35M68 54l-3 34" stroke="#8b5a2b" stroke-width="2.5"/><rect x="10" y="47" width="80" height="9" rx="4.5" fill="#9a6331"/></svg>'
 };
 var DE_WORDS=DE_RAW.map(function(s){var p=s.split("|");return{n:+p[0],a:p[1],w:p[2],e:p[3]||DE_SVG[p[2]]||""}});
