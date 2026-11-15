@@ -1603,6 +1603,9 @@ if("serviceWorker" in navigator){
  document.addEventListener("visibilitychange",function(){if(!document.hidden)navigator.serviceWorker.getRegistration().then(function(r){r&&r.update()})})}
 </script>
 <script src="sync.js"></script>
-<script>if(window.SYNC)SYNC.after=function(){try{renderPurse();if(!$("settings").hidden){var top=PG[PG.length-1]||"menu";if(top==="family"||top==="menu")renderPage()}}catch(e){}};</script>
+<script>// après chaque synchronisation : redessiner l'écran affiché (profils ajoutés, étoiles, réglages venus d'un autre téléphone)
+if(window.SYNC)SYNC.after=function(ch){try{var top=PG[PG.length-1]||"menu",open=!$("settings").hidden;if(open&&top==="family")renderFamily();if(!ch)return;
+ renderPurse();if(cur==="profil")renderProfilScreen();
+ if(open){if(["menu","profils","app"].indexOf(top)>=0)renderPage();else if(top==="profil"&&document.activeElement&&!/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName))renderPage()}}catch(e){}};</script>
 </body>
 </html>

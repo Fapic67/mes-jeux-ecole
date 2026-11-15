@@ -101,11 +101,11 @@ function push(fam,o){var body=JSON.stringify(o);return tok().then(function(t){re
  body:JSON.stringify({fields:{ts:{integerValue:String(Date.now())},data:{stringValue:body}}})}).then(function(r){if(!r.ok)throw new Error("écriture "+r.status);SY.pushed=hash(body)})})}
 
 /* --- synchronisation : lire les autres, fusionner, publier sa part --- */
-SY.now=function(){if(!SY.fam||!SY.ready()||SY.busy||window.NOSAVE)return Promise.resolve(false);SY.busy=true;
- return pull(SY.fam).then(function(r){
+SY.now=function(){if(!SY.fam||!SY.ready()||SY.busy||window.NOSAVE)return Promise.resolve(false);SY.busy=true;var ch=false;
+ return pull(SY.fam).then(function(r){ch=JSON.stringify(r.N)!==JSON.stringify(SY.peers); // quelque chose de nouveau vient d'un autre téléphone
   if(SY.joining){if(!Object.keys(r.N).length)throw new Error("famille vide");PR.list=[];gkeys().forEach(function(k){SY.h["g:"+k]=hash(localStorage.getItem(k)||"");SY.mt["g:"+k]=0})} // téléphone qui rejoint : rien de local ne doit l'emporter
-  apply(r.N);var o=own(),h=hash(JSON.stringify(o));return h===SY.pushed?null:push(SY.fam,o)}).then(function(){if(SY.joining){SY.joining=false;localStorage.removeItem("sync_join");setTimeout(function(){location.reload()},300)}SY.last=Date.now();localStorage.setItem("sync_last",SY.last);SY.err="";SY.busy=false;SY.after&&SY.after();return true})
- .catch(function(e){SY.err=String(e&&e.message||e);SY.busy=false;SY.after&&SY.after();return false})};
+  apply(r.N);var o=own(),h=hash(JSON.stringify(o));return h===SY.pushed?null:push(SY.fam,o)}).then(function(){if(SY.joining){SY.joining=false;localStorage.removeItem("sync_join");setTimeout(function(){location.reload()},300)}SY.last=Date.now();localStorage.setItem("sync_last",SY.last);SY.err="";SY.busy=false;SY.after&&SY.after(ch);return true})
+ .catch(function(e){SY.err=String(e&&e.message||e);SY.busy=false;SY.after&&SY.after(false);return false})};
 var AL="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 function newCode(){var a=new Uint8Array(12),s="";crypto.getRandomValues(a);for(var i=0;i<12;i++)s+=AL[a[i]%32];return s}
 SY.fmt=function(c){return c.replace(/(.{4})(?=.)/g,"$1-")};
