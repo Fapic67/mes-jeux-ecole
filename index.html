@@ -451,9 +451,9 @@ body.rw-shop #purse{display:none!important}
     </div>
     <div class="card">
       <h3>🌙 Temps par jour</h3>
-      <label class="switch"><input type="checkbox" id="dl-on"><span class="grow">Limiter le temps passé dans l'appli chaque jour</span></label>
+      <input type="checkbox" id="dl-on" hidden>
       <div class="pg" id="dl-opts" style="gap:10px">
-        <label class="row"><span class="grow">Maximum par jour</span><input class="field num" id="dl-min" type="number" inputmode="numeric" min="1" max="600" step="1" style="width:110px;text-align:center"><span>min</span></label>
+        <label class="row"><span class="grow">Maximum par jour<small class="muted" style="display:block;font-size:16px">Vide = illimité</small></span><input class="field num" id="dl-min" type="number" inputmode="numeric" min="1" max="600" step="1" placeholder="Illimité" style="width:130px;text-align:center"><span>min</span></label>
         <div class="muted" id="dl-txt"></div>
       </div>
     </div>
@@ -1234,12 +1234,15 @@ function renderRmode(p){renderPrize(p);ensureShop(p);$("p-rmode").innerHTML=RMOD
  $("p-gpend").innerHTML=p.shopPend.length?p.shopPend.map(function(x){return '<div class="row"><span style="font-size:26px">'+x.ic+'</span><span class="grow">'+esc(x.t)+'<small class="muted" style="display:block">'+new Date(x.d+"T12:00:00").toLocaleDateString("fr-FR")+'</small></span><button class="btn okb" data-give="'+x.id+'">✅ Donné</button></div>'}).join(""):'<div class="muted">Rien à remettre pour l\'instant.</div>'}
 $("p-rmode").addEventListener("click",function(e){var b=e.target.closest("[data-rm]");if(!b)return;upd(function(p){p.rmode=b.dataset.rm;p.reward=p.rmode==="shop"})});
 $("p-gpend").addEventListener("click",function(e){var b=e.target.closest("[data-give]");if(!b)return;upd(function(p){ensureShop(p);p.shopPend=p.shopPend.filter(function(x){return x.id!==b.dataset.give})});toast("✅ Donné",1500)});
-function renderDaily(p){ensureEcon(p);var D=p.daily;$("dl-on").checked=D.on;$("dl-opts").hidden=!D.on;
- if(document.activeElement!==$("dl-min"))$("dl-min").value=D.min;
- $("dl-txt").textContent="Compte le temps actif dans les jeux. À la fin, le jeu en cours se termine, puis « C'est fini pour aujourd'hui ». Aujourd'hui : "+fmtMin(today(p).sec)+" utilisées"+(D.on?" · reste "+fmtMin(Math.max(0,dayLeft(p))):"")+"."}
+function renderDaily(p){ensureEcon(p);var D=p.daily;$("dl-on").checked=D.on;
+ if(document.activeElement!==$("dl-min"))$("dl-min").value=D.on?D.min:"";
+ $("dl-txt").textContent=(D.on?"":"Pas de limite pour l'instant. ")+"Compte le temps actif dans les jeux. À la fin, le jeu en cours se termine, puis « C'est fini pour aujourd'hui ». Aujourd'hui : "+fmtMin(today(p).sec)+" utilisées"+(D.on?" · reste "+fmtMin(Math.max(0,dayLeft(p))):"")+"."}
 $("dl-on").onchange=function(){var v=this.checked;upd(function(p){ensureEcon(p);p.daily.on=v})};
 // champ en minutes (1 à 600), enregistré quand on quitte le champ ou valide
-$("dl-min").onchange=function(){var v=Math.round(+this.value);if(!(v>=1&&v<=600)){toast("Entre 1 et 600 minutes",1800);this.value=E().daily.min;return}upd(function(p){ensureEcon(p);p.daily.min=v});toast("🌙 "+v+" min par jour",1400)};
+// vide = illimité (daily.on faux) ; sinon 1 à 600 minutes
+$("dl-min").onchange=function(){var t=this.value.trim();if(t===""){upd(function(p){ensureEcon(p);p.daily.on=false});toast("🌙 Pas de limite par jour",1400);return}
+ var v=Math.round(+t);if(!(v>=1&&v<=600)){toast("Entre 1 et 600 minutes, ou vide pour illimité",2000);var D=E().daily;this.value=D.on?D.min:"";return}
+ upd(function(p){ensureEcon(p);p.daily.min=v;p.daily.on=true});toast("🌙 "+v+" min par jour",1400)};
 $("dl-min").onkeydown=function(e){if(e.key==="Enter")this.blur()};
 function renderPlay(p){ensureEcon(p);var P=p.play;$("pl-on").checked=P.on;$("pl-opts").hidden=!P.on;
  $("pl-ratio").innerHTML=RATIOS.map(function(r,i){return '<button data-r="'+i+'" class="'+(Math.abs(r[0]-P.ratio)<.01?"on":"")+'">'+r[1]+"</button>"}).join("");
