@@ -453,8 +453,7 @@ body.rw-shop #purse{display:none!important}
       <h3>🌙 Temps par jour</h3>
       <label class="switch"><input type="checkbox" id="dl-on"><span class="grow">Limiter le temps passé dans l'appli chaque jour</span></label>
       <div class="pg" id="dl-opts" style="gap:10px">
-        <div class="muted">Maximum par jour :</div>
-        <div class="ratios" id="dl-min"></div>
+        <label class="row"><span class="grow">Maximum par jour</span><input class="field num" id="dl-min" type="number" inputmode="numeric" min="1" max="600" step="1" style="width:110px;text-align:center"><span>min</span></label>
         <div class="muted" id="dl-txt"></div>
       </div>
     </div>
@@ -989,7 +988,7 @@ function lockMsg(p){var d=today(p),r=p.play.ratio,k=Math.round((1-r)/r*10)/10;
    À 0 : le jeu en cours se termine (fin de manche {type:"roundEnd"} ou 5 min de grâce), puis « C'est fini pour aujourd'hui ». */
 function dayOn(p){p=p||prof();ensureEcon(p);return !!(!p.admin&&p.daily.on)}
 function dayLeft(p){p=p||prof();ensureEcon(p);var D=p.daily,b=D.bonus&&D.bonus.d===dkey()?D.bonus.sec:0;return D.min*60+b-today(p).sec}
-function dayMark(p){var D=p.daily;return dkey()+"|"+(D.bonus&&D.bonus.d===dkey()?D.bonus.sec:0)}
+function dayMark(p){var D=p.daily;return dkey()+"|"+(D.bonus&&D.bonus.d===dkey()?D.bonus.sec:0)+"|"+D.min}
 function dayOver(p){p=p||prof();return dayOn(p)&&(dayLeft(p)<=0||p.daily.done===dayMark(p))}
 var dayUp=false,dayT=null,dayInGame=false;
 function endDay(){clearTimeout(dayT);dayT=null;if(!GAMES[cur])return;saveP();showDayOver(true)}
@@ -1236,10 +1235,12 @@ function renderRmode(p){renderPrize(p);ensureShop(p);$("p-rmode").innerHTML=RMOD
 $("p-rmode").addEventListener("click",function(e){var b=e.target.closest("[data-rm]");if(!b)return;upd(function(p){p.rmode=b.dataset.rm;p.reward=p.rmode==="shop"})});
 $("p-gpend").addEventListener("click",function(e){var b=e.target.closest("[data-give]");if(!b)return;upd(function(p){ensureShop(p);p.shopPend=p.shopPend.filter(function(x){return x.id!==b.dataset.give})});toast("✅ Donné",1500)});
 function renderDaily(p){ensureEcon(p);var D=p.daily;$("dl-on").checked=D.on;$("dl-opts").hidden=!D.on;
- $("dl-min").innerHTML=DMINS.map(function(m){return '<button data-m="'+m+'" class="'+(m===D.min?"on":"")+'">'+m+" min</button>"}).join("");
+ if(document.activeElement!==$("dl-min"))$("dl-min").value=D.min;
  $("dl-txt").textContent="Compte le temps actif dans les jeux. À la fin, le jeu en cours se termine, puis « C'est fini pour aujourd'hui ». Aujourd'hui : "+fmtMin(today(p).sec)+" utilisées"+(D.on?" · reste "+fmtMin(Math.max(0,dayLeft(p))):"")+"."}
 $("dl-on").onchange=function(){var v=this.checked;upd(function(p){ensureEcon(p);p.daily.on=v})};
-$("dl-min").addEventListener("click",function(e){var b=e.target.closest("[data-m]");if(!b)return;upd(function(p){ensureEcon(p);p.daily.min=+b.dataset.m})});
+// champ en minutes (1 à 600), enregistré quand on quitte le champ ou valide
+$("dl-min").onchange=function(){var v=Math.round(+this.value);if(!(v>=1&&v<=600)){toast("Entre 1 et 600 minutes",1800);this.value=E().daily.min;return}upd(function(p){ensureEcon(p);p.daily.min=v});toast("🌙 "+v+" min par jour",1400)};
+$("dl-min").onkeydown=function(e){if(e.key==="Enter")this.blur()};
 function renderPlay(p){ensureEcon(p);var P=p.play;$("pl-on").checked=P.on;$("pl-opts").hidden=!P.on;
  $("pl-ratio").innerHTML=RATIOS.map(function(r,i){return '<button data-r="'+i+'" class="'+(Math.abs(r[0]-P.ratio)<.01?"on":"")+'">'+r[1]+"</button>"}).join("");
  var k=Math.round((1-P.ratio)/P.ratio*10)/10;$("pl-txt").textContent=String(k).replace(".",",")+" min d'apprentissage = 1 min de jeu. Les jeux limités sont grisés quand le temps est écoulé ; une partie commencée se termine toujours.";
