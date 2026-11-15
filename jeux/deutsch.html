@@ -13,6 +13,7 @@ body{background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,"S
 .bar{width:100%;height:14px;background:var(--bd);border-radius:7px;overflow:hidden}
 .bar i{display:block;height:100%;width:0;background:var(--der);transition:width .3s}
 .cnt{color:var(--mut);font-size:19px;font-weight:600}
+.dpic{font-size:clamp(70px,24vw,96px);line-height:1;margin-top:4px}
 .word{font-size:clamp(40px,13vw,64px);font-weight:700;word-break:break-word;margin:8px 0}
 .pic{font-size:110px;line-height:1.1;min-height:150px;display:flex;align-items:center;justify-content:center}
 .pic svg{width:160px;height:160px}
@@ -78,7 +79,7 @@ function tooFew(){app.innerHTML='<h1>Pas assez de mots</h1><div class="cnt">Dema
 function start(){mode=1;bk.style.display="block";var P=pool("dde",function(x){return x.a});if(P.length<3){tooFew();return}deck=shuffle(P).slice(0,TOTAL);i=0;good=0;showWord()}
 function showWord(){
   var w=deck[i];missed=false;
-  app.innerHTML=bar()+'<div class="word">'+w.w+'</div><button class="ear" id="ear" aria-label="Wiederholen">🔊</button><div class="pills"><button class="pill" data-a="der">der</button><button class="pill" data-a="die">die</button><button class="pill" data-a="das">das</button></div>';
+  app.innerHTML=bar()+(w.e?'<div class="dpic">'+w.e+'</div>':'')+'<div class="word">'+w.w+'</div><button class="ear" id="ear" aria-label="Wiederholen">🔊</button><div class="pills"><button class="pill" data-a="der">der</button><button class="pill" data-a="die">die</button><button class="pill" data-a="das">das</button></div>';
   document.getElementById("ear").onclick=function(){say(w.w)};
   say(w.w);
   app.querySelectorAll(".pill").forEach(function(p){p.onclick=function(){
