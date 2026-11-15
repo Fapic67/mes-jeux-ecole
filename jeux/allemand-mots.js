@@ -1,6 +1,6 @@
 // Vocabulaire allemand rangé comme le manuel de CP « Die Rappelkiste » : périodes → modules → leçons (une lettre).
 // Seuls les mots des encadrés de vocabulaire sont repris (pas les images ni les textes du livre).
-// Leçons 1 à 24 : mots des encadrés (photos des pages envoyées par l'utilisateur) ; leçons 25 à 32 : seulement les mots référents du sommaire.
+// Leçons 1 à 32 : mots des encadrés de vocabulaire (photos des pages envoyées par l'utilisateur).
 // Mots déjà vus dans une leçon précédente (lesen, Regen, schwarz, Mäppchen, lachen) : pas répétés.
 // Images : emoji, ou dessin maison (PIC dans deutsch.html) quand le champ est vide.
 var DE_MODULES=[
@@ -17,12 +17,15 @@ var DE_MODULES=[
  {p:5,m:"10",t:"Die Walpurgisnacht",f:"La nuit des sorcières",l:[25,26,27]},
  {p:5,m:"11",t:"Die Partnerklasse",f:"Les correspondants",l:[28,29,30]},
  {p:5,m:"12",t:"Die Bundesjugendspiele",f:"La rencontre sportive",l:[31,32]},
+ // Annexes de fin de livre (pt = titre affiché à la place de « Période ») : cartes des lettres non vues dans les leçons, puis « Vers le CE1 »
+ {p:6,pt:"📚 Fin du livre",m:"cartes",t:"Cartes des lettres",f:"Cartes de fin de livre",l:[33]},
+ {p:6,pt:"📚 Fin du livre",m:"ce1",t:"Vers le CE1",f:"Pour préparer le CE1",l:[34]},
  // Dictionnaire hors manuel (mots ajoutés à la demande) : leçon 100, cochée d'office dans tous les jeux
  {p:0,m:"dico",t:"Dictionnaire",f:"Mots en plus, hors manuel",l:[100]}
 ];
 var DE_DICT=100;
 // Lettre(s) travaillée(s) dans chaque leçon
-var DE_LETTERS={1:"A",2:"I",3:"O",4:"L",5:"R",6:"S",7:"U",8:"M",9:"T",10:"N",11:"W",12:"K",13:"P",14:"B",15:"D & E",16:"V & Ö",17:"H",18:"-ER",19:"SCH",20:"EI & Z",21:"Ä & Ü",22:"-CH & IE",23:"voyelle longue + h",24:"-CH & AU",25:"ATT, ESS, IMM…",26:"X, CHS, KS, CKS",27:"SP & ST",28:"S",29:"EU",30:"J",31:"consonne finale dure",32:"ß",100:"Mots en plus"};
+var DE_LETTERS={1:"A",2:"I",3:"O",4:"L",5:"R",6:"S",7:"U",8:"M",9:"T",10:"N",11:"W",12:"K",13:"P",14:"B",15:"D & E",16:"V & Ö",17:"H",18:"-ER",19:"SCH",20:"EI & Z",21:"Ä & Ü",22:"-CH & IE",23:"voyelle longue + h",24:"-CH & AU",25:"ATT, ESS, IMM…",26:"X, CHS, KS, CKS",27:"SP & ST",28:"S",29:"EU",30:"J",31:"consonne finale dure",32:"ß",33:"F, -E, V, G",34:"QU, -ER, ÖFF, -TZ, -CK, -NG, -NK, -IG, ÄU, Y",100:"Mots en plus"};
 // leçon|article|mot|image
 var DE_RAW=[
  "1|der|Apfel|🍎","1|die|Tafel|","1|der|Schulranzen|🎒","1|die|Klasse|","1|der|Radiergummi|","1||arbeiten|📝",
@@ -40,7 +43,7 @@ var DE_RAW=[
  "13|die|Puppe|🪆","13|der|Pinsel|🖌️","13|das|Rezept|📃","13||klopfen|✊🚪","13|das|Spritzgebäck|","13|die|Aprikose|🍑",
  "14|der|Baum|🌳","14|der|Tannenbaum|🎄","14|die|Butter|🧈","14|die|Gabel|🍴","14||backen|🧑‍🍳","14||blau|🔵",
  "15|die|Dose|🥫","15|der|Durst|","15||denken|🤔","15||dunkel|🌑","15||kneten|","15|der|Kleber|",
- "16|der|Vogel|🐦","16|die|Vögel|🐦🐦","16|das|Viereck|🟧","16||voll|🔋","16||viel|","16|die|Flöte|","16||größer|🦒","16||böse|😠",
+ "16|der|Vogel|🐦","16|die|Vögel|🐦🐦","16|das|Viereck|🟧","16||voll|🔋","16||viel|","16|die|Flöte|","16||größer|📈","16||böse|😠",
  "17|das|Haus|🏠","17|die|Hand|✋","17|der|Hamster|🐹","17||hell|🔆","17||helfen|","17||hören|🎧",
  "18|die|Kinder|👧👦","18|die|Kleider|👗","18|der|Bäcker|🥨","18|der|Jäger|","18|der|Maler|🧑‍🎨","18||hinter|","18||unter|","18||über|",
  "19|der|Schüler|","19|die|Schülerin|","19|der|Schatz|💰","19|der|Schnee|🌨️","19|der|Schornsteinfeger|","19||waschen|🧼",
@@ -49,14 +52,16 @@ var DE_RAW=[
  "22||ich|","22||sieben|7️⃣","22||rechts|➡️","22|die|Biene|🐝","22|die|Milch|🥛","22||durch|","22|die|Ziege|🐐","22||fliegen|✈️",
  "23|die|Bohne|🫘","23|der|Zeh|","23||blühen|🌼","23||froh|😊","23||säen|","23|die|Möhre|🥕","23|die|Kuh|🐄","23|der|Hahn|🐓",
  "24|das|Buch|📕","24|das|Auge|👁️","24||laut|📢","24|die|Mauer|🧱","24|das|Unkraut|🌿","24||brauchen|","24|der|Bach|🏞️",
- "25|der|Kessel|","25|der|Koffer|🧳",
- "26|die|Hexe|🧙‍♀️","26||sechs|6️⃣","26||links|⬅️","26|der|Klecks|",
- "27|die|Spinne|🕷️","27||stampfen|",
- "28|der|Besen|🧹",
- "29|die|Fahne|🇩🇪",
- "30|die|Jacke|",
- "31||gelb|🟡","31|der|Mond|🌙","31|der|Weg|🛤️","31|der|Preis|🏆",
- "32|der|Fuß|🦶",
+ "25|der|Kessel|","25|der|Koffer|🧳","25||flattern|🦇","25|der|Himmel|☁️","25|der|Brunnen|⛲","25||schnell|🏃","25||sonnig|🌞","25||fallen|🍂",
+ "26|die|Hexe|🧙‍♀️","26||sechs|6️⃣","26||links|⬅️","26|der|Klecks|","26||mixen|","26|die|Wachsmalkreide|🖍️","26||piksen|","26|der|Knicks|",
+ "27|die|Spinne|🕷️","27||stampfen|","27|die|Spitze|🏔️","27||springen|🤸","27|der|Stamm|🪵","27|der|Stiel|","27||verstecken|🙈","27|der|Streifen|",
+ "28|der|Besen|🧹","28|der|Friseur|💈","28|die|Friseurin|💇‍♀️","28||riesig|","28|die|Pause|⏸️","28||sauber|✨","28|die|Wiese|🌾",
+ "29|die|Fahne|🇩🇪","29||Europa|🇪🇺","29|die|Kreuzung|","29||beugen|","29|die|Häuser|🏘️","29|die|Bäume|🌳🌳",
+ "30|die|Jacke|","30||jubeln|🥳","30|das|Kajak|🛶","30|der|Junge|","30|das|Jahr|📅","30||jung|👶",
+ "31||gelb|🟡","31|der|Mond|🌙","31|der|Weg|🛤️","31|der|Preis|🏆","31|der|Dieb|🦹","31|der|Sand|🏖️","31|der|Berg|⛰️","31|das|Glas|🍷",
+ "32|der|Fuß|🦶","32|die|Süßigkeit|🍬","32||reißen|","32|der|Strauß|💐","32|das|Maßband|","32||gießen|🪴",
+ "33|die|Feder|🪶","33|die|Tasse|☕","33|die|Vase|🏺","33|die|Giraffe|🦒",
+ "34|das|Pferd|🐴","34|die|Qualle|","34||öffnen|🔓","34||zwölf|1️⃣2️⃣","34|die|Katze|🐱","34|das|Dreieck|🔺","34||angeln|🎣","34|der|Anker|⚓","34||wenig|","34|die|Mäuse|🐭🐭","34|die|Pyramide|",
  // --- Dictionnaire hors manuel ---
  "100|die|Klementine|"
 ];
@@ -79,4 +84,4 @@ function deSelected(game,pid){var v=null;try{v=JSON.parse(localStorage.getItem("
  return v.filter(function(n){return n>0})}
 function deSave(game,pid,list){if(list.indexOf(DE_DICT)<0)list=list.concat([-DE_DICT]);try{localStorage.setItem("de_sel_"+game+"@"+(pid||"p1"),JSON.stringify(list))}catch(e){}}
 // Mots « qu'on peut acheter » pour la Liste des courses (noms avec article et image)
-var DE_BUY=["Klementine","Milch","Möhre","Zeitung","Apfel","Brot","Orangensaft","Traube","Butter","Keks","Kerze","Ball","Bleistift","Puppe","Pinsel","Lineal","Korb","Blume","Aprikose","Dose","Ei","Buch","Koffer","Besen","Mantel","Schulranzen","Kürbis","Laterne","Uhr","Gabel","Kiste","Obst","Tannenbaum"];
+var DE_BUY=["Klementine","Tasse","Vase","Feder","Süßigkeit","Strauß","Glas","Wachsmalkreide","Milch","Möhre","Zeitung","Apfel","Brot","Orangensaft","Traube","Butter","Keks","Kerze","Ball","Bleistift","Puppe","Pinsel","Lineal","Korb","Blume","Aprikose","Dose","Ei","Buch","Koffer","Besen","Mantel","Schulranzen","Kürbis","Laterne","Uhr","Gabel","Kiste","Obst","Tannenbaum"];
