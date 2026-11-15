@@ -454,7 +454,7 @@ body.rw-shop #purse{display:none!important}
       <input type="checkbox" id="dl-on" hidden>
       <div class="pg" id="dl-opts" style="gap:10px">
         <label class="row"><span class="grow">Maximum par jour</span><input class="field num" id="dl-min" type="number" inputmode="numeric" min="1" max="600" step="1" placeholder="Illimité" style="width:130px;text-align:center"><span>min</span></label>
-        <div class="muted" id="dl-txt"></div>
+        <div class="row"><div class="muted grow" id="dl-txt"></div><button class="btn" id="dl-rs">↺ Réinitialiser</button></div>
       </div>
     </div>
     <div class="card">
@@ -987,8 +987,11 @@ function lockMsg(p){var d=today(p),r=p.play.ratio,k=Math.round((1-r)/r*10)/10;
 /* ---------- Temps par jour (p.daily = {on, min, bonus:{d,sec}}) : temps actif dans les jeux (today().sec) ----------
    À 0 : le jeu en cours se termine (fin de manche {type:"roundEnd"} ou 5 min de grâce), puis « C'est fini pour aujourd'hui ». */
 function dayOn(p){p=p||prof();ensureEcon(p);return !!(!p.admin&&p.daily.on)}
-function dayLeft(p){p=p||prof();ensureEcon(p);var D=p.daily,b=D.bonus&&D.bonus.d===dkey()?D.bonus.sec:0;return D.min*60+b-today(p).sec}
-function dayMark(p){var D=p.daily;return dkey()+"|"+(D.bonus&&D.bonus.d===dkey()?D.bonus.sec:0)+"|"+D.min}
+// daily.rs = {d, sec} : temps déjà compté au moment d'un « Réinitialiser » par un parent (le compteur du jour repart de 0, le bilan garde le vrai temps)
+function dayRs(p){var r=p.daily.rs;return r&&r.d===dkey()?r.sec:0}
+function dayUsed(p){p=p||prof();ensureEcon(p);return Math.max(0,today(p).sec-dayRs(p))}
+function dayLeft(p){p=p||prof();ensureEcon(p);var D=p.daily,b=D.bonus&&D.bonus.d===dkey()?D.bonus.sec:0;return D.min*60+b-dayUsed(p)}
+function dayMark(p){var D=p.daily;return dkey()+"|"+(D.bonus&&D.bonus.d===dkey()?D.bonus.sec:0)+"|"+D.min+"|"+dayRs(p)}
 function dayOver(p){p=p||prof();return dayOn(p)&&(dayLeft(p)<=0||p.daily.done===dayMark(p))}
 var dayUp=false,dayT=null,dayInGame=false;
 function endDay(){clearTimeout(dayT);dayT=null;if(!GAMES[cur])return;saveP();showDayOver(true)}
@@ -1236,9 +1239,10 @@ $("p-rmode").addEventListener("click",function(e){var b=e.target.closest("[data-
 $("p-gpend").addEventListener("click",function(e){var b=e.target.closest("[data-give]");if(!b)return;upd(function(p){ensureShop(p);p.shopPend=p.shopPend.filter(function(x){return x.id!==b.dataset.give})});toast("✅ Donné",1500)});
 function renderDaily(p){ensureEcon(p);var D=p.daily;$("dl-on").checked=D.on;
  if(document.activeElement!==$("dl-min"))$("dl-min").value=D.on?D.min:"";
- $("dl-txt").textContent="Aujourd'hui : "+fmtMin(today(p).sec)+" utilisées"+(D.on?" · reste "+fmtMin(Math.max(0,dayLeft(p))):"")+"."}
+ $("dl-txt").textContent="Aujourd'hui : "+fmtMin(dayUsed(p))+" utilisées"+(D.on?" · reste "+fmtMin(Math.max(0,dayLeft(p))):"")+"."}
 $("dl-on").onchange=function(){var v=this.checked;upd(function(p){ensureEcon(p);p.daily.on=v})};
 // champ en minutes (1 à 600), enregistré quand on quitte le champ ou valide
+$("dl-rs").onclick=function(){upd(function(p){ensureEcon(p);p.daily.rs={d:dkey(),sec:today(p).sec};if(p.daily.bonus&&p.daily.bonus.d===dkey())p.daily.bonus={d:dkey(),sec:0}});dayUp=false;clearTimeout(dayT);renderLocks();toast("⏱️ Temps du jour remis à 0",1600)};
 // vide = illimité (daily.on faux) ; sinon 1 à 600 minutes
 $("dl-min").onchange=function(){var t=this.value.trim();if(t===""){upd(function(p){ensureEcon(p);p.daily.on=false});toast("⏱️ Pas de limite par jour",1400);return}
  var v=Math.round(+t);if(!(v>=1&&v<=600)){toast("Entre 1 et 600 minutes, ou vide pour illimité",2000);var D=E().daily;this.value=D.on?D.min:"";return}
