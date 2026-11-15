@@ -201,7 +201,6 @@ body.rw-shop #purse{display:none!important}
 .card{background:var(--card);border:var(--bw) solid var(--line);border-radius:22px;padding:16px;display:flex;flex-direction:column;gap:12px}
 .card h3{margin:0;font-size:21px}
 /* Bilan : temps par jeu (barres, défilement horizontal) et réussite par matière (courbes + compétences) */
-#bl-per{flex-wrap:nowrap}#bl-per button{flex:1;padding:0 8px;font-size:17px}
 .bl-h{display:flex;align-items:baseline;gap:8px;font-weight:700;font-size:18px;margin-top:4px}.bl-h span{margin-left:auto;color:var(--soft);font-weight:600;font-size:16px}
 .bl-bars{display:flex;align-items:flex-end;gap:6px;overflow-x:auto;padding:4px 2px 6px;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity}
 .bl-col{flex:none;width:58px;display:flex;flex-direction:column;align-items:center;gap:3px;scroll-snap-align:start}
@@ -487,7 +486,7 @@ body.rw-shop #purse{display:none!important}
     </div>
     <div class="card">
       <h3>📊 Bilan</h3>
-      <div class="pills2" id="bl-per"></div>
+      <select class="field" id="bl-per"><option value="1">Aujourd'hui</option><option value="7">7 derniers jours</option><option value="30">30 derniers jours</option></select>
       <div id="p-bilan"></div>
       <button class="menuitem" data-page="results"><span class="ic">📈</span><span>Résultats par exercice</span></button>
     </div>
@@ -1243,7 +1242,7 @@ var GICON={};document.querySelectorAll("[data-play]").forEach(function(b){var i=
 var BL={per:7,hi:null}; // hi = matière mise en avant (toucher la légende)
 function blTime(sec){var m=Math.round(sec/60);return m<60?m+" min":Math.floor(m/60)+" h "+String(m%60).padStart(2,"0")}
 function renderBilan(p){var S=st(p.id),per=BL.per,to=dkey(),from=dayOff(per-1);
- $("bl-per").innerHTML=[[1,"Aujourd'hui"],[7,"7 jours"],[30,"30 jours"]].map(function(x){return '<button data-bper="'+x[0]+'" class="'+(x[0]===per?"on":"")+'">'+x[1]+"</button>"}).join("");
+ $("bl-per").value=String(per);
  // 1. temps par jeu
  var rows=Object.keys(GAMES).filter(function(g){return !isLockedPrize(g,p)}).map(function(g){var G=S.g[g];return{g:g,sec:G?rSum(G,from,to).sec:0}}).sort(function(a,b){return b.sec-a.sec});
  var tot=rows.reduce(function(a,r){return a+r.sec},0),mx=Math.max(60,rows[0]?rows[0].sec:0);
@@ -1280,7 +1279,7 @@ function renderBilan(p){var S=st(p.id),per=BL.per,to=dkey(),from=dayOff(per-1);
  else h+='<div class="muted">—</div>';
  $("p-bilan").innerHTML=h}
 $("p-bilan").addEventListener("click",function(e){var b=e.target.closest("[data-hi]");if(!b)return;BL.hi=BL.hi===b.dataset.hi?null:b.dataset.hi;renderBilan(prof(EDIT))});
-$("bl-per").addEventListener("click",function(e){var b=e.target.closest("[data-bper]");if(!b)return;BL.per=+b.dataset.bper;renderBilan(prof(EDIT))});
+$("bl-per").onchange=function(){BL.per=+this.value;renderBilan(prof(EDIT))};
 var RATIOS=[[.2,"4 → 1 min"],[1/3,"4 → 2 min"],[5/13,"4 → 2,5 min"],[.5,"4 → 4 min"]]; // r = jeu / (apprentissage + jeu)
 var DMINS=[15,20,30,45,60,90];
 /* fiche profil : type de récompense et réglages des cadeaux */
