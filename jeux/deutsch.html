@@ -48,6 +48,10 @@ body.withkb .pic{min-height:0;font-size:90px}body.withkb .pic svg{width:120px;he
 .hint{color:var(--mut);font-size:19px;min-height:24px;font-weight:600}
 .copy{font-size:22px;color:var(--mut)}.copy b{color:var(--fg)}
 .back{position:fixed;top:10px;left:12px;min-height:52px;padding:0 16px;background:var(--card);border:3px solid var(--bd);border-radius:16px;font-size:18px;font-weight:700;color:var(--fg);cursor:pointer}
+.prog{position:fixed;left:0;right:0;bottom:0;z-index:15;display:flex;align-items:center;gap:12px;padding:10px 20px calc(14px + env(safe-area-inset-bottom,0px));background:var(--bg);max-width:560px;margin:0 auto}
+.prog .bar{flex:1}.prog .cnt{flex:none;white-space:nowrap;font-size:18px}
+body.withkb .prog{bottom:var(--kbh,250px);padding-bottom:10px}
+body{padding-bottom:70px}body.withkb{padding-bottom:calc(var(--kbh,250px) + 70px)!important}
 </style>
 <script src="jeux/allemand-mots.js"></script>
 <script src="jeux/clavier.js"></script>
@@ -69,7 +73,8 @@ function say(t){try{if(!window.speechSynthesis){msg.textContent="Synthèse vocal
 // Étoiles : bonne réponse du premier coup = série ; un peu plus de difficulté si beaucoup de leçons sont cochées
 function star(ok,w){var g=mode===3?"sdw":mode===2?"fdw":"dde",d=deOn(window.PROFILE).length>60?1.25:1;try{if(parent!==window)parent.postMessage({type:"answer",game:g,ok:ok!==false,diff:d,k:w?(mode>=2?"L"+w.n:w.a):null,item:w?(w.a?w.a+" ":"")+w.w:null},"*")}catch(e){}}
 function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
-function bar(){return '<div class="cnt">'+(i+1)+' / '+deck.length+'</div><div class="bar"><i style="width:'+(i/deck.length*100)+'%"></i></div>'}
+// barre de progression en bas de l'écran (au-dessus du clavier maison quand il est affiché), le nombre au bout de la barre
+function bar(){return '<div class="prog"><div class="bar"><i style="width:'+(i/deck.length*100)+'%"></i></div><div class="cnt">'+(i+1)+' / '+deck.length+'</div></div>'}
 var deck,i,good,missed,mode=0;
 function home(){nokb();if(window.START){parent.postMessage("hub-back","*");return}mode=0;bk.style.display="none";app.innerHTML='<h1>Deutsch</h1><div class="pills col menu"><button class="btn" id="m1">Der · Die · Das</button><button class="btn" id="m2">Finde das Wort</button></div>';document.getElementById("m1").onclick=start;document.getElementById("m2").onclick=start2}
 // Exercice 1 : article
@@ -102,7 +107,9 @@ function show2(){
 }
 // Exercice 3 : écrire le mot (avec l'article pour les noms) au clavier
 var KB=null;
-function kb(o){if(KB)KB.destroy();KB=Clavier(o);document.body.classList.add("withkb")}
+function kbh(){var k=document.querySelector(".kb");if(k)document.body.style.setProperty("--kbh",k.offsetHeight+"px")}
+window.addEventListener("resize",kbh);
+function kb(o){if(KB)KB.destroy();KB=Clavier(o);document.body.classList.add("withkb");kbh();requestAnimationFrame(kbh)}
 function nokb(){if(KB){KB.destroy();KB=null}document.body.classList.remove("withkb")}
 function norm(t){return t.trim().replace(/\s+/g," ").toLowerCase()}
 // affichage : majuscule au nom après l'article (en allemand, les noms prennent une majuscule)

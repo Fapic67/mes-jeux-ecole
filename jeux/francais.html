@@ -41,6 +41,10 @@ body.withkb{justify-content:flex-start;padding-top:28px;padding-bottom:300px}
 .vt{font-size:26px;font-weight:700;margin:0}
 .vt b{color:var(--syl)}
 .back{position:fixed;top:10px;left:12px;min-height:52px;padding:0 16px;background:var(--card);border:3px solid var(--bd);border-radius:16px;font:700 18px "Fredoka",sans-serif;color:var(--fg);cursor:pointer}
+.prog{position:fixed;left:0;right:0;bottom:0;z-index:15;display:flex;align-items:center;gap:12px;padding:10px 20px calc(14px + env(safe-area-inset-bottom,0px));background:var(--bg);max-width:560px;margin:0 auto}
+.prog .bar{flex:1}.prog .cnt{flex:none;white-space:nowrap;font-size:18px}
+body.withkb .prog{bottom:var(--kbh,250px);padding-bottom:10px}
+body{padding-bottom:70px}body.withkb{padding-bottom:calc(var(--kbh,250px) + 70px)!important}
 </style>
 <script src="jeux/clavier.js"></script>
 </head>
@@ -61,7 +65,8 @@ function say(t,cb){var done=false,fin=function(){if(!done){done=true;cb&&cb()}};
 // Étoiles : phrase juste du premier coup = série ; les mots simples (plus longs à écrire) comptent un peu plus
 function star(ok,q){var g=cur===4?"phrase":"quique";try{if(parent!==window)parent.postMessage({type:"answer",game:g,ok:ok!==false,diff:cur===4?1.25:1,k:q&&cur!==4?q.w:null,item:q?(cur===4?q.w:q.full):null},"*")}catch(e){}}
 function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
-function bar(){return '<div class="cnt">'+(i+1)+' / '+deck.length+'</div><div class="bar"><i style="width:'+(i/deck.length*100)+'%"></i></div>'}
+// barre de progression en bas de l'écran (au-dessus du clavier maison quand il est affiché), le nombre au bout de la barre
+function bar(){return '<div class="prog"><div class="bar"><i style="width:'+(i/deck.length*100)+'%"></i></div><div class="cnt">'+(i+1)+' / '+deck.length+'</div></div>'}
 var deck,i,good,missed,cur=3;
 function home(){nokb();if(window.START){parent.postMessage("hub-back","*");return}bk.style.display="none";app.innerHTML='<h1>Français</h1><div class="menu" style="width:100%"><button class="btn" id="m4">Complète la phrase</button><button class="btn" id="m3">Complète la phrase : qui ou que ?</button><button class="btn" id="m5">Conjugue être et avoir</button></div>';document.getElementById("m5").onclick=conjMenu;document.getElementById("m3").onclick=function(){startQ(3)};document.getElementById("m4").onclick=function(){startQ(4)}}
 // Complète la phrase : écrire qui / que au clavier, de mémoire
@@ -69,7 +74,9 @@ function home(){nokb();if(window.START){parent.postMessage("hub-back","*");retur
 function startQ(m){cur=m;bk.style.display="block";deck=shuffle(m===4?MOTS:QQ).slice(0,TOTAL);i=0;good=0;show3()}
 function esc(t){return t.replace(/&/g,"&amp;").replace(/</g,"&lt;")}
 var KB=null;
-function kb(o){if(KB)KB.destroy();KB=Clavier(o);document.body.classList.add("withkb")}
+function kbh(){var k=document.querySelector(".kb");if(k)document.body.style.setProperty("--kbh",k.offsetHeight+"px")}
+window.addEventListener("resize",kbh);
+function kb(o){if(KB)KB.destroy();KB=Clavier(o);document.body.classList.add("withkb");kbh();requestAnimationFrame(kbh)}
 function nokb(){if(KB){KB.destroy();KB=null}document.body.classList.remove("withkb")}
 function show3(){
   var q=deck[i],tries=0,lock=false,val="";missed=false;
