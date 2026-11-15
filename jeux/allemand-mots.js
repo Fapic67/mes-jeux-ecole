@@ -1,6 +1,7 @@
 // Vocabulaire allemand rangé comme le manuel de CP « Die Rappelkiste » : périodes → modules → leçons (une lettre).
 // Seuls les mots des encadrés de vocabulaire sont repris (pas les images ni les textes du livre).
-// Leçons 15 à 32 : pour l'instant seulement les mots référents du sommaire, en attendant les pages.
+// Leçons 1 à 24 : mots des encadrés (photos des pages envoyées par l'utilisateur) ; leçons 25 à 32 : seulement les mots référents du sommaire.
+// Mots déjà vus dans une leçon précédente (lesen, Regen, schwarz, Mäppchen, lachen) : pas répétés.
 // Images : emoji, ou dessin maison (PIC dans deutsch.html) quand le champ est vide.
 var DE_MODULES=[
  {p:1,m:"1a",t:"Die Einschulung",f:"La rentrée des classes",l:[1,2]},
@@ -38,16 +39,16 @@ var DE_RAW=[
  "12|die|Kerze|🕯️","12|der|Korb|🧺","12||kalt|🥶","12|der|Keks|🍪","12|das|Kind|🧒","12||trinken|🥤",
  "13|die|Puppe|🪆","13|der|Pinsel|🖌️","13|das|Rezept|📃","13||klopfen|✊🚪","13|das|Spritzgebäck|","13|die|Aprikose|🍑",
  "14|der|Baum|🌳","14|der|Tannenbaum|🎄","14|die|Butter|🧈","14|die|Gabel|🍴","14||backen|🧑‍🍳","14||blau|🔵",
- "15|die|Dose|🥫",
- "16|der|Vogel|🐦",
- "17|das|Haus|🏠",
- "18|die|Kinder|👧👦",
- "19|der|Schüler|","19|die|Schülerin|",
- "20|das|Ei|🥚","20||zwei|2️⃣",
- "21|das|Küken|🐤",
- "22||ich|","22||sieben|7️⃣",
- "23|die|Bohne|🫘","23|der|Zeh|",
- "24|das|Buch|📕","24|das|Auge|👁️",
+ "15|die|Dose|🥫","15|der|Durst|","15||denken|🤔","15||dunkel|🌑","15||kneten|","15|der|Kleber|",
+ "16|der|Vogel|🐦","16|die|Vögel|🐦🐦","16|das|Viereck|🟧","16||voll|🔋","16||viel|","16|die|Flöte|","16||größer|🦒","16||böse|😠",
+ "17|das|Haus|🏠","17|die|Hand|✋","17|der|Hamster|🐹","17||hell|🔆","17||helfen|","17||hören|🎧",
+ "18|die|Kinder|👧👦","18|die|Kleider|👗","18|der|Bäcker|🥨","18|der|Jäger|","18|der|Maler|🧑‍🎨","18||hinter|","18||unter|","18||über|",
+ "19|der|Schüler|","19|die|Schülerin|","19|der|Schatz|💰","19|der|Schnee|🌨️","19|der|Schornsteinfeger|","19||waschen|🧼",
+ "20|das|Ei|🥚","20||zwei|2️⃣","20|die|Zeitung|📰","20|der|Schwanz|","20||tanzen|💃","20||weich|🧸","20|die|Pfeife|","20||klein|🤏",
+ "21|das|Küken|🐤","21|die|Hände|🙌","21|das|Mädchen|","21||brüten|","21|das|Häslein|🐇","21|die|Füße|👣","21||füttern|",
+ "22||ich|","22||sieben|7️⃣","22||rechts|➡️","22|die|Biene|🐝","22|die|Milch|🥛","22||durch|","22|die|Ziege|🐐","22||fliegen|✈️",
+ "23|die|Bohne|🫘","23|der|Zeh|","23||blühen|🌼","23||froh|😊","23||säen|","23|die|Möhre|🥕","23|die|Kuh|🐄","23|der|Hahn|🐓",
+ "24|das|Buch|📕","24|das|Auge|👁️","24||laut|📢","24|die|Mauer|🧱","24|das|Unkraut|🌿","24||brauchen|","24|der|Bach|🏞️",
  "25|der|Kessel|","25|der|Koffer|🧳",
  "26|die|Hexe|🧙‍♀️","26||sechs|6️⃣","26||links|⬅️","26|der|Klecks|",
  "27|die|Spinne|🕷️","27||stampfen|",
@@ -64,6 +65,8 @@ var DE_SVG={
  // Obst = les fruits : une corbeille de fruits (banane, raisin, pomme, orange)
  // teilen = partager : une tablette de chocolat cassée en deux, une moitié pour chaque enfant (choix de l'utilisateur ; 🤝 faisait penser à « saluer »)
  "teilen":'<svg class="desvg" viewBox="0 0 100 100" width="1.3em" height="1.3em" style="vertical-align:-.25em"><g transform="rotate(-8 32 42)"><rect x="14" y="20" width="34" height="42" rx="4" fill="#7b4a2a"/><path d="M14 34h34M14 48h34M31 20v42" stroke="#5a3218" stroke-width="2.5"/><path d="M48 20l-3 6 3 5-3 6 3 5-3 6 3 5-3 6 3 3" fill="none" stroke="#5a3218" stroke-width="2"/></g><g transform="rotate(8 68 42)"><rect x="52" y="20" width="34" height="42" rx="4" fill="#7b4a2a"/><path d="M52 34h34M52 48h34M69 20v42" stroke="#5a3218" stroke-width="2.5"/></g><circle cx="22" cy="84" r="10" fill="#f6c89a"/><path d="M12 80q10-12 20 0" fill="#7a4a24"/><path d="M18 87q4 4 8 0" stroke="#5a3218" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="18.5" cy="82" r="1.4" fill="#3a2416"/><circle cx="25.5" cy="82" r="1.4" fill="#3a2416"/><circle cx="78" cy="84" r="10" fill="#f6c89a"/><path d="M68 82q10-16 20 0" fill="#e0a43a"/><path d="M74 87q4 4 8 0" stroke="#5a3218" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="74.5" cy="82" r="1.4" fill="#3a2416"/><circle cx="81.5" cy="82" r="1.4" fill="#3a2416"/></svg>',
+ // die Flöte : une flûte à bec (l'emoji 🪈 n'existe pas sur les anciens Android)
+ "Flöte":'<svg class="desvg" viewBox="0 0 100 100" width="1.3em" height="1.3em" style="vertical-align:-.25em"><g transform="rotate(-40 50 50)"><path d="M10 44h12l4 -3h60v18H26l-4-3H10z" fill="#f4e3c3" stroke="#b8925a" stroke-width="2.5" stroke-linejoin="round"/><path d="M86 41c4 0 6 4 6 9s-2 9-6 9z" fill="#e8cfa0" stroke="#b8925a" stroke-width="2.5"/><rect x="18" y="45" width="7" height="4" rx="1" fill="#5a3a18"/><g fill="#5a3a18"><circle cx="40" cy="50" r="3"/><circle cx="50" cy="50" r="3"/><circle cx="60" cy="50" r="3"/><circle cx="70" cy="50" r="3"/><circle cx="79" cy="50" r="2.5"/></g></g></svg>',
  // die Klementine : deux clémentines avec leurs feuilles
  "Klementine":'<svg class="desvg" viewBox="0 0 100 100" width="1.3em" height="1.3em" style="vertical-align:-.25em"><circle cx="36" cy="60" r="26" fill="#ff8f1f"/><circle cx="36" cy="60" r="26" fill="url(#kp)" opacity=".35"/><circle cx="28" cy="50" r="6" fill="#fff" opacity=".35"/><circle cx="66" cy="64" r="24" fill="#ff9f2e"/><circle cx="59" cy="55" r="5.5" fill="#fff" opacity=".35"/><defs><pattern id="kp" width="6" height="6" patternUnits="userSpaceOnUse"><circle cx="3" cy="3" r="1" fill="#c9600a"/></pattern></defs><circle cx="36" cy="35" r="2.5" fill="#6b8e23"/><circle cx="66" cy="41" r="2.5" fill="#6b8e23"/><path d="M36 35q-2-9 6-14" stroke="#4d7a1f" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M38 26q12-8 20 1q-12 7-20-1z" fill="#3fae49"/><path d="M66 41q3-8 11-10" stroke="#4d7a1f" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M73 32q11-3 15 6q-11 3-15-6z" fill="#2f9a3c"/></svg>',
  "Obst":'<svg class="desvg" viewBox="0 0 100 100" width="1.3em" height="1.3em" style="vertical-align:-.25em"><path d="M20 47C22 30 36 18 58 17c2 0 3 2 1 3-14 4-23 13-27 27z" fill="#ffd23f" stroke="#d4a900" stroke-width="2" stroke-linejoin="round"/><g fill="#8e44ad"><circle cx="27" cy="44" r="6"/><circle cx="36" cy="41" r="6"/><circle cx="31" cy="35" r="6"/><circle cx="40" cy="33" r="5"/></g><path d="M35 29l3-6" stroke="#3a7d2c" stroke-width="2.5" stroke-linecap="round"/><circle cx="74" cy="43" r="11" fill="#ff9f1a"/><circle cx="71" cy="39" r="2.5" fill="#fff" opacity=".4"/><circle cx="55" cy="42" r="13" fill="#e5484d"/><circle cx="50" cy="37" r="3" fill="#fff" opacity=".4"/><path d="M55 30q1-6 4-8" stroke="#6b3e1f" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M58 27q8-6 12 0q-7 4-12 0z" fill="#3fae49"/><path d="M14 52h72l-8 34q-28 7-56 0z" fill="#c48a4a"/><path d="M17 64h66M19 75h62" stroke="#8b5a2b" stroke-width="2.5"/><path d="M32 54l3 34M50 54v35M68 54l-3 34" stroke="#8b5a2b" stroke-width="2.5"/><rect x="10" y="47" width="80" height="9" rx="4.5" fill="#9a6331"/></svg>'
@@ -76,4 +79,4 @@ function deSelected(game,pid){var v=null;try{v=JSON.parse(localStorage.getItem("
  return v.filter(function(n){return n>0})}
 function deSave(game,pid,list){if(list.indexOf(DE_DICT)<0)list=list.concat([-DE_DICT]);try{localStorage.setItem("de_sel_"+game+"@"+(pid||"p1"),JSON.stringify(list))}catch(e){}}
 // Mots « qu'on peut acheter » pour la Liste des courses (noms avec article et image)
-var DE_BUY=["Klementine","Apfel","Brot","Orangensaft","Traube","Butter","Keks","Kerze","Ball","Bleistift","Puppe","Pinsel","Lineal","Korb","Blume","Aprikose","Dose","Ei","Buch","Koffer","Besen","Mantel","Schulranzen","Kürbis","Laterne","Uhr","Gabel","Kiste","Obst","Tannenbaum"];
+var DE_BUY=["Klementine","Milch","Möhre","Zeitung","Apfel","Brot","Orangensaft","Traube","Butter","Keks","Kerze","Ball","Bleistift","Puppe","Pinsel","Lineal","Korb","Blume","Aprikose","Dose","Ei","Buch","Koffer","Besen","Mantel","Schulranzen","Kürbis","Laterne","Uhr","Gabel","Kiste","Obst","Tannenbaum"];
