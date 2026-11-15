@@ -99,7 +99,7 @@ words=json.loads(subprocess.check_output(["node","-e",'eval(require("fs").readFi
 art={w:a for a,w in words}
 missing=[w for _,w in words if w not in D]; assert not missing,missing
 src=open("fluent.py").read();FL=set(re.findall(r'"([^"]+)":"[^"]+"',src[src.index("F={"):src.index("}",src.index("F={"))]))
-order=[w for w in D if w not in FL]  # ordre de priorité : mots sans image d'abord ; les mots en Fluent Emoji 3D sont exclus
+order=[w for w in D if w not in FL]+[w for w in D if w in FL]  # mots sans image d'abord (1-102), puis les mots en Fluent Emoji 3D (103-230) à remplacer pour un style unique
 out=["# Images des mots d'allemand avec Gemini",
 "",
 "Les mots qu'un emoji représente très bien ont une image Fluent Emoji 3D (outils/fluent.py) et ne sont pas dans cette liste.",
@@ -113,3 +113,15 @@ for i,w in enumerate(order,1):
     out+=["**%d. %s%s**"%(i,(art[w]+" ") if art.get(w) else "",w),"```",STYLE+D[w]+".","```",""]
 open("gemini-images.md","w").write("\n".join(out))
 print(len(order))
+
+HEAD=("Génère UNE planche carrée de {n} illustrations, en grille régulière de 5 colonnes et {r} lignes, toutes les cases de la même taille, "
+ "dans l'ordre de la liste (de gauche à droite, puis ligne suivante). Exactement {n} cases, pas de doublon, un espace blanc entre les cases. "
+ "Elles servent à une appli d'apprentissage de l'allemand pour une enfant de 6 ans.\n\nStyle identique pour toutes : illustration douce aux crayons de couleur, "
+ "couleurs douces, contours fins, un seul sujet bien centré dans chaque case, fond blanc uni, aucun texte, aucune lettre, aucun chiffre écrit.\n\nSujets :\n")
+num={w:i for i,w in enumerate(order,1)}
+batches=[["kneten","Jäger"]+order[102:125]]+[order[i:i+25] for i in range(125,len(order),25)]
+o=["# Planches Gemini pour harmoniser le style (remplacer les emoji Fluent)","","Une planche par message, dans une conversation Gemini. Les n° 2 et 5 (kneten, der Jäger) sont refaits dans le style crayon.",""]
+for k,b in enumerate(batches,1):
+    o+=["## Planche %d"%k,"","Mots : "+" · ".join("%d %s%s"%(num[w],(art[w]+" ") if art.get(w) else "",w) for w in b),"","```",HEAD.format(n=len(b),r=(len(b)+4)//5)+"\n".join("%d. %s."%(num[w],D[w][0].upper()+D[w][1:]) for w in b),"```",""]
+open("gemini-planches.md","w").write("\n".join(o))
+print([len(b) for b in batches])
