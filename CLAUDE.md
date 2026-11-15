@@ -2,6 +2,8 @@
 
 **Règle : ne créer que les jeux explicitement demandés par l'utilisateur.**
 
+**Règle « Less is more » pour les Paramètres (globaux, profils, réglages) : aucune phrase explicative, aide ou sous-titre sauf si l'utilisateur le demande. Interface simple et épurée : les réglages et contrôles doivent parler d'eux-mêmes (bon libellé, bon contrôle, valeur visible).**
+
 Appli web pour enfant (6 ans), à l'origine un artifact claude.ai en un seul fichier, désormais découpée en PWA.
 Dépôt : https://github.com/Fapic67/mes-jeux-ecole · site : https://fapic67.github.io/mes-jeux-ecole/
 Le but est d'en faire une **appli Android installable (APK)** et partageable à des amis.
