@@ -133,7 +133,7 @@ Sujets :
 183. Une chèvre.
 184. Deux enfants sur un tapis volant.
 185. Un haricot vert.
-186. Un enfant très content qui saute de joie.
+186. Le visage d'un enfant rayonnant de bonheur, grand sourire, les yeux qui brillent.
 187. Une carotte.
 188. Une vache.
 189. Un coq.
@@ -144,7 +144,7 @@ Sujets :
 194. Une valise marron.
 195. Un puits en pierre avec un seau.
 196. Un enfant qui court très vite.
-197. Un grand soleil dans un ciel bleu.
+197. Un paysage de campagne sous un grand soleil, ciel tout bleu sans nuage.
 198. Une gentille sorcière sur son balai.
 199. Six pommes rouges alignées.
 200. Un panneau de signalisation bleu avec une flèche vers la gauche.

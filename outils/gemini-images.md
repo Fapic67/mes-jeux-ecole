@@ -963,7 +963,7 @@ Illustration pour un enfant de 6 ans, style dessin animé doux et arrondi, coule
 
 **186. froh**
 ```
-Illustration pour un enfant de 6 ans, style dessin animé doux et arrondi, couleurs vives mais douces, contours fins, un seul sujet bien centré qui remplit l'image, fond blanc uni, aucun texte, aucune lettre, aucun chiffre écrit, format carré 1:1. Sujet : un enfant très content qui saute de joie.
+Illustration pour un enfant de 6 ans, style dessin animé doux et arrondi, couleurs vives mais douces, contours fins, un seul sujet bien centré qui remplit l'image, fond blanc uni, aucun texte, aucune lettre, aucun chiffre écrit, format carré 1:1. Sujet : le visage d'un enfant rayonnant de bonheur, grand sourire, les yeux qui brillent.
 ```
 
 **187. die Möhre**
@@ -1018,7 +1018,7 @@ Illustration pour un enfant de 6 ans, style dessin animé doux et arrondi, coule
 
 **197. sonnig**
 ```
-Illustration pour un enfant de 6 ans, style dessin animé doux et arrondi, couleurs vives mais douces, contours fins, un seul sujet bien centré qui remplit l'image, fond blanc uni, aucun texte, aucune lettre, aucun chiffre écrit, format carré 1:1. Sujet : un grand soleil dans un ciel bleu.
+Illustration pour un enfant de 6 ans, style dessin animé doux et arrondi, couleurs vives mais douces, contours fins, un seul sujet bien centré qui remplit l'image, fond blanc uni, aucun texte, aucune lettre, aucun chiffre écrit, format carré 1:1. Sujet : un paysage de campagne sous un grand soleil, ciel tout bleu sans nuage.
 ```
 
 **198. die Hexe**
