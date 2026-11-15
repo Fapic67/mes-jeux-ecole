@@ -8,7 +8,7 @@
    - achats à remettre : union, moins ceux marqués « Donné » sur un téléphone ; journal des achats : union ;
    - profil supprimé sur un téléphone : supprimé partout. */
 (function(){
-var FIREBASE={apiKey:"",projectId:""}; // à remplir avec la configuration du projet Firebase de la famille
+var FIREBASE={apiKey:"AIzaSyBIT5gqiABZW-uWwVX0GzvhXZN6Z-OSsuU",projectId:"mes-jeux-ecole"}; // à remplir avec la configuration du projet Firebase de la famille
 function cfg(){var o=null;try{o=JSON.parse(localStorage.getItem("sync_cfg"))}catch(e){}return o&&o.apiKey?o:FIREBASE}
 function urls(){var c=cfg(),t=localStorage.getItem("sync_test_base");
  if(t)return{auth:t+"/auth?key="+c.apiKey,tok:t+"/token?key="+c.apiKey,fs:t+"/fs/"};
