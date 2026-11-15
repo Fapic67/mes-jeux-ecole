@@ -390,6 +390,7 @@ body.rw-shop #purse{display:none!important}
     <button class="game" data-play="pizzeria"><span class="ic">🍕</span><span>La pizzeria<small>Prépare les commandes et rends la monnaie</small></span></button>
     <button class="game" data-play="tuyaux"><span class="ic">🚰</span><span>Les tuyaux magiques<small>Tourne les tuyaux pour arroser la plante</small></span></button>
     <button class="game" data-play="perroquet"><span class="ic">🦜</span><span>Le perroquet musical<small>Rejoue la musique du perroquet</small></span></button>
+    <button class="game" data-play="ocean"><span class="ic">🐬</span><span>L'océan des animaux<small>Memory des animaux de la mer, en allemand</small></span></button>
     <button class="game" data-play="quatre"><span class="ic">🔴</span><span>Quatre en ligne<small>Aligne 4 jetons, à deux ou contre le robot</small></span></button>
   </div>
 </section>
@@ -688,6 +689,7 @@ var GAMES={
  tuyaux:{t:"Les tuyaux magiques",app:"tuyaux",subj:"jeux",prize:1},
  perroquet:{t:"Le perroquet musical",app:"perroquet",subj:"jeux",prize:1},
  quatre:{t:"Quatre en ligne",app:"quatre",subj:"jeux",prize:1},
+ ocean:{t:"L'océan des animaux",app:"ocean",subj:"jeux",prize:1},
  schreib:{t:"Schreib das Wort",app:"deutsch",start:3,subj:"allemand",eco:"sdw"},
  mot:{t:"Finde das Wort",app:"deutsch",start:2,subj:"allemand",eco:"fdw"}
 };
@@ -896,7 +898,7 @@ var SHOP_DEF=[{id:"bonbon",ic:"🍬",t:"Un bonbon",price:20,rep:true,on:true},{i
  {id:"g-bulles",ic:"🫧",t:"Attrape les bulles",price:60,game:"bulles",on:true},{id:"g-glissant",ic:"🦔",t:"Le jardin glissant",price:80,game:"glissant",on:true},
  {id:"g-allumettes",ic:"🔥",t:"Le jeu des allumettes",price:60,game:"allumettes",on:true},
  {id:"g-pizzeria",ic:"🍕",t:"La pizzeria",price:80,game:"pizzeria",on:true},{id:"g-tuyaux",ic:"🚰",t:"Les tuyaux magiques",price:80,game:"tuyaux",on:true},
- {id:"g-perroquet",ic:"🦜",t:"Le perroquet musical",price:60,game:"perroquet",on:true},{id:"g-quatre",ic:"🔴",t:"Quatre en ligne",price:70,game:"quatre",on:true}];
+ {id:"g-perroquet",ic:"🦜",t:"Le perroquet musical",price:60,game:"perroquet",on:true},{id:"g-quatre",ic:"🔴",t:"Quatre en ligne",price:70,game:"quatre",on:true},{id:"g-ocean",ic:"🐬",t:"L'océan des animaux",price:70,game:"ocean",on:true}];
 var SHOP=null;
 function shop(){if(!SHOP){SHOP=lj("shop",null);if(!SHOP||!SHOP.items){SHOP={items:JSON.parse(JSON.stringify(SHOP_DEF))}}
   if(!SHOP.known)SHOP.known=["bulles","glissant","allumettes"].concat(SHOP.items.filter(function(i){return i.game}).map(function(i){return i.game}));

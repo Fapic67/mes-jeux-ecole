@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>L'océan des animaux</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eaf7fb;--fg:#123447;--mut:#4f7286;--card:#fff;--bd:#c6e4ee;--me:#1b8aa8;--ok:#22a861;--bad:#e5484d;box-sizing:border-box}
+@media (prefers-color-scheme:dark){:root{--bg:#0f2430;--fg:#e8f6fb;--mut:#9fc3d2;--card:#1a3442;--bd:#2c5163}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--fg);font-family:"Fredoka",system-ui,sans-serif;user-select:none}
+button{font-family:inherit;touch-action:manipulation;cursor:pointer}
+#wrap{position:fixed;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y}
+#inner{max-width:520px;min-height:100%;margin:0 auto;padding:10px 12px calc(16px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px}
+header{display:flex;align-items:center;gap:8px}
+#hint{flex:1;font-size:17px;color:var(--mut);font-weight:600}
+.hb{min-height:56px;padding:0 14px;border:3px solid var(--bd);background:var(--card);color:var(--fg);border-radius:16px;font-weight:700;font-size:18px;white-space:nowrap}
+#board{display:grid;gap:8px;margin:auto 0;width:100%}
+.cd{aspect-ratio:3/4;perspective:600px;border:0;padding:0;background:none;color:var(--fg)}
+.cd .in{position:relative;width:100%;height:100%;transition:transform .35s;transform-style:preserve-3d}
+.cd.up .in,.cd.ok .in{transform:rotateY(180deg)}
+.cd .f,.cd .b{position:absolute;inset:0;border-radius:14px;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;align-items:center;justify-content:center}
+.cd .b{background:radial-gradient(circle at 22% 72%,rgba(255,255,255,.45) 0 4%,transparent 5%),radial-gradient(circle at 30% 58%,rgba(255,255,255,.35) 0 3%,transparent 4%),radial-gradient(circle at 26% 46%,rgba(255,255,255,.3) 0 2.2%,transparent 3%),repeating-linear-gradient(100deg,rgba(255,255,255,.07) 0 8%,transparent 8% 16%),linear-gradient(180deg,#1d8fae,#0d4f66 55%,#0a3646);box-shadow:0 4px 0 #0c5468;font-size:30px;font-weight:700;color:#fff}
+.cd .f{transform:rotateY(180deg);background:var(--card);border:3px solid var(--bd);padding:4px;text-align:center}
+.cd .f .e{font-size:var(--es,40px);line-height:1}
+.cd .f .w{font-size:var(--ws,16px);font-weight:700;line-height:1.15;overflow-wrap:anywhere;hyphens:auto}
+.cd .f .w{color:var(--fg)}
+.cd .f .w i{display:block;font-style:normal;font-weight:700;color:var(--me);font-size:.85em}
+.cd.ok .f{border-color:var(--ok);background:#e8f8ee}
+@media (prefers-color-scheme:dark){.cd.ok .f{background:#1d3a28}}
+.cd.ko .f{border-color:var(--bad)}
+.cd.ok{animation:pop .4s}
+@keyframes pop{50%{transform:scale(1.08)}}
+#msg{min-height:28px;text-align:center;font-size:21px;font-weight:700}
+#stat{text-align:center;color:var(--mut);font-size:18px;font-weight:600}
+.acts{display:flex;gap:8px}
+.acts button{flex:1;height:64px;border:0;border-radius:18px;font-size:21px;font-weight:700;color:#fff;background:var(--me);box-shadow:0 5px 0 #0c5468}
+.acts button.g{background:var(--ok);box-shadow:0 5px 0 #17804a}
+.sheet{position:fixed;inset:0;background:rgba(5,25,35,.6);display:flex;align-items:flex-end;justify-content:center;z-index:5}
+.panel{background:var(--bg);width:100%;max-width:520px;max-height:90%;overflow:auto;border-radius:28px 28px 0 0;padding:20px 18px calc(22px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px}
+.panel h2{margin:0;font-size:24px}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opts button{min-height:58px;border:3px solid var(--bd);border-radius:16px;background:var(--card);color:var(--fg);font-size:19px;font-weight:700;text-align:left;padding:6px 14px}
+.opts button.on{background:var(--me);border-color:var(--me);color:#fff}
+.opts small{display:block;font-weight:500;font-size:16px;opacity:.85}
+.big{height:64px;border:0;border-radius:18px;background:var(--me);color:#fff;font-size:22px;font-weight:700}
+[hidden]{display:none!important}
+
+.cd .f img{width:86%;height:auto;aspect-ratio:1;object-fit:contain;border-radius:8px}
+.cd .b::after{content:"🐚";position:absolute;right:10%;bottom:8%;font-size:calc(var(--es,40px)*.5);opacity:.9}
+.hb.lx{font-size:26px;padding:0 12px}
+#lex .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+#lex .it{border:3px solid var(--bd);background:var(--card);border-radius:16px;padding:6px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--fg)}
+#lex .it img{width:100%;aspect-ratio:1;object-fit:contain;border-radius:10px}
+#lex .it b{font-size:17px;line-height:1.1;text-align:center}#lex .it i{display:block;font-style:normal;color:var(--me);font-size:.85em}
+#lex .it small{font-size:14px;color:var(--mut)}
+</style>
+</head>
+<body>
+<div id="wrap"><div id="inner">
+<header><button class="hb lx" id="lexb" aria-label="Lexique">📖</button><div id="hint">Trouve l'animal et son nom allemand !</div><button class="hb" id="setb">Niveau 1</button></header>
+<div id="stat"></div>
+<div id="board"></div>
+<div id="msg"></div>
+<div class="acts" id="after" hidden><button id="again">Rejouer</button><button class="g" id="next">Niveau suivant ➜</button></div>
+</div></div>
+
+<div class="sheet" id="sheet" hidden><div class="panel">
+  <h2>Niveau</h2>
+  <div class="opts" id="lvls"></div>
+  <button class="big" id="close">Fermer</button>
+</div></div>
+
+<div class="sheet" id="lex" hidden><div class="panel">
+  <h2>📖 Les animaux de l'océan</h2>
+  <div style="color:var(--mut);font-size:17px;font-weight:600">Touche un animal pour entendre son nom en allemand.</div>
+  <div class="grid" id="lexg"></div>
+  <button class="big" id="lexc">Fermer</button>
+</div></div>
+
+<script>
+(function(){
+// L'océan des animaux : jeu de la boutique (matière Jeux, pas d'étoiles). Memory image ↔ nom allemand + lexique (📖).
+// Images : jeux/img/ocean/<slug>.webp (provisoires Fluent 3D, à remplacer par les images Gemini en style crayon).
+var $=function(i){return document.getElementById(i)};
+var PK=window.PROFILE?"@"+window.PROFILE:"";
+function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
+function rnd(n){return Math.floor(Math.random()*n)}
+function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=rnd(i+1),t=a[i];a[i]=a[j];a[j]=t}return a}
+var ANIMALS=[["die","Qualle","la méduse"],["der","Wal","la baleine"],["der","Delfin","le dauphin"],["die","Möwe","la mouette"],["die","Robbe","le phoque"],["der","Clownfisch","le poisson-clown"],["die","Schildkröte","la tortue"],["die","Krabbe","le crabe"],["der","Krake","la pieuvre"],["der","Seestern","l'étoile de mer"],["der","Pinguin","le manchot"],["die","Koralle","le corail"],["der","Hai","le requin"]].map(function(x){return{a:x[0],w:x[1],fr:x[2],full:x[0]+" "+x[1]}});
+function slug(w){return w.replace(/ä/g,"ae").replace(/ö/g,"oe").replace(/ü/g,"ue").replace(/ß/g,"ss")}
+function img(x){return '<img src="jeux/img/ocean/'+slug(x.w)+'.webp" alt="" draggable="false">'}
+var LV=[null,{p:3,c:3},{p:4,c:4},{p:6,c:4},{p:8,c:4},{p:10,c:4},{p:13,c:5}],MAXL=6;
+var level=Math.min(MAXL,Math.max(1,parseInt(ls("ocean_lvl"+PK))||1));
+
+var ac=null;
+function tone(f,t,d,v){try{if(!ac){var C=window.AudioContext||window.webkitAudioContext;if(!C)return;ac=new C()}if(ac.state==="suspended")ac.resume();var o=ac.createOscillator(),g=ac.createGain(),s=ac.currentTime+t;o.type="triangle";o.frequency.value=f;g.gain.setValueAtTime(.0001,s);g.gain.exponentialRampToValueAtTime(v||.2,s+.02);g.gain.exponentialRampToValueAtTime(.0001,s+d);o.connect(g);g.connect(ac.destination);o.start(s);o.stop(s+d+.05)}catch(e){}}
+function voiceFor(l){try{return speechSynthesis.getVoices().filter(function(v){return v.lang&&v.lang.indexOf(l)===0})[0]||null}catch(e){return null}}
+function say(t,l){try{if(!window.speechSynthesis)return;speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.lang=l==="de"?"de-DE":"fr-FR";var v=voiceFor(l||"fr");if(v)u.voice=v;u.rate=.9;speechSynthesis.speak(u)}catch(e){}}
+
+var cards,open=[],lock=false,moves=0,found=0;
+function deal(){var P=LV[level].p,c=[];
+ shuffle(ANIMALS).slice(0,P).forEach(function(x,i){c.push({id:i,say:x.full,h:img(x)});c.push({id:i,say:x.full,w:1,h:'<span class="w"><i>'+x.a+"</i>"+x.w+"</span>"})});
+ cards=shuffle(c);cards.forEach(function(x,i){x.i=i});open=[];lock=false;moves=0;found=0;
+ var b=$("board"),C=LV[level].c;b.style.gridTemplateColumns="repeat("+C+",1fr)";var W=Math.min(520,innerWidth)-24,cw=(W-(C-1)*8)/C;
+ b.style.setProperty("--es",Math.round(cw*.48)+"px");b.style.setProperty("--ws",Math.max(14,Math.min(22,Math.round(cw*.19)))+"px");
+ b.innerHTML=cards.map(function(x){return '<button class="cd" data-i="'+x.i+'" aria-label="carte"><div class="in"><div class="b"></div><div class="f">'+x.h+"</div></div></button>"}).join("");
+ $("after").hidden=true;$("msg").textContent="";$("setb").textContent="Niveau "+level;stat()}
+function stat(){$("stat").textContent="Paires : "+found+" / "+LV[level].p+" · Coups : "+moves}
+function el(i){return document.querySelector('.cd[data-i="'+i+'"]')}
+$("board").addEventListener("click",function(e){var b=e.target.closest(".cd");if(!b||lock)return;var c=cards[+b.dataset.i];if(c.done||open.indexOf(c)>=0)return;
+ b.classList.add("up");tone(520,0,.06,.1);open.push(c);if(c.w)say(c.say,"de");
+ if(open.length<2)return;
+ moves++;lock=true;var a=open[0],d=open[1];
+ if(a.id===d.id){a.done=d.done=true;found++;
+  setTimeout(function(){[a,d].forEach(function(x){var q=el(x.i);q.classList.remove("up");q.classList.add("ok")});tone(660,0,.12,.2);tone(880,.1,.18,.2);say(a.say,"de");open=[];lock=false;stat();if(found===LV[level].p)win()},450)}
+ else setTimeout(function(){[a,d].forEach(function(x){el(x.i).classList.remove("up")});open=[];lock=false;stat()},1200);
+ stat()});
+function win(){try{if(parent!==window)parent.postMessage({type:"roundEnd"},"*")}catch(e){}
+ $("msg").textContent="🎉 Bravo ! Toutes les paires sont trouvées ("+moves+" coups).";setTimeout(function(){say("Bravo !")},900);
+ [523,659,784,1047].forEach(function(f,k){tone(f,k*.1,.25,.22)});
+ if(level<MAXL)ls("ocean_best"+PK,Math.max(parseInt(ls("ocean_best"+PK))||1,level+1));
+ $("next").hidden=level>=MAXL;$("after").hidden=false;
+ setTimeout(function(){var w=$("wrap");w.scrollTo({top:w.scrollHeight,behavior:"smooth"})},100)}
+$("again").onclick=deal;
+$("next").onclick=function(){if(level<MAXL)level++;ls("ocean_lvl"+PK,level);deal()};
+function opts(){var best=Math.max(level,parseInt(ls("ocean_best"+PK))||1),h="";for(var i=1;i<=best;i++)h+='<button data-l="'+i+'" class="'+(i===level?"on":"")+'">Niveau '+i+"<small>"+LV[i].p+" paires ("+LV[i].p*2+" cartes)"+(LV[i].p===13?" : tous les animaux":"")+"</small></button>";$("lvls").innerHTML=h}
+$("setb").onclick=function(){opts();$("sheet").hidden=false};
+$("lvls").addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;level=+b.dataset.l;ls("ocean_lvl"+PK,level);$("sheet").hidden=true;deal()});
+$("close").onclick=function(){$("sheet").hidden=true};
+/* lexique : toutes les cartes avec leur nom, par-dessus le jeu */
+$("lexg").innerHTML=ANIMALS.map(function(x,i){return '<button class="it" data-x="'+i+'">'+img(x)+"<b><i>"+x.a+"</i>"+x.w+"</b><small>"+x.fr+"</small></button>"}).join("");
+$("lexg").addEventListener("click",function(e){var b=e.target.closest("[data-x]");if(b)say(ANIMALS[+b.dataset.x].full,"de")});
+$("lexb").onclick=function(){$("lex").hidden=false};$("lexc").onclick=function(){$("lex").hidden=true};
+window.hubBack=function(){if(!$("lex").hidden){$("lex").hidden=true;return true}if(!$("sheet").hidden){$("sheet").hidden=true;return true}return false};
+window.__O={cards:function(){return cards}};
+deal();
+})();
+</script>
+</body>
+</html>
