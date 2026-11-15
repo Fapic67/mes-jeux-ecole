@@ -93,9 +93,9 @@ function diff(){return (LV[level].p<=4?1:LV[level].p===6?1.25:LV[level].p===8?1.
 function finish(){try{if(parent!==window)parent.postMessage({type:"finish",game:"memory",n:LV[level].p,diff:diff(),k:LV[level].p+" paires"+(mode==="de"?" · allemand":"")},"*")}catch(e){}}
 
 var cards,open=[],lock=false,moves=0,found=0,seen={};
-function wordsPool(){var sel=typeof deSelected==="function"?deSelected("mem",window.PROFILE):[];
- var w=DE_WORDS.filter(function(x){return x.e&&sel.indexOf(x.n)>=0});
- if(w.length<LV[level].p)w=w.concat(DE_WORDS.filter(function(x){return x.e&&sel.indexOf(x.n)<0&&x.n<=14}));
+function wordsPool(){var on=deOnSet(window.PROFILE);
+ var w=DE_WORDS.filter(function(x){return x.e&&on[x.w]});
+ if(w.length<LV[level].p)w=w.concat(DE_WORDS.filter(function(x){return x.e&&!on[x.w]&&x.n<=14}));
  // pas deux fois la même image
  var u={},r=[];shuffle(w).forEach(function(x){if(!u[x.e]){u[x.e]=1;r.push(x)}});return r}
 function deal(){var P=LV[level].p,c=[];

@@ -67,14 +67,14 @@ function pickVoice(){var v=(window.speechSynthesis&&speechSynthesis.getVoices())
 if(window.speechSynthesis){pickVoice();speechSynthesis.onvoiceschanged=pickVoice}
 function say(t){try{if(!window.speechSynthesis){msg.textContent="Synthèse vocale indisponible : ouvre le lien dans le navigateur du téléphone";return}pickVoice();speechSynthesis.cancel();setTimeout(function(){var u=new SpeechSynthesisUtterance(t);u.lang="de-DE";if(voice)u.voice=voice;u.rate=.9;u.onstart=function(){msg.textContent=""};u.onerror=function(e){if(e.error==="interrupted"||e.error==="canceled")return;msg.textContent="Erreur voix : "+e.error};speechSynthesis.resume();speechSynthesis.speak(u)},60)}catch(e){msg.textContent="Erreur voix : "+e}}
 // Étoiles : bonne réponse du premier coup = série ; un peu plus de difficulté si beaucoup de leçons sont cochées
-function star(ok,w){var g=mode===3?"sdw":mode===2?"fdw":"dde",d=deSelected(g,window.PROFILE).length>8?1.25:1;try{if(parent!==window)parent.postMessage({type:"answer",game:g,ok:ok!==false,diff:d,k:w?(mode>=2?"L"+w.n:w.a):null,item:w?(w.a?w.a+" ":"")+w.w:null},"*")}catch(e){}}
+function star(ok,w){var g=mode===3?"sdw":mode===2?"fdw":"dde",d=deOn(window.PROFILE).length>60?1.25:1;try{if(parent!==window)parent.postMessage({type:"answer",game:g,ok:ok!==false,diff:d,k:w?(mode>=2?"L"+w.n:w.a):null,item:w?(w.a?w.a+" ":"")+w.w:null},"*")}catch(e){}}
 function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
 function bar(){return '<div class="cnt">'+(i+1)+' / '+deck.length+'</div><div class="bar"><i style="width:'+(i/deck.length*100)+'%"></i></div>'}
 var deck,i,good,missed,mode=0;
 function home(){nokb();if(window.START){parent.postMessage("hub-back","*");return}mode=0;bk.style.display="none";app.innerHTML='<h1>Deutsch</h1><div class="pills col menu"><button class="btn" id="m1">Der · Die · Das</button><button class="btn" id="m2">Finde das Wort</button></div>';document.getElementById("m1").onclick=start;document.getElementById("m2").onclick=start2}
 // Exercice 1 : article
 // Leçons cochées dans les Paramètres (par profil)
-function pool(game,f){var sel=deSelected(game,window.PROFILE);return ALL.filter(function(x){return sel.indexOf(x.n)>=0&&f(x)})}
+function pool(game,f){var on=deOnSet(window.PROFILE);return ALL.filter(function(x){return on[x.w]&&f(x)})}
 function tooFew(){app.innerHTML='<h1>Pas assez de mots</h1><div class="cnt">Demande à un parent de cocher plus de leçons dans ⚙️ Paramètres → Réglages des jeux.</div><button class="btn" id="mn">Retour</button>';document.getElementById("mn").onclick=home}
 function start(){mode=1;bk.style.display="block";var P=pool("dde",function(x){return x.a});if(P.length<3){tooFew();return}deck=shuffle(P).slice(0,TOTAL);i=0;good=0;showWord()}
 function showWord(){

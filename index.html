@@ -252,7 +252,10 @@ body.rw-shop #purse{display:none!important}
 .dw-row .im{font-size:34px;width:48px;height:48px;display:flex;align-items:center;justify-content:center;flex:none}
 .dw-row .im img{width:48px!important;height:48px!important;vertical-align:0!important}
 .dw-row.hid{opacity:.45}.dw-row small{display:block;color:var(--mut);font-size:15px;font-weight:600}
-.dw-les{font-weight:700;color:var(--mut);margin:14px 0 2px;font-size:17px}
+.dw-les{display:flex;align-items:center;gap:8px;font-weight:700;color:var(--mut);margin:14px 0 2px;font-size:17px}
+.dw-les span{flex:1}.dw-les button{min-height:40px;padding:0 12px;border:2px solid var(--line);border-radius:999px;background:var(--card);color:var(--ink);font:700 15px "Fredoka",sans-serif}
+.dw-it{display:flex;align-items:center;gap:6px;border-top:2px solid var(--line)}.dw-it .dw-row{border-top:0;flex:1;min-width:0}
+.dw-it .switch{min-height:0;padding:0 4px}.dw-it.off .dw-row{opacity:.5}
 .dw-big{font-size:150px;line-height:1;display:flex;justify-content:center;min-height:160px;align-items:center}
 .dw-big .none{font-size:20px;color:var(--mut);border:3px dashed var(--line);border-radius:20px;width:190px;height:150px;display:flex;align-items:center;justify-content:center;text-align:center}
 #ph-box{position:relative;width:280px;height:280px;border-radius:20px;overflow:hidden;touch-action:none;background:#000;cursor:grab}
@@ -487,11 +490,15 @@ body.rw-shop #purse{display:none!important}
   </div>
 
   <div class="pg" id="pg-jeux" hidden>
+    <div class="muted">Les jeux d'allemand utilisent les <b>mots activés</b> dans la liste des mots (par profil). Le choix par leçons du manuel n'est plus utilisé.</div>
+    <button class="menuitem" data-page="dewords"><span class="ic">📖</span><span>Mots d'allemand utilisés<small id="j-de"></small></span></button>
+    <div hidden>
     <button class="menuitem" data-lecons="dde"><span class="ic">🔤</span><span>Der · Die · Das<small id="j-dde"></small></span></button>
     <button class="menuitem" data-lecons="fdw"><span class="ic">🖼️</span><span>Finde das Wort<small id="j-fdw"></small></span></button>
     <button class="menuitem" data-lecons="sdw"><span class="ic">✍️</span><span>Schreib das Wort<small id="j-sdw"></small></span></button>
     <button class="menuitem" data-lecons="mem"><span class="ic">🃏</span><span>Memory (image ↔ mot)<small id="j-mem"></small></span></button>
     <button class="menuitem" data-lecons="courses"><span class="ic">🧺</span><span>Die Einkaufsliste<small id="j-courses"></small></span></button>
+    </div>
   </div>
 
   <div class="pg" id="pg-lecons" hidden>
@@ -502,7 +509,9 @@ body.rw-shop #purse{display:none!important}
   </div>
 
   <div class="pg" id="pg-dewords" hidden>
-    <div class="muted">Tous les mots des jeux d'allemand (Der · Die · Das, Finde das Wort, Schreib das Wort, Memory, Die Einkaufsliste). Touche un mot pour changer son image ou le masquer. Les mots ajoutés vont par défaut dans le <b>📖 Dictionnaire</b>, coché d'office dans tous les jeux.</div>
+    <div class="muted">Les jeux d'allemand (Der · Die · Das, Finde das Wort, Schreib das Wort, Memory, Die Einkaufsliste) n'utilisent que les <b>mots activés</b> ✅ pour l'enfant choisi. Touche un mot pour changer son image. Les mots restent rangés par leçon du manuel.</div>
+    <div class="pills2" id="dw-who"></div>
+    <div class="card" style="gap:6px"><b id="dw-cnt"></b><div class="row"><button class="btn grow" id="dw-alln">Tout activer</button><button class="btn grow" id="dw-none">Tout désactiver</button></div></div>
     <div class="row"><button class="btn pri grow" id="dw-add">+ Ajouter un mot</button></div>
     <div class="card" id="dw-miss" hidden>
       <h3>🖼️ Mots sans image</h3>
@@ -525,7 +534,7 @@ body.rw-shop #purse{display:none!important}
       <label class="switch"><input type="checkbox" id="dw-buy"><span class="grow">Dans la liste des courses<small class="muted" style="display:block;font-size:16px">Un objet qu'on peut acheter (Die Einkaufsliste)</small></span></label>
     </div>
     <div class="muted" id="dw-info"></div>
-    <label class="switch" id="dw-hidrow"><input type="checkbox" id="dw-hid"><span class="grow">Masquer ce mot dans les jeux</span></label>
+    <label class="switch" id="dw-hidrow"><input type="checkbox" id="dw-hid"><span class="grow">Masquer ce mot pour tous les profils</span></label>
     <div class="row"><button class="btn grow" id="dw-del" hidden>🗑️ Supprimer</button><button class="btn okb grow" id="dw-save">Enregistrer</button></div>
   </div>
 
@@ -1114,21 +1123,31 @@ $("ph-ok").onclick=function(){if(!PH.img)return;var o=document.createElement("ca
  var url=o.toDataURL("image/jpeg",.85);$("phedit").hidden=true;PH.img=null;upd(function(p){p.photo=url});toast("📷 Photo enregistrée",1600)};
 $("p-phdel").onclick=function(){if(!E().photo)return;upd(function(p){delete p.photo})};
 /* ---------- 📖 Mots d'allemand : liste, mots ajoutés, images choisies sur le téléphone, mots masqués (localStorage « de_words », voir allemand-mots.js) ---------- */
-var DW=null; // mot en cours : {w} (mot existant) ou {nouveau:true}
+var DW=null,DWP=null; // mot en cours ; DWP = profil dont on règle les mots activés : {w} (mot existant) ou {nouveau:true}
 function dwLabel(x){return (x.a?x.a+" ":"")+x.w}
 function dwLes(n){return n>=100?"📖 Dictionnaire (hors manuel)":"Leçon "+n+" · "+DE_LETTERS[n]}
 function dwPrompt(list){var n=list.length,r=Math.ceil(n/5);
  return "Génère UNE planche de "+n+" illustration"+(n>1?"s":"")+", en grille régulière de "+Math.min(5,n)+" colonne"+(n>1?"s":"")+" et "+r+" ligne"+(r>1?"s":"")+", toutes les cases de la même taille, dans l'ordre de la liste. Exactement "+n+" case"+(n>1?"s":"")+", un espace blanc entre les cases. Elles servent à une appli d'apprentissage de l'allemand pour une enfant de 6 ans.\n\nStyle identique pour toutes : illustration douce aux crayons de couleur, couleurs douces, contours fins, un seul sujet bien centré dans chaque case, fond blanc uni, aucun texte, aucune lettre, aucun chiffre écrit.\n\nSujets :\n"+
   list.map(function(x,i){return (i+1)+". "+(x.fr?x.fr.charAt(0).toUpperCase()+x.fr.slice(1):"Le mot allemand « "+dwLabel(x)+" »")+"."}).join("\n")}
 function renderDeWords(){var q=($("dw-q").value||"").trim().toLowerCase(),h="",last=null;
+ if(!DWP||!prof(DWP)||prof(DWP).id!==DWP)DWP=PR.active;var off=deOff(DWP),pn=pname(prof(DWP));
+ $("dw-who").innerHTML=PR.list.length<2?"":PR.list.map(function(p){return '<button data-pid="'+p.id+'" class="'+(p.id===DWP?"on":"")+'">👤 '+esc(pname(p))+"</button>"}).join("");
+ var non=deOn(DWP).length;$("dw-cnt").textContent="✅ "+non+" mot"+(non>1?"s":"")+" activé"+(non>1?"s":"")+" pour "+pn+" sur "+DE_WORDS.length;
  var miss=DE_ALL.filter(function(x){return !x.e&&!x.hid});$("dw-miss").hidden=!miss.length;$("dw-prompt").hidden=true;
  if(miss.length){$("dw-misst").textContent=miss.length+" mot"+(miss.length>1?"s":"")+" sans image : "+miss.map(dwLabel).join(", ")+". Copie la consigne, colle-la dans Gemini, puis choisis l'image de chaque mot (📷), ou envoie la planche à Claude.";$("dw-prompt").value=dwPrompt(miss)}
  DE_ALL.slice().sort(function(a,b){return a.n-b.n}).forEach(function(x){if(q&&dwLabel(x).toLowerCase().indexOf(q)<0)return;
-  if(x.n!==last){last=x.n;h+='<div class="dw-les">'+esc(dwLes(x.n))+"</div>"}
-  h+='<button class="dw-row'+(x.hid?" hid":"")+'" data-dw="'+esc(x.w)+'"><span class="im">'+(x.e||"❔")+'</span><span class="grow">'+esc(dwLabel(x))+"<small>"+[x.user?"➕ ajouté":"",x.own?"📷 image du téléphone":"",x.hid?"🙈 masqué":"",x.e?"":"sans image"].filter(Boolean).join(" · ")+"</small></span><span>›</span></button>"});
+  if(x.n!==last){last=x.n;h+='<div class="dw-les"><span>'+esc(dwLes(x.n))+'</span><button data-les="'+x.n+'" data-v="1">Tout</button><button data-les="'+x.n+'" data-v="0">Aucun</button></div>'}
+  var on=!x.hid&&off.indexOf(x.w)<0;
+  h+='<div class="dw-it'+(on?"":" off")+'"><button class="dw-row'+(x.hid?" hid":"")+'" data-dw="'+esc(x.w)+'"><span class="im">'+(x.e||"❔")+'</span><span class="grow">'+esc(dwLabel(x))+"<small>"+[x.user?"➕ ajouté":"",x.own?"📷 image du téléphone":"",x.hid?"🙈 masqué pour tous":"",x.e?"":"sans image"].filter(Boolean).join(" · ")+'</small></span></button><label class="switch" aria-label="Activé"><input type="checkbox" data-on="'+esc(x.w)+'"'+(on?" checked":"")+(x.hid?" disabled":"")+"></label></div>"});
  $("dw-list").innerHTML=h||'<div class="muted">Aucun mot trouvé.</div>';
  $("m-de").textContent=DE_WORDS.length+" mots"}
 $("dw-q").oninput=renderDeWords;
+$("dw-who").addEventListener("click",function(e){var b=e.target.closest("[data-pid]");if(!b)return;DWP=b.dataset.pid;renderDeWords()});
+function dwSet(words,on){var off=deOff(DWP).filter(function(w){return words.indexOf(w)<0});if(!on)off=off.concat(words);deOffSave(DWP,off);var y=$("spanel").scrollTop;renderDeWords();$("spanel").scrollTop=y}
+$("dw-list").addEventListener("change",function(e){var t=e.target;if(t.dataset.on)dwSet([t.dataset.on],t.checked)});
+$("dw-list").addEventListener("click",function(e){var b=e.target.closest("[data-les]");if(!b)return;var n=+b.dataset.les;dwSet(DE_ALL.filter(function(x){return x.n===n}).map(function(x){return x.w}),b.dataset.v==="1")});
+$("dw-alln").onclick=function(){dwSet(DE_ALL.map(function(x){return x.w}),true)};
+$("dw-none").onclick=function(){if(confirm("Désactiver tous les mots pour "+pname(prof(DWP))+" ?"))dwSet(DE_ALL.map(function(x){return x.w}),false)};
 $("dw-list").addEventListener("click",function(e){var b=e.target.closest("[data-dw]");if(!b)return;DW={w:b.dataset.dw};openPage("deword")});
 $("dw-add").onclick=function(){DW={nouveau:true};openPage("deword")};
 $("dw-copy").onclick=function(){var t=$("dw-prompt").value;$("dw-prompt").hidden=false;
@@ -1254,7 +1273,7 @@ $("proglist").addEventListener("click",function(e){var b=e.target.closest("[data
 var LGAME=null,LPID=null,LNAME={dde:"Der · Die · Das",fdw:"Finde das Wort",mem:"Memory",courses:"Die Einkaufsliste",sdw:"Schreib das Wort"},LICON={sdw:"✍️ ",dde:"🔤 ",fdw:"🖼️ ",mem:"🃏 ",courses:"🧺 "};
 function lfilt(g,w){return g==="dde"?!!w.a:g==="mem"?!!w.e:g==="courses"?!!(w.a&&w.e&&DE_BUY.indexOf(w.w)>=0):true}
 function selInfo(g,pid){var sel=deSelected(g,pid);var n=DE_WORDS.filter(function(w){return sel.indexOf(w.n)>=0&&lfilt(g,w)}).length;return sel.length+" leçon"+(sel.length>1?"s":"")+" · "+n+" mots"}
-function renderJeux(){$("j-dde").textContent="Leçons pour "+pname(prof())+" : "+selInfo("dde",PR.active);$("j-fdw").textContent="Leçons pour "+pname(prof())+" : "+selInfo("fdw",PR.active);$("j-sdw").textContent="Leçons pour "+pname(prof())+" : "+selInfo("sdw",PR.active);$("j-mem").textContent="Leçons pour "+pname(prof())+" : "+selInfo("mem",PR.active);$("j-courses").textContent="Leçons pour "+pname(prof())+" : "+selInfo("courses",PR.active)}
+function renderJeux(){$("j-de").textContent=deOn(PR.active).length+" mots activés pour "+pname(prof());return;$("j-dde").textContent="Leçons pour "+pname(prof())+" : "+selInfo("dde",PR.active);$("j-fdw").textContent="Leçons pour "+pname(prof())+" : "+selInfo("fdw",PR.active);$("j-sdw").textContent="Leçons pour "+pname(prof())+" : "+selInfo("sdw",PR.active);$("j-mem").textContent="Leçons pour "+pname(prof())+" : "+selInfo("mem",PR.active);$("j-courses").textContent="Leçons pour "+pname(prof())+" : "+selInfo("courses",PR.active)}
 $("pg-jeux").addEventListener("click",function(e){var b=e.target.closest("[data-lecons]");if(!b)return;LGAME=b.dataset.lecons;LPID=PR.active;PTITLE.lecons=LICON[LGAME]+LNAME[LGAME];openPage("lecons")});
 function wordsOf(n){return DE_WORDS.filter(function(w){return w.n===n&&lfilt(LGAME,w)})}
 function renderLecons(){var sel=deSelected(LGAME,LPID),h="",lastP=0;

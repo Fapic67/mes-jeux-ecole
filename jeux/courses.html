@@ -88,8 +88,8 @@ function desc(L){var x=LV[L];return x.n+" objets parmi "+x.s+(x.o?" · dans l'or
 
 /* objets : mots du manuel qu'on peut acheter, pris dans les leçons cochées par un parent */
 var BUY=DE_WORDS.filter(function(w){return w.a&&w.e&&DE_BUY.indexOf(w.w)>=0});
-function pool(){var sel=typeof deSelected==="function"?deSelected("courses",window.PROFILE):[],p=BUY.filter(function(w){return sel.indexOf(w.n)>=0});
- if(p.length<LV[level].s)p=p.concat(shuffle(BUY.filter(function(w){return sel.indexOf(w.n)<0})).slice(0,LV[level].s-p.length));return p}
+function pool(){var on=deOnSet(window.PROFILE),p=BUY.filter(function(w){return on[w.w]});
+ if(p.length<LV[level].s)p=p.concat(shuffle(BUY.filter(function(w){return !on[w.w]})).slice(0,LV[level].s-p.length));return p}
 function acc(w){return(w.a==="der"?"einen ":w.a==="die"?"eine ":"ein ")+w.w}
 
 /* sons et voix */

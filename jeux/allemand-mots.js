@@ -127,3 +127,12 @@ function deBuild(){var u=deUser();
  DE_WORDS=DE_ALL.filter(function(x){return !x.hid});
  DE_BUY=DE_BUY0.concat(add.filter(function(x){return x.buy&&x.a&&DE_BUY0.indexOf(x.w)<0}).map(function(x){return x.w}))}
 deBuild();
+// --- Mots activés pour les exercices, par profil (Paramètres → 📖 Mots d'allemand) : remplace le choix des leçons du manuel,
+// qui reste en mémoire (deSelected / deSave, clés de_sel_*) sans être utilisé. Clé « de_off@<profil> » = mots désactivés.
+// Au premier usage : désactivés = mots hors des leçons cochées pour Finde das Wort. Un mot ajouté plus tard est activé d'office.
+function deOff(pid){pid=pid||"p1";var k="de_off@"+pid,v=null;try{v=JSON.parse(localStorage.getItem(k))}catch(e){}
+ if(!Array.isArray(v)){var sel=deSelected("fdw",pid);v=DE_ALL.filter(function(x){return sel.indexOf(x.n)<0}).map(function(x){return x.w});try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+ return v}
+function deOffSave(pid,v){try{localStorage.setItem("de_off@"+(pid||"p1"),JSON.stringify(v))}catch(e){}}
+function deOn(pid){var off=deOff(pid);return DE_WORDS.filter(function(x){return off.indexOf(x.w)<0})}
+function deOnSet(pid){var o={};deOn(pid).forEach(function(x){o[x.w]=1});return o}
