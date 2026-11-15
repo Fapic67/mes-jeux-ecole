@@ -1151,9 +1151,9 @@ var AVC=["#22a861","#4a7cff","#ff5c7a","#9b6bff","#13a8a8","#ff8a3d"];
 function renderProfilScreen(){$("plist2").innerHTML=PR.list.map(function(p,i){var n=pname(p);return '<button class="ptile" data-who="'+p.id+'"><span class="av'+(p.photo?" ph":"")+'" style="'+avStyle(p,i)+'">'+(p.photo?"":esc(n.charAt(0).toUpperCase()))+'</span><span>'+esc(n)+(p.admin?' <span class="adm">👑 admin</span>':"")+'<small>⭐ '+p.stars+'</small></span></button>'}).join("");
  $("pform").hidden=true;$("pnew").hidden=false}
 $("plist2").addEventListener("click",function(e){var b=e.target.closest("[data-who]");if(!b)return;var id=b.dataset.who;
- function open(){PR.active=id;saveP();go("")}
+ function open(){PR.active=id;ADM_OK=prof0(id).admin?id:null;saveP();go("")}
  var cp=prof0(PR.active);if(id!==PR.active&&cp&&pathActive(cp)&&!pathDone(cp)){checkCode(open);return}
- if(prof0(id).admin&&PR.active!==id)checkCode(open);else open()});
+ if(prof0(id).admin&&ADM_OK!==id)checkCode(open);else open()});
 $("pnew").onclick=function(){$("pnew").hidden=true;$("pform").hidden=false;$("pfname").value="";setTimeout(function(){$("pfname").focus()},50)};
 $("pfcancel").onclick=function(){$("pform").hidden=true;$("pnew").hidden=false};
 function createProfile(){var n=$("pfname").value.trim().slice(0,20);if(!n){$("pfname").focus();return}
@@ -1166,7 +1166,7 @@ function esc(t){return String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;")}
 
 /* ---------- Code parent ---------- */
 function sha(s){return crypto.subtle.digest("SHA-256",new TextEncoder().encode("tm:"+s)).then(function(b){return btoa(String.fromCharCode.apply(null,new Uint8Array(b)))})}
-var pinVal="",pinCb=null,pinCancel=null;
+var pinVal="",pinCb=null,pinCancel=null,ADM_OK=null; // ADM_OK = profil admin ouvert avec le code dans cette session
 (function(){var h="";["1","2","3","4","5","6","7","8","9","x","0","<"].forEach(function(k){h+='<button data-k="'+k+'"'+(k==="x"||k==="<"?' class="fn"':'')+'>'+(k==="x"?"Annuler":k==="<"?"⌫":k)+'</button>'});$("keys").innerHTML=h})();
 function dots(){var d=$("dots").children;for(var i=0;i<4;i++)d[i].className=i<pinVal.length?"on":""}
 function askCode(title,cb,cancel){$("pint").textContent=title;$("pinerr").textContent="";pinVal="";dots();pinCb=cb;pinCancel=cancel||null;if(OV[OV.length-1]!=="pin")openOv("pin")}
@@ -1496,7 +1496,7 @@ $("s-upd").onclick=function(){var b=this,st=$("s-updst");b.disabled=true;st.text
   return Promise.all(jobs).then(function(){location.replace(location.pathname+"?maj="+Date.now())})
  }).catch(function(){b.disabled=false;st.textContent="⚠️ Pas de connexion internet : réessaie quand tu es en ligne."})};
 function openSettings(already){PG=[];renderPage();if(!already)openOv("settings")}
-$("gear").onclick=$("gear2").onclick=function(){var p=prof();if(p.admin&&PR.active===p.id&&$("v-profil").classList.contains("on")===false){openSettings();return}checkCode(openSettings)};
+$("gear").onclick=$("gear2").onclick=function(){var p=prof();if(p.admin&&ADM_OK===p.id&&$("v-profil").classList.contains("on")===false){openSettings();return}checkCode(openSettings)};
 $("sclose").onclick=function(){var i=OV.indexOf("settings");if(i<0)return;var n=OV.length-i;
  if(history.state&&history.state.ov===OV[OV.length-1]){history.go(-n)}else{while(OV.length>i)hideOv(OV.pop())}};
 $("s-pin").onclick=function(){newCode(renderCode)};
@@ -1541,7 +1541,7 @@ function closeOv(n,cb){if(OV[OV.length-1]===n&&history.state&&history.state.ov==
 function swapOv(from,to){OV[OV.length-1]=to;hideOv(from);$(OVEL[to]).hidden=false;var st=history.state||{};history.replaceState({d:st.d,r:st.r,ov:to},"",location.href)}
 window.addEventListener("popstate",function(){
  var st=history.state||{},h=location.hash.replace("#","");
- if(OV.length&&OV[OV.length-1]!==st.ov){while(OV.length&&OV[OV.length-1]!==st.ov)hideOv(OV.pop());var c=ovCb;ovCb=null;c&&c();if(st.r===cur)return}
+ if(OV.length&&OV[OV.length-1]!==st.ov){while(OV.length&&OV[OV.length-1]!==st.ov)hideOv(OV.pop());var c=ovCb,cur0=cur;ovCb=null;c&&c();if(st.r===cur||cur!==cur0)return}
  // en jeu : le jeu peut d'abord fermer sa propre fenêtre (réglages, choix du niveau…)
  if(GAMES[cur]&&h!==cur){var w=null;try{w=$("frame").contentWindow}catch(e){}
   try{if(w&&w.hubBack&&w.hubBack()){history.pushState({d:(st.d||0)+1,r:cur},"",url(cur));return}}catch(e){}
