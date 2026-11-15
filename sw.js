@@ -1,6 +1,6 @@
 // Service worker : fonctionnement hors ligne.
 // Pensez à changer VERSION à chaque mise à jour des fichiers pour que les téléphones la récupèrent.
-var VERSION = "v83";
+var VERSION = "v84";
 var CACHE = "jeux-ecole-" + VERSION;
 var FILES = [
   "./",
@@ -31,6 +31,7 @@ var FILES = [
   "jeux/img/de/Bus.webp",
   "jeux/img/de/Butter.webp",
   "jeux/img/de/Baeume.webp",
+  "jeux/img/de/Dieb.webp",
   "jeux/img/de/Dose.webp",
   "jeux/img/de/Dreieck.webp",
   "jeux/img/de/Durst.webp",
@@ -41,6 +42,7 @@ var FILES = [
   "jeux/img/de/Floete.webp",
   "jeux/img/de/Freund.webp",
   "jeux/img/de/Freundin.webp",
+  "jeux/img/de/Fuss.webp",
   "jeux/img/de/Fuesse.webp",
   "jeux/img/de/Gabel.webp",
   "jeux/img/de/Gans.webp",
@@ -110,6 +112,7 @@ var FILES = [
   "jeux/img/de/Radiergummi.webp",
   "jeux/img/de/Regen.webp",
   "jeux/img/de/Reihe.webp",
+  "jeux/img/de/Sand.webp",
   "jeux/img/de/Schnee.webp",
   "jeux/img/de/Schornsteinfeger.webp",
   "jeux/img/de/Schule.webp",
@@ -132,11 +135,14 @@ var FILES = [
   "jeux/img/de/Tisch.webp",
   "jeux/img/de/Traube.webp",
   "jeux/img/de/Uhr.webp",
+  "jeux/img/de/Vase.webp",
   "jeux/img/de/Viereck.webp",
   "jeux/img/de/Vogel.webp",
   "jeux/img/de/Voegel.webp",
   "jeux/img/de/Wachsmalkreide.webp",
   "jeux/img/de/Wald.webp",
+  "jeux/img/de/Weg.webp",
+  "jeux/img/de/Wiese.webp",
   "jeux/img/de/Winter.webp",
   "jeux/img/de/Zeh.webp",
   "jeux/img/de/Zeitung.webp",
@@ -159,11 +165,13 @@ var FILES = [
   "jeux/img/de/froh.webp",
   "jeux/img/de/fuettern.webp",
   "jeux/img/de/gelb.webp",
+  "jeux/img/de/giessen.webp",
   "jeux/img/de/gut.webp",
   "jeux/img/de/helfen.webp",
   "jeux/img/de/hinter.webp",
   "jeux/img/de/ich.webp",
   "jeux/img/de/jubeln.webp",
+  "jeux/img/de/jung.webp",
   "jeux/img/de/kalt.webp",
   "jeux/img/de/klein.webp",
   "jeux/img/de/kneten.webp",
@@ -208,6 +216,7 @@ var FILES = [
   "jeux/img/de/wenig.webp",
   "jeux/img/de/zwei.webp",
   "jeux/img/de/zwoelf.webp",
+  "jeux/img/de/oeffnen.webp",
   "jeux/img/de/ueber.webp",
   // /images-de
   "jeux/code.html",
