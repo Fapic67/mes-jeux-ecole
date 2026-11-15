@@ -101,7 +101,7 @@ var DE_SVG={
 };
 function deSlug(w){return w.replace(/ä/g,"ae").replace(/ö/g,"oe").replace(/ü/g,"ue").replace(/Ä/g,"Ae").replace(/Ö/g,"Oe").replace(/Ü/g,"Ue").replace(/ß/g,"ss")}
 function deImg(w){return '<img class="deimg" src="jeux/img/de/'+deSlug(w)+'.webp" alt="" draggable="false" style="width:1.3em;height:1.3em;vertical-align:-.25em;border-radius:.18em;object-fit:contain">'}
-var DE_IMG=["Durst"]; // mots illustrés par une image Gemini (jeux/img/de/<mot>.webp), prioritaires sur emoji et dessins
+var DE_IMG=["Durst","kneten"]; // mots illustrés par une image Gemini (jeux/img/de/<mot>.webp), prioritaires sur emoji et dessins
 var DE_WORDS=DE_RAW.map(function(s){var p=s.split("|");return{n:+p[0],a:p[1],w:p[2],e:DE_IMG.indexOf(p[2])>=0?deImg(p[2]):(p[3]||DE_SVG[p[2]]||"")}});
 var DE_DEFAULT=[1,2,3,4,5,6,7,8,9,10]; // leçons cochées par défaut (les mots de l'ancienne liste)
 // Leçons cochées pour un jeu ("dde" = Der · Die · Das, "fdw" = Finde das Wort) et un profil
