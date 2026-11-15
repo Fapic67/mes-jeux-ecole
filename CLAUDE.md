@@ -1,4 +1,6 @@
-# Mes jeux d'école — passation depuis claude.ai
+# Ludea (anciennement « Mes jeux d'école ») — passation depuis claude.ai
+
+**Nom de l'appli : Ludea** (de *ludus*, « jeu » et « école » en latin), choisi par l'utilisateur. Titre de la page, manifeste (`name` / `short_name`), partage du code de famille, appli Android (`capacitor.config.json` `appName`, `strings.xml`, prise effet au prochain APK). Les identifiants techniques restent `mes-jeux-ecole` (dépôt, site, paquet Android, fichiers de sauvegarde, projet Firebase). Icône : 6 pistes proposées (monogramme L doré, chouette au trait, étoile, livre + étoile, boussole, chouette ronde), choix en attente.
 
 **Règle : ne créer que les jeux explicitement demandés par l'utilisateur.**
 

@@ -9,8 +9,8 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<meta name="apple-mobile-web-app-title" content="Jeux d'école">
-<title>Mes jeux d'école</title>
+<meta name="apple-mobile-web-app-title" content="Ludea">
+<title>Ludea</title>
 <script src="jeux/allemand-mots.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -1227,7 +1227,7 @@ $("bk-save").onclick=function(){var now=new Date(),day=now.toISOString().slice(0
 $("bk-load").onclick=function(){$("bk-file").value="";$("bk-file").click()};
 $("bk-file").onchange=function(){var f=this.files&&this.files[0];if(!f)return;var r=new FileReader();
  r.onload=function(){var o;try{o=JSON.parse(r.result)}catch(e){o=null}
-  if(!o||o.app!=="mes-jeux-ecole"||!o.data||typeof o.data!=="object"){$("bk-st").textContent="⚠️ Ce fichier n'est pas une sauvegarde de Mes jeux d'école.";return}
+  if(!o||o.app!=="mes-jeux-ecole"||!o.data||typeof o.data!=="object"){$("bk-st").textContent="⚠️ Ce fichier n'est pas une sauvegarde de Ludea.";return}
   var pr=null;try{pr=JSON.parse(o.data.profiles)}catch(e){}
   var who=pr&&pr.list?pr.list.map(function(p){return p.name||"Sans prénom"}).join(", "):"?";
   if(!confirm("Restaurer la sauvegarde du "+new Date(o.date).toLocaleString("fr-FR")+" ?\nProfils : "+who+"\nLes données actuelles seront remplacées."))return;
@@ -1338,7 +1338,7 @@ $("fa-new").onclick=function(){var b=this;b.disabled=true;window.SYNC.create().t
 $("fa-join").onclick=function(){var c=$("fa-code").value;if(!confirm("Les profils de ce téléphone seront remplacés par ceux de la famille. Continuer ?"))return;
  window.SYNC.join(c).catch(function(e){toast(e.message==="code"?"Le code a 12 caractères":e.message==="inconnu"?"Famille introuvable":"⚠️ Pas de connexion",2400)})};
 $("fa-now").onclick=function(){window.SYNC.now().then(renderFamily);renderFamily()};
-$("fa-share").onclick=function(){var t="Code de la famille pour Mes jeux d'école : "+window.SYNC.fmt(window.SYNC.fam);if(navigator.share)navigator.share({text:t}).catch(function(){});else{try{navigator.clipboard.writeText(window.SYNC.fam);toast("📋 Code copié",1500)}catch(e){}}};
+$("fa-share").onclick=function(){var t="Code de la famille pour Ludea : "+window.SYNC.fmt(window.SYNC.fam);if(navigator.share)navigator.share({text:t}).catch(function(){});else{try{navigator.clipboard.writeText(window.SYNC.fam);toast("📋 Code copié",1500)}catch(e){}}};
 $("fa-leave").onclick=function(){if(!confirm("Ce téléphone ne sera plus synchronisé. Les profils restent sur ce téléphone."))return;window.SYNC.leave();renderFamily()};
 function renderProfils(){$("plist").innerHTML=PR.list.map(function(p){return '<button class="menuitem" data-edit="'+p.id+'"><span class="ic">'+(p.photo?'<span class="mini-av" style="width:40px;height:40px;background-image:url('+p.photo+')"></span>':"👤")+'</span><span>'+esc(pname(p))+(p.id===PR.active?'<span class="badge">actif</span>':'')+'<small>⭐ '+p.stars+({none:" · sans récompense",stars:" · étoiles seules",shop:" · 🛍️ boutique"})[p.rmode||"shop"]+'</small></span></button>'}).join("")}
 $("plist").addEventListener("click",function(e){var b=e.target.closest("[data-edit]");if(!b)return;EDIT=b.dataset.edit;openPage("profil")});
