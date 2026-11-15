@@ -450,10 +450,10 @@ body.rw-shop #purse{display:none!important}
       <div id="p-gpend" class="pg" style="gap:6px"></div>
     </div>
     <div class="card">
-      <h3>🌙 Temps par jour</h3>
+      <h3>⏱️ Temps par jour</h3>
       <input type="checkbox" id="dl-on" hidden>
       <div class="pg" id="dl-opts" style="gap:10px">
-        <label class="row"><span class="grow">Maximum par jour<small class="muted" style="display:block;font-size:16px">Vide = illimité</small></span><input class="field num" id="dl-min" type="number" inputmode="numeric" min="1" max="600" step="1" placeholder="Illimité" style="width:130px;text-align:center"><span>min</span></label>
+        <label class="row"><span class="grow">Maximum par jour</span><input class="field num" id="dl-min" type="number" inputmode="numeric" min="1" max="600" step="1" placeholder="Illimité" style="width:130px;text-align:center"><span>min</span></label>
         <div class="muted" id="dl-txt"></div>
       </div>
     </div>
@@ -649,7 +649,7 @@ body.rw-shop #purse{display:none!important}
 
 <!-- Temps du jour écoulé -->
 <div class="sheet" id="dayover" hidden><div class="panel" style="text-align:center;align-items:center">
-  <div class="big">🌙</div><h2 style="justify-content:center">C'est fini pour aujourd'hui !</h2>
+  <div class="big">⏱️</div><h2 style="justify-content:center">C'est fini pour aujourd'hui !</h2>
   <div class="muted" style="font-size:19px">Tu as bien travaillé. À demain !</div>
   <button class="btn okb" id="do-ok" style="width:100%">D'accord</button>
   <button class="btn" id="do-parent" style="width:100%">🔑 Un parent peut ajouter 15 min</button>
@@ -997,22 +997,22 @@ $("do-ok").onclick=function(){$("dayover").hidden=true;dayUp=false;if(dayInGame)
 $("do-parent").onclick=function(){$("dayover").hidden=true;checkCode(function(){var p=prof(),D=p.daily,b=D.bonus&&D.bonus.d===dkey()?D.bonus.sec:0;
  D.bonus={d:dkey(),sec:b+900+Math.max(0,-dayLeft(p))};dayUp=false;clearTimeout(dayT);saveP();renderLocks();renderTime();toast("🔑 +15 min pour aujourd'hui",2200)},function(){if(dayInGame&&dayOver())showDayOver(true)})};
 function renderLocks(){var p=prof(),left=playLeft(p),over=dayOver(p);
- $("daytxt").textContent=dayOn(p)?(over?" · 🌙 fini pour aujourd'hui":(dayLeft(p)<60?" · 🌙 moins d'1 min aujourd'hui":" · 🌙 encore "+mins(dayLeft(p))+" min aujourd'hui")):"";
+ $("daytxt").textContent=dayOn(p)?(over?" · ⏱️ fini pour aujourd'hui":(dayLeft(p)<60?" · ⏱️ moins d'1 min aujourd'hui":" · ⏱️ encore "+mins(dayLeft(p))+" min aujourd'hui")):"";
  document.querySelectorAll("[data-play]").forEach(function(b){var k=b.dataset.play,sm=b.querySelector("small");if(!sm)return;if(b.dataset.sub==null)b.dataset.sub=sm.innerHTML;
   var lim=isPlay(k,p),lk=lim&&left<30,pz=isLockedPrize(k,p);b.classList.toggle("locked",lk||over||pz);
   if(pz){sm.innerHTML=b.dataset.sub+'<span class="pt">'+(p.rmode==="shop"?"🛍️ à acheter dans la boutique":"🔒 à débloquer par un parent")+"</span>";return}
-  sm.innerHTML=b.dataset.sub+(over?'<span class="pt">🌙 fini pour aujourd\'hui</span>':lim?'<span class="pt">'+(lk?"🔒 apprends d'abord":"⏳ "+mins(left)+" min de jeu")+"</span>":"")});
+  sm.innerHTML=b.dataset.sub+(over?'<span class="pt">⏱️ fini pour aujourd\'hui</span>':lim?'<span class="pt">'+(lk?"🔒 apprends d'abord":"⏳ "+mins(left)+" min de jeu")+"</span>":"")});
  document.querySelectorAll(".tile[data-go]").forEach(function(t){var ks=Object.keys(GAMES).filter(function(k){return GAMES[k].subj===t.dataset.go});
   t.classList.toggle("locked",over||(ks.length>0&&ks.every(function(k){return isPlay(k,p)})&&left<30))})}
 var timeUp=false,graceT=null,tick=0;
 function fmtClock(s){s=Math.max(0,Math.round(s));return Math.floor(s/60)+":"+pad(s%60)}
 function renderTime(){var t=$("ptime");
- if(GAMES[cur]&&dayOn()&&(dayUp||dayLeft()<300)){t.hidden=false;var dl=dayLeft();t.className=dayUp?"up":"warn";t.textContent=dayUp?"🌙 Termine ton jeu !":"🌙 "+fmtClock(dl);return}
+ if(GAMES[cur]&&dayOn()&&(dayUp||dayLeft()<300)){t.hidden=false;var dl=dayLeft();t.className=dayUp?"up":"warn";t.textContent=dayUp?"⏱️ Termine ton jeu !":"⏱️ "+fmtClock(dl);return}
  var lim=GAMES[cur]&&isPlay(cur);t.hidden=!lim;if(!lim)return;var l=playLeft();
  t.className=timeUp?"up":l<60?"warn":"";t.textContent=timeUp?"⏳ Termine ta partie !":"⏳ "+fmtClock(l)}
 setInterval(function(){if(!GAMES[cur]||document.hidden||Date.now()-lastAct>60000)return;var p=prof(),d=today(p);d.sec++;if(isPlay(cur,p))d.play++;else d.learn++;stDay(stG(p.id,cur)).sec++;
  if(++tick%15===0){saveP();stSave(p.id)}
- if(dayOn(p)&&!dayUp&&dayLeft(p)<=0){dayUp=true;p.daily.done=dayMark(p);saveP();toast("🌙 C'est presque fini pour aujourd'hui : termine ton jeu !",3500);dayT=setTimeout(endDay,300000)}
+ if(dayOn(p)&&!dayUp&&dayLeft(p)<=0){dayUp=true;p.daily.done=dayMark(p);saveP();toast("⏱️ C'est presque fini pour aujourd'hui : termine ton jeu !",3500);dayT=setTimeout(endDay,300000)}
  if(isPlay(cur,p)&&!timeUp&&playLeft(p)<=0){timeUp=true;toast("⏳ Le temps de jeu est fini : termine ta partie !",3500);graceT=setTimeout(endPlay,180000)}
  renderTime()},1000);
 function endPlay(){clearTimeout(graceT);graceT=null;if(!GAMES[cur]||!isPlay(cur))return;saveP();$("tu-txt").textContent="Tu pourras rejouer après "+mins(learnNeeded(prof()))+" min d'apprentissage.";$("timeup").hidden=false}
@@ -1236,13 +1236,13 @@ $("p-rmode").addEventListener("click",function(e){var b=e.target.closest("[data-
 $("p-gpend").addEventListener("click",function(e){var b=e.target.closest("[data-give]");if(!b)return;upd(function(p){ensureShop(p);p.shopPend=p.shopPend.filter(function(x){return x.id!==b.dataset.give})});toast("✅ Donné",1500)});
 function renderDaily(p){ensureEcon(p);var D=p.daily;$("dl-on").checked=D.on;
  if(document.activeElement!==$("dl-min"))$("dl-min").value=D.on?D.min:"";
- $("dl-txt").textContent=(D.on?"":"Pas de limite pour l'instant. ")+"Compte le temps actif dans les jeux. À la fin, le jeu en cours se termine, puis « C'est fini pour aujourd'hui ». Aujourd'hui : "+fmtMin(today(p).sec)+" utilisées"+(D.on?" · reste "+fmtMin(Math.max(0,dayLeft(p))):"")+"."}
+ $("dl-txt").textContent="Aujourd'hui : "+fmtMin(today(p).sec)+" utilisées"+(D.on?" · reste "+fmtMin(Math.max(0,dayLeft(p))):"")+"."}
 $("dl-on").onchange=function(){var v=this.checked;upd(function(p){ensureEcon(p);p.daily.on=v})};
 // champ en minutes (1 à 600), enregistré quand on quitte le champ ou valide
 // vide = illimité (daily.on faux) ; sinon 1 à 600 minutes
-$("dl-min").onchange=function(){var t=this.value.trim();if(t===""){upd(function(p){ensureEcon(p);p.daily.on=false});toast("🌙 Pas de limite par jour",1400);return}
+$("dl-min").onchange=function(){var t=this.value.trim();if(t===""){upd(function(p){ensureEcon(p);p.daily.on=false});toast("⏱️ Pas de limite par jour",1400);return}
  var v=Math.round(+t);if(!(v>=1&&v<=600)){toast("Entre 1 et 600 minutes, ou vide pour illimité",2000);var D=E().daily;this.value=D.on?D.min:"";return}
- upd(function(p){ensureEcon(p);p.daily.min=v;p.daily.on=true});toast("🌙 "+v+" min par jour",1400)};
+ upd(function(p){ensureEcon(p);p.daily.min=v;p.daily.on=true});toast("⏱️ "+v+" min par jour",1400)};
 $("dl-min").onkeydown=function(e){if(e.key==="Enter")this.blur()};
 function renderPlay(p){ensureEcon(p);var P=p.play;$("pl-on").checked=P.on;$("pl-opts").hidden=!P.on;
  $("pl-ratio").innerHTML=RATIOS.map(function(r,i){return '<button data-r="'+i+'" class="'+(Math.abs(r[0]-P.ratio)<.01?"on":"")+'">'+r[1]+"</button>"}).join("");
