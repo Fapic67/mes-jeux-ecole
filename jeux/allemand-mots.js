@@ -15,10 +15,13 @@ var DE_MODULES=[
  {p:4,m:"9",t:"Auf dem Bauernhof",f:"À la ferme",l:[23,24]},
  {p:5,m:"10",t:"Die Walpurgisnacht",f:"La nuit des sorcières",l:[25,26,27]},
  {p:5,m:"11",t:"Die Partnerklasse",f:"Les correspondants",l:[28,29,30]},
- {p:5,m:"12",t:"Die Bundesjugendspiele",f:"La rencontre sportive",l:[31,32]}
+ {p:5,m:"12",t:"Die Bundesjugendspiele",f:"La rencontre sportive",l:[31,32]},
+ // Dictionnaire hors manuel (mots ajoutés à la demande) : leçon 100, cochée d'office dans tous les jeux
+ {p:0,m:"dico",t:"Dictionnaire",f:"Mots en plus, hors manuel",l:[100]}
 ];
+var DE_DICT=100;
 // Lettre(s) travaillée(s) dans chaque leçon
-var DE_LETTERS={1:"A",2:"I",3:"O",4:"L",5:"R",6:"S",7:"U",8:"M",9:"T",10:"N",11:"W",12:"K",13:"P",14:"B",15:"D & E",16:"V & Ö",17:"H",18:"-ER",19:"SCH",20:"EI & Z",21:"Ä & Ü",22:"-CH & IE",23:"voyelle longue + h",24:"-CH & AU",25:"ATT, ESS, IMM…",26:"X, CHS, KS, CKS",27:"SP & ST",28:"S",29:"EU",30:"J",31:"consonne finale dure",32:"ß"};
+var DE_LETTERS={1:"A",2:"I",3:"O",4:"L",5:"R",6:"S",7:"U",8:"M",9:"T",10:"N",11:"W",12:"K",13:"P",14:"B",15:"D & E",16:"V & Ö",17:"H",18:"-ER",19:"SCH",20:"EI & Z",21:"Ä & Ü",22:"-CH & IE",23:"voyelle longue + h",24:"-CH & AU",25:"ATT, ESS, IMM…",26:"X, CHS, KS, CKS",27:"SP & ST",28:"S",29:"EU",30:"J",31:"consonne finale dure",32:"ß",100:"Mots en plus"};
 // leçon|article|mot|image
 var DE_RAW=[
  "1|der|Apfel|🍎","1|die|Tafel|","1|der|Schulranzen|🎒","1|die|Klasse|","1|der|Radiergummi|","1||arbeiten|📝",
@@ -52,19 +55,25 @@ var DE_RAW=[
  "29|die|Fahne|🇩🇪",
  "30|die|Jacke|",
  "31||gelb|🟡","31|der|Mond|🌙","31|der|Weg|🛤️","31|der|Preis|🏆",
- "32|der|Fuß|🦶"
+ "32|der|Fuß|🦶",
+ // --- Dictionnaire hors manuel ---
+ "100|die|Klementine|"
 ];
 // Dessins maison partagés par tous les jeux (quand un seul emoji ne suffit pas) : taille = 1,3em (comme un emoji)
 var DE_SVG={
  // Obst = les fruits : une corbeille de fruits (banane, raisin, pomme, orange)
  // teilen = partager : une tablette de chocolat cassée en deux, une moitié pour chaque enfant (choix de l'utilisateur ; 🤝 faisait penser à « saluer »)
  "teilen":'<svg class="desvg" viewBox="0 0 100 100" width="1.3em" height="1.3em" style="vertical-align:-.25em"><g transform="rotate(-8 32 42)"><rect x="14" y="20" width="34" height="42" rx="4" fill="#7b4a2a"/><path d="M14 34h34M14 48h34M31 20v42" stroke="#5a3218" stroke-width="2.5"/><path d="M48 20l-3 6 3 5-3 6 3 5-3 6 3 5-3 6 3 3" fill="none" stroke="#5a3218" stroke-width="2"/></g><g transform="rotate(8 68 42)"><rect x="52" y="20" width="34" height="42" rx="4" fill="#7b4a2a"/><path d="M52 34h34M52 48h34M69 20v42" stroke="#5a3218" stroke-width="2.5"/></g><circle cx="22" cy="84" r="10" fill="#f6c89a"/><path d="M12 80q10-12 20 0" fill="#7a4a24"/><path d="M18 87q4 4 8 0" stroke="#5a3218" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="18.5" cy="82" r="1.4" fill="#3a2416"/><circle cx="25.5" cy="82" r="1.4" fill="#3a2416"/><circle cx="78" cy="84" r="10" fill="#f6c89a"/><path d="M68 82q10-16 20 0" fill="#e0a43a"/><path d="M74 87q4 4 8 0" stroke="#5a3218" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="74.5" cy="82" r="1.4" fill="#3a2416"/><circle cx="81.5" cy="82" r="1.4" fill="#3a2416"/></svg>',
+ // die Klementine : deux clémentines avec leurs feuilles
+ "Klementine":'<svg class="desvg" viewBox="0 0 100 100" width="1.3em" height="1.3em" style="vertical-align:-.25em"><circle cx="36" cy="60" r="26" fill="#ff8f1f"/><circle cx="36" cy="60" r="26" fill="url(#kp)" opacity=".35"/><circle cx="28" cy="50" r="6" fill="#fff" opacity=".35"/><circle cx="66" cy="64" r="24" fill="#ff9f2e"/><circle cx="59" cy="55" r="5.5" fill="#fff" opacity=".35"/><defs><pattern id="kp" width="6" height="6" patternUnits="userSpaceOnUse"><circle cx="3" cy="3" r="1" fill="#c9600a"/></pattern></defs><circle cx="36" cy="35" r="2.5" fill="#6b8e23"/><circle cx="66" cy="41" r="2.5" fill="#6b8e23"/><path d="M36 35q-2-9 6-14" stroke="#4d7a1f" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M38 26q12-8 20 1q-12 7-20-1z" fill="#3fae49"/><path d="M66 41q3-8 11-10" stroke="#4d7a1f" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M73 32q11-3 15 6q-11 3-15-6z" fill="#2f9a3c"/></svg>',
  "Obst":'<svg class="desvg" viewBox="0 0 100 100" width="1.3em" height="1.3em" style="vertical-align:-.25em"><path d="M20 47C22 30 36 18 58 17c2 0 3 2 1 3-14 4-23 13-27 27z" fill="#ffd23f" stroke="#d4a900" stroke-width="2" stroke-linejoin="round"/><g fill="#8e44ad"><circle cx="27" cy="44" r="6"/><circle cx="36" cy="41" r="6"/><circle cx="31" cy="35" r="6"/><circle cx="40" cy="33" r="5"/></g><path d="M35 29l3-6" stroke="#3a7d2c" stroke-width="2.5" stroke-linecap="round"/><circle cx="74" cy="43" r="11" fill="#ff9f1a"/><circle cx="71" cy="39" r="2.5" fill="#fff" opacity=".4"/><circle cx="55" cy="42" r="13" fill="#e5484d"/><circle cx="50" cy="37" r="3" fill="#fff" opacity=".4"/><path d="M55 30q1-6 4-8" stroke="#6b3e1f" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M58 27q8-6 12 0q-7 4-12 0z" fill="#3fae49"/><path d="M14 52h72l-8 34q-28 7-56 0z" fill="#c48a4a"/><path d="M17 64h66M19 75h62" stroke="#8b5a2b" stroke-width="2.5"/><path d="M32 54l3 34M50 54v35M68 54l-3 34" stroke="#8b5a2b" stroke-width="2.5"/><rect x="10" y="47" width="80" height="9" rx="4.5" fill="#9a6331"/></svg>'
 };
 var DE_WORDS=DE_RAW.map(function(s){var p=s.split("|");return{n:+p[0],a:p[1],w:p[2],e:p[3]||DE_SVG[p[2]]||""}});
 var DE_DEFAULT=[1,2,3,4,5,6,7,8,9,10]; // leçons cochées par défaut (les mots de l'ancienne liste)
 // Leçons cochées pour un jeu ("dde" = Der · Die · Das, "fdw" = Finde das Wort) et un profil
-function deSelected(game,pid){try{var v=JSON.parse(localStorage.getItem("de_sel_"+game+"@"+(pid||"p1")));if(Array.isArray(v))return v}catch(e){}return DE_DEFAULT.slice()}
-function deSave(game,pid,list){try{localStorage.setItem("de_sel_"+game+"@"+(pid||"p1"),JSON.stringify(list))}catch(e){}}
+function deSelected(game,pid){var v=null;try{v=JSON.parse(localStorage.getItem("de_sel_"+game+"@"+(pid||"p1")))}catch(e){}if(!Array.isArray(v))v=DE_DEFAULT.slice();
+ if(v.indexOf(DE_DICT)<0&&v.indexOf(-DE_DICT)<0)v.push(DE_DICT); // dictionnaire hors manuel : coché d'office
+ return v.filter(function(n){return n>0})}
+function deSave(game,pid,list){if(list.indexOf(DE_DICT)<0)list=list.concat([-DE_DICT]);try{localStorage.setItem("de_sel_"+game+"@"+(pid||"p1"),JSON.stringify(list))}catch(e){}}
 // Mots « qu'on peut acheter » pour la Liste des courses (noms avec article et image)
-var DE_BUY=["Apfel","Brot","Orangensaft","Traube","Butter","Keks","Kerze","Ball","Bleistift","Puppe","Pinsel","Lineal","Korb","Blume","Aprikose","Dose","Ei","Buch","Koffer","Besen","Mantel","Schulranzen","Kürbis","Laterne","Uhr","Gabel","Kiste","Obst","Tannenbaum"];
+var DE_BUY=["Klementine","Apfel","Brot","Orangensaft","Traube","Butter","Keks","Kerze","Ball","Bleistift","Puppe","Pinsel","Lineal","Korb","Blume","Aprikose","Dose","Ei","Buch","Koffer","Besen","Mantel","Schulranzen","Kürbis","Laterne","Uhr","Gabel","Kiste","Obst","Tannenbaum"];

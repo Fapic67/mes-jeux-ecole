@@ -1171,10 +1171,10 @@ function renderLecons(){var sel=deSelected(LGAME,LPID),h="",lastP=0;
  $("lc-intro").textContent="Coche les leçons déjà vues en classe (manuel « Die Rappelkiste »). "+({dde:"Seuls les noms (avec der, die, das) sont utilisés.",fdw:"Les mots sans image ne sont pas proposés.",sdw:"Les mots sans image ne sont pas proposés. Les noms s'écrivent avec leur article.",mem:"Seuls les mots avec une image sont utilisés ; s'il en manque, d'autres mots des leçons 1 à 14 complètent.",courses:"Seuls les objets qu'on peut acheter sont utilisés ; s'il en manque, d'autres objets complètent."})[LGAME];
  $("lc-who").innerHTML=PR.list.length<2?"":PR.list.map(function(p){return '<button data-pid="'+p.id+'" class="'+(p.id===LPID?"on":"")+'">👤 '+esc(pname(p))+"</button>"}).join("");
  DE_MODULES.forEach(function(m){
-  if(m.p!==lastP){lastP=m.p;h+='<div class="per">Période '+m.p+"</div>"}
+  if(m.p!==lastP){lastP=m.p;h+='<div class="per">'+(m.p?"Période "+m.p:"📖 Hors manuel")+"</div>"}
   var all=m.l.every(function(n){return sel.indexOf(n)>=0});
-  h+='<div class="mod"><label class="lrow mh switch"><span class="grow"><b>Module '+m.m+" · "+esc(m.t)+"</b><small>"+esc(m.f)+'</small></span><input type="checkbox" data-mod="'+m.m+'"'+(all?" checked":"")+"></label>";
-  m.l.forEach(function(n){var ws=wordsOf(n);h+='<label class="lrow switch"><span class="grow"><b>Leçon '+n+" · "+esc(DE_LETTERS[n])+"</b><small>"+(ws.length?ws.length+" mot"+(ws.length>1?"s":"")+" : "+esc(ws.map(function(w){return (w.a?w.a+" ":"")+w.w}).join(", ")):"pas encore de mots")+'</small></span><input type="checkbox" data-les="'+n+'"'+(sel.indexOf(n)>=0?" checked":"")+"></label>"});
+  h+='<div class="mod"><label class="lrow mh switch"><span class="grow"><b>'+(m.p?"Module "+m.m+" · ":"📖 ")+esc(m.t)+"</b><small>"+esc(m.f)+'</small></span><input type="checkbox" data-mod="'+m.m+'"'+(all?" checked":"")+"></label>";
+  m.l.forEach(function(n){var ws=wordsOf(n);h+='<label class="lrow switch"><span class="grow"><b>'+(n<100?"Leçon "+n+" · ":"")+esc(DE_LETTERS[n])+"</b><small>"+(ws.length?ws.length+" mot"+(ws.length>1?"s":"")+" : "+esc(ws.map(function(w){return (w.a?w.a+" ":"")+w.w}).join(", ")):"pas encore de mots")+'</small></span><input type="checkbox" data-les="'+n+'"'+(sel.indexOf(n)>=0?" checked":"")+"></label>"});
   h+="</div>"});
  $("lc-list").innerHTML=h}
 $("lc-who").addEventListener("click",function(e){var b=e.target.closest("[data-pid]");if(!b)return;LPID=b.dataset.pid;renderLecons()});
