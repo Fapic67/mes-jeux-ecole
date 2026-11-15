@@ -98,8 +98,11 @@ import re,json,subprocess
 words=json.loads(subprocess.check_output(["node","-e",'eval(require("fs").readFileSync("../jeux/allemand-mots.js","utf8"));console.log(JSON.stringify(DE_WORDS.map(w=>[w.a,w.w])))']))
 art={w:a for a,w in words}
 missing=[w for _,w in words if w not in D]; assert not missing,missing
-order=list(D)  # ordre de priorité : mots sans image d'abord
+src=open("fluent.py").read();FL=set(re.findall(r'"([^"]+)":"[^"]+"',src[src.index("F={"):src.index("}",src.index("F={"))]))
+order=[w for w in D if w not in FL]  # ordre de priorité : mots sans image d'abord ; les mots en Fluent Emoji 3D sont exclus
 out=["# Images des mots d'allemand avec Gemini",
+"",
+"Les mots qu'un emoji représente très bien ont une image Fluent Emoji 3D (outils/fluent.py) et ne sont pas dans cette liste.",
 "",
 "Une consigne par message dans l'appli Gemini (copier tout le bloc gris). Puis envoyer les images à Claude dans la session, dans l'ordre, en disant les numéros (ex. « images 1 à 20 »). Claude les recadre, les réduit (256 px, WebP) et les intègre à l'appli.",
 "",
