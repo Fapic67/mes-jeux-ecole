@@ -299,7 +299,7 @@ body.rw-shop #purse{display:none!important}
 #ph-box canvas{position:absolute;inset:0}
 #ph-box::after{content:"";position:absolute;inset:0;border-radius:50%;box-shadow:0 0 0 400px rgba(0,0,0,.55);border:3px solid #fff;pointer-events:none}
 #ph-zoom{width:280px;accent-color:var(--math)}
-.adm{font-size:14px;font-weight:700;color:#fff;background:#e0a100;border-radius:999px;padding:1px 8px;vertical-align:middle}
+.adm{font-size:.8em;opacity:.7;margin-left:4px}
 .ptile.new{border-style:dashed;box-shadow:none;color:var(--soft)}
 .ptile.new .av{background:var(--line);color:var(--ink)}
 #spanel{min-height:75%}
@@ -454,7 +454,7 @@ body.rw-shop #purse{display:none!important}
         <span class="pg" style="gap:8px;flex:1"><label class="btn" style="text-align:center;cursor:pointer">📷 Choisir une photo<input type="file" id="p-photo" accept="image/*" hidden></label>
         <button class="btn danger" id="p-phdel">Retirer la photo</button></span></div>
       <label class="row"><span>Prénom</span><input class="field grow" id="p-name" maxlength="20" autocomplete="off"></label>
-      <label class="switch"><input type="checkbox" id="p-admin"><span class="grow">👑 Administrateur<small class="muted" style="display:block;font-size:16px">Tous les jeux sont débloqués d'office, sans limite de temps, et les paramètres s'ouvrent sans code. Le code parent est demandé pour ouvrir ce profil.</small></span></label>
+      <label class="switch"><input type="checkbox" id="p-admin"><span class="grow">🔑 Administrateur<small class="muted" style="display:block;font-size:16px">Tous les jeux sont débloqués d'office, sans limite de temps, et les paramètres s'ouvrent sans code. Le code parent est demandé pour ouvrir ce profil.</small></span></label>
       <div class="row"><button class="btn okb grow" id="p-use">Utiliser ce profil</button><span class="muted grow" id="p-active">✅ Profil utilisé en ce moment</span><button class="btn danger" id="p-del">Supprimer</button></div>
     </div>
     <div class="card" id="p-agec">
@@ -878,7 +878,7 @@ function renderPurse(bump){var p=prof(),E=ensureEcon(p),d=today(p),w=weekSum(p,E
  $("h-day").textContent=d.st;$("h-goal").textContent=p.goal;$("h-bar").style.width=Math.min(100,d.st/p.goal*100)+"%";
  var carry=Math.max(0,p.stars-w.st);
  $("hint").textContent=(d.st>=p.goal?"🎯 Objectif du jour atteint ! ":"")+"Cette semaine : ⭐ "+w.st;
- $("whon").textContent=pname(p)+(p.admin?" 👑":"");$("whoi").innerHTML=p.photo?'<span class="mini-av" style="background-image:url('+p.photo+')"></span>':"👤";
+ $("whon").textContent=pname(p)+(p.admin?" 🔑":"");$("whoi").innerHTML=p.photo?'<span class="mini-av" style="background-image:url('+p.photo+')"></span>':"👤";
  $("hello").textContent=p.name?"Bonjour "+p.name+" ! 👋":"Bonjour ! 👋";
  renderEco();renderLocks();renderTime();renderShopbar();
  if(bump){["pstars","purse"].forEach(function(id){var e=$(id);e.classList.remove("bump");void e.offsetWidth;e.classList.add("bump")})}}
@@ -1166,7 +1166,7 @@ function showNotice(){var p=prof(),E=ensureEcon(p),n=E.notice;if(!n||!$("notice"
  $("notice").hidden=false;$("nt-ok").onclick=function(){$("notice").hidden=true;delete E.notice;saveP()}}
 /* écran « Qui joue ? » : premier écran à l'ouverture */
 var AVC=["#22a861","#4a7cff","#ff5c7a","#9b6bff","#13a8a8","#ff8a3d"];
-function renderProfilScreen(){$("plist2").innerHTML=PR.list.map(function(p,i){var n=pname(p);return '<button class="ptile" data-who="'+p.id+'"><span class="av'+(p.photo?" ph":"")+'" style="'+avStyle(p,i)+'">'+(p.photo?"":esc(n.charAt(0).toUpperCase()))+'</span><span>'+esc(n)+(p.admin?' <span class="adm">👑 admin</span>':"")+'<small>⭐ '+p.stars+'</small></span></button>'}).join("");
+function renderProfilScreen(){$("plist2").innerHTML=PR.list.map(function(p,i){var n=pname(p);return '<button class="ptile" data-who="'+p.id+'"><span class="av'+(p.photo?" ph":"")+'" style="'+avStyle(p,i)+'">'+(p.photo?"":esc(n.charAt(0).toUpperCase()))+'</span><span>'+esc(n)+(p.admin?' <span class="adm">🔑</span>':"")+'<small>⭐ '+p.stars+'</small></span></button>'}).join("");
  $("pform").hidden=true;$("pnew").hidden=false}
 $("plist2").addEventListener("click",function(e){var b=e.target.closest("[data-who]");if(!b)return;var id=b.dataset.who;
  function open(){PR.active=id;ADM_OK=prof0(id).admin?id:null;saveP();go("")}
@@ -1468,7 +1468,7 @@ $("p-birth").onblur=function(){var d=this.value.replace(/\D/g,"");if(!d.length){
 $("p-cls").onchange=function(){var v=this.value;upd(function(p){p.cls=v})};
 $("p-name").oninput=function(){var v=this.value.trim().slice(0,20);upd(function(p){p.name=v})};
 $("p-use").onclick=function(){PR.active=EDIT;saveP();renderProfil()};
-$("p-admin").onchange=function(){var v=this.checked;upd(function(p){if(v)p.admin=true;else delete p.admin});renderLocks();renderTime();toast(v?"👑 Profil administrateur":"Profil normal",1600)};
+$("p-admin").onchange=function(){var v=this.checked;upd(function(p){if(v)p.admin=true;else delete p.admin});renderLocks();renderTime();toast(v?"🔑 Profil administrateur":"Profil normal",1600)};
 $("p-del").onclick=function(){var p=E();if(PR.list.length<2)return;if(!confirm("Supprimer le profil « "+pname(p)+" » et ses étoiles ?"))return;
  (PR.del||(PR.del={}))[p.id]=Date.now();PR.list=PR.list.filter(function(x){return x.id!==p.id});if(PR.active===p.id)PR.active=PR.list[0].id;["robot_lvl","robot_best","stats","chenille_lvl","chenille_best","boucles_lvl","boucles_best","reparateur_lvl","reparateur_best","memory_lvl","memory_best","memory_mode","courses_lvl","courses_best","de_sel_mem","de_sel_courses","de_sel_sdw"].forEach(function(k){try{localStorage.removeItem(k+"@"+p.id)}catch(e){}});delete STC[p.id];saveP();back()};
 $("p-goal").oninput=function(){var v=parseInt(this.value);if(v>=5&&v<=120)upd(function(p){p.goal=v})};
