@@ -826,7 +826,7 @@ function autoSave(){if(!FS)return;var d=autoData(),cmp=JSON.stringify(d);if(cmp=
   .then(function(){localStorage.setItem("bk_auto",String(Date.now()));localStorage.removeItem("bk_auto_err")},function(e){lastAuto="";localStorage.setItem("bk_auto_err",String((e&&e.message)||e))})}
 if(FS){
  try{FS.checkPermissions().then(function(p){if(p&&p.publicStorage!=="granted")return FS.requestPermissions()}).catch(function(){})}catch(e){}
- if(FRESH){ // données vides : on relit le fichier de configuration s'il existe
+ if(FRESH&&!localStorage.getItem("sync_join")){ // données vides : on relit le fichier de configuration s'il existe (sauf pendant « Rejoindre une famille »)
   FS.readFile({path:CFG_FILE,directory:"DOCUMENTS",encoding:"utf8"}).then(function(r){var o=JSON.parse(r.data);
    if(o&&o.app==="mes-jeux-ecole"&&o.data&&o.data.profiles){window.NOSAVE=true;localStorage.clear();Object.keys(o.data).forEach(function(k){localStorage.setItem(k,String(o.data[k]))});localStorage.setItem("bk_restored",o.date||"1");location.reload()}}).catch(function(){})}
  setInterval(autoSave,10000);document.addEventListener("visibilitychange",function(){if(document.hidden)autoSave()});window.addEventListener("pagehide",autoSave)}
@@ -1522,6 +1522,8 @@ $("s-upd").onclick=function(){var b=this,st=$("s-updst");b.disabled=true;st.text
   var m=t.match(/VERSION = "([^"]+)"/),online=m?m[1]:"?";st.textContent="Version en ligne : "+online+". Mise à jour…";
   var jobs=[];if(window.caches)jobs.push(caches.keys().then(function(k){return Promise.all(k.map(function(x){return caches.delete(x)}))}));
   if(navigator.serviceWorker)jobs.push(navigator.serviceWorker.getRegistrations().then(function(rs){return Promise.all(rs.map(function(r){return r.unregister()}))}));
+  // rafraîchit aussi le cache HTTP du navigateur (GitHub Pages : 10 min) pour les scripts chargés par la page
+  ["index.html","sync.js","jeux/allemand-mots.js","jeux/clavier.js"].forEach(function(f){jobs.push(fetch(f,{cache:"reload"}).catch(function(){}))});
   return Promise.all(jobs).then(function(){location.replace(location.pathname+"?maj="+Date.now())})
  }).catch(function(){b.disabled=false;st.textContent="⚠️ Pas de connexion internet : réessaie quand tu es en ligne."})};
 function openSettings(already){PG=[];renderPage();if(!already)openOv("settings")}

@@ -85,6 +85,7 @@ Paramètres → 📱 Application → 💾 Sauvegarde (rangée dans Application �
 - APK publié (public, à la demande de l'utilisateur) : `telechargement/mes-jeux-ecole.apk` → https://fapic67.github.io/mes-jeux-ecole/telechargement/mes-jeux-ecole.apk (exception dans `.gitignore`). À remplacer à chaque nouvelle version de l'APK.
 
 ## Mise à jour
+- `sw.js` installe les fichiers avec `cache:"reload"` (sinon le cache HTTP de GitHub Pages, `max-age=600`, pouvait mélanger nouvel `index.html` et ancien `sync.js` pendant 10 min). La restauration automatique de l'APK (`FRESH`) est ignorée si `sync_join` est posé.
 Paramètres → carte « Application » : affiche la version en cache (`jeux-ecole-vXX`) et un bouton « Mettre à jour maintenant » qui vérifie la connexion (fetch `sw.js` no-store), supprime les caches, désinscrit le service worker puis recharge. Le localStorage (étoiles, réglages) est conservé.
 
 ## Design system tactile
