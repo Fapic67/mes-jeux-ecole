@@ -37,11 +37,18 @@ button{font-family:inherit;touch-action:manipulation;cursor:pointer}
 #next:active{transform:translateY(3px);box-shadow:0 2px 0 #a87800}
 #next svg{width:44px;height:44px;fill:none;stroke:#fff;stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round}
 #empty{margin:auto;text-align:center;font-size:20px;color:var(--mut)}
+#pills{display:flex;flex-direction:column;gap:12px;width:100%}
+#pills button{min-height:68px;border:3px solid var(--bd);border-radius:20px;background:var(--bg);color:var(--fg);font-size:min(8vw,32px);font-weight:700;white-space:nowrap;padding:0 10px;box-shadow:0 4px 0 var(--bd)}
+#pills button.ok{background:#22a861;border-color:#22a861;color:#fff;box-shadow:0 4px 0 #17804a}
+#pills button.ko{background:#fde8e8;border-color:#e5484d;color:#b4232a;text-decoration:line-through;box-shadow:none;animation:shake .35s}
+@media (prefers-color-scheme:dark){#pills button.ko{background:#4a1f24;color:#ffb3b6}}
+@keyframes shake{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+#cnt b{color:var(--de)}
 </style>
 </head>
 <body>
 <div id="inner">
-  <div id="card"><div id="pic"></div><div id="word"></div></div>
+  <div id="card"><div id="pic"></div><div id="word"></div><div id="pills" hidden></div></div>
   <div class="spk"><button id="sde" aria-label="Deutsch"><svg viewBox="0 0 24 24"><path d="M4 9.5h3.5L12.5 5v14l-5-4.5H4z"/><path class="w" d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg></button><button id="sfr" aria-label="Français"><svg viewBox="0 0 24 24"><path d="M4 9.5h3.5L12.5 5v14l-5-4.5H4z"/><path class="w" d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg></button></div>
   <div class="row"><span id="cnt"></span><button id="next" aria-label="Weiter"><svg viewBox="0 0 24 24"><path d="M4 12h15M13 5.5 19.5 12 13 18.5"/></svg></button></div>
 </div>
@@ -61,25 +68,43 @@ var ord=[];try{ord=JSON.parse(ls("lerne_ord"+PK))||[]}catch(e){}
 ord=ord.filter(function(w){return W[w]});var inO={};ord.forEach(function(w){inO[w]=1});
 ord=ord.concat(shuffle(DE_NEW.filter(function(x){return !inO[x.w]}).map(function(x){return x.w})));
 ls("lerne_ord"+PK,JSON.stringify(ord));
-var i=(parseInt(ls("lerne_i"+PK))||0)%Math.max(1,ord.length);
+// séries de 6 mots : on apprend les 6 mots (→), puis pour chacun, dans le désordre, son image et 2 mots écrits (le bon + un autre de la série) ;
+// bon mot = il est dit en allemand, mot suivant. Une réponse par mot (juste du premier coup) envoyée à l'accueil → résultats (catégorie = thème).
+var N=6,i=(parseInt(ls("lerne_i"+PK))||0)%Math.max(1,ord.length),j=0,quiz=null,qk=0,miss=false,busy=false;
+function blk(){return ord.slice(i,Math.min(i+N,ord.length))}
 function full(x){return(x.a?x.a+" ":"")+x.w}
+function pop(){var c=$("card");c.classList.remove("pop");void c.offsetWidth;c.classList.add("pop")}
+function fitWord(){var wd=$("word"),fs=parseFloat(getComputedStyle(wd).fontSize),mw=$("card").clientWidth-36,b=wd.querySelector("b");
+ // un mot d'un seul tenant reste sur une ligne : on réduit la taille jusqu'à ce qu'il tienne dans la carte
+ while(wd.offsetHeight>fs*1.5&&fs>30){fs-=1;wd.style.fontSize=fs+"px"} // si possible l'article reste sur la même ligne
+ while(b.offsetWidth>mw&&fs>14){fs-=1;wd.style.fontSize=fs+"px"}}
 function show(){
  if(!ord.length){$("card").innerHTML='<div id="empty">Keine Wörter</div>';$("next").hidden=true;document.querySelector(".spk").hidden=true;return}
- var x=W[ord[i]];$("pic").innerHTML=x.e;
- var wd=$("word");wd.style.fontSize="";wd.innerHTML=(x.a?'<i class="'+x.a+'">'+x.a+"</i> ":"")+"<b>"+x.w+"</b>";
- // un mot d'un seul tenant reste sur une ligne : on réduit la taille jusqu'à ce qu'il tienne dans la carte
- var fs=parseFloat(getComputedStyle(wd).fontSize),mw=$("card").clientWidth-36,b=wd.querySelector("b");
- while(wd.offsetHeight>fs*1.5&&fs>30){fs-=1;wd.style.fontSize=fs+"px"} // si possible l'article reste sur la même ligne
- while(b.offsetWidth>mw&&fs>14){fs-=1;wd.style.fontSize=fs+"px"}
- $("cnt").textContent=(i+1)+" / "+ord.length;$("sfr").style.visibility=x.fr?"":"hidden";
- var c=$("card");c.classList.remove("pop");void c.offsetWidth;c.classList.add("pop");
- setTimeout(function(){say(full(x))},250)}
-$("sde").onclick=function(){if(ord.length)say(full(W[ord[i]]),"de")};
-$("sfr").onclick=function(){var x=ord.length&&W[ord[i]];if(x&&x.fr)say(x.fr,"fr")};
-$("next").onclick=function(){i=(i+1)%ord.length;ls("lerne_i"+PK,i);
- try{if(parent!==window)parent.postMessage({type:"roundEnd"},"*")}catch(e){} // un mot vu = une manche (parcours, fin du temps)
- show()};
-window.__L={ord:function(){return ord},i:function(){return i}};
+ var B=blk(),x=W[B[j]];quiz=null;$("pills").hidden=true;$("word").hidden=false;document.querySelector(".spk").style.visibility="";$("next").style.visibility="";
+ $("pic").innerHTML=x.e;
+ var wd=$("word");wd.style.fontSize="";wd.innerHTML=(x.a?'<i class="'+x.a+'">'+x.a+"</i> ":"")+"<b>"+x.w+"</b>";fitWord();
+ $("cnt").textContent=(i+j+1)+" / "+ord.length;$("sfr").style.visibility=x.fr?"":"hidden";
+ pop();setTimeout(function(){say(full(x))},250)}
+function startQuiz(){var B=blk();quiz=shuffle(B);qk=0;showQ()}
+function fitPills(){var mw=$("pills").clientWidth;$("pills").querySelectorAll("button").forEach(function(b){var fs=parseFloat(getComputedStyle(b).fontSize);while(b.scrollWidth>mw&&fs>14){fs-=1;b.style.fontSize=fs+"px"}})}
+function showQ(){var B=blk(),x=W[quiz[qk]],oth=B.filter(function(w){return w!==x.w});
+ if(!oth.length)oth=ord.filter(function(w){return w!==x.w});
+ var o=W[oth[Math.floor(Math.random()*oth.length)]],ch=shuffle([x,o]);miss=false;busy=false;
+ $("pic").innerHTML=x.e;$("word").hidden=true;$("pills").hidden=false;document.querySelector(".spk").style.visibility="hidden";$("next").style.visibility="hidden";
+ $("pills").innerHTML=ch.map(function(y){return '<button data-w="'+y.w+'">'+full(y)+"</button>"}).join("");fitPills();
+ $("cnt").innerHTML="<b>❓</b> "+(qk+1)+" / "+quiz.length;pop()}
+$("pills").addEventListener("click",function(e){var b=e.target.closest("button");if(!b||busy||b.classList.contains("ko"))return;var x=W[quiz[qk]];
+ if(b.dataset.w===x.w){busy=true;b.classList.add("ok");say(full(x));
+  try{if(parent!==window)parent.postMessage({type:"answer",game:"lerne",ok:!miss,diff:1,k:DE_THEME[x.w]||"Autres",item:full(x)},"*")}catch(er){}
+  setTimeout(function(){qk++;if(qk<quiz.length){showQ();return}
+   i+=blk().length;if(i>=ord.length)i=0;j=0;ls("lerne_i"+PK,i); // série terminée : la suivante
+   try{if(parent!==window)parent.postMessage({type:"roundEnd"},"*")}catch(er){}
+   show()},1300)}
+ else{miss=true;b.classList.add("ko")}});
+$("sde").onclick=function(){if(ord.length&&!quiz)say(full(W[blk()[j]]),"de")};
+$("sfr").onclick=function(){var x=ord.length&&!quiz&&W[blk()[j]];if(x&&x.fr)say(x.fr,"fr")};
+$("next").onclick=function(){if(quiz)return;j++;if(j<blk().length){show();return}startQuiz()};
+window.__L={ord:function(){return ord},i:function(){return i},quiz:function(){return quiz&&quiz[qk]}};
 if(window.speechSynthesis&&speechSynthesis.getVoices().length===0)try{speechSynthesis.onvoiceschanged=function(){speechSynthesis.onvoiceschanged=null}}catch(e){}
 show();
 })();
