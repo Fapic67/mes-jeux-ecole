@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Ajoute une image Gemini à un mot d'allemand.
 Usage : python3 outils/images.py <image> <Mot> [<image> <Mot> ...]
-- rogne le blanc autour, remet en carré avec une petite marge, réduit à 256 px, enregistre jeux/img/de/<slug>.webp
+- rogne le blanc autour (ou le transparent si l'image est détourée, transparence gardée), remet en carré avec une petite marge, réduit à 256 px, enregistre jeux/img/de/<slug>.webp
 - met à jour la liste DE_IMG de jeux/allemand-mots.js et la liste des images de sw.js (hors-ligne)."""
 import sys,os,re,glob,unicodedata
 from PIL import Image,ImageChops
@@ -9,7 +9,15 @@ R=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 D=os.path.join(R,"jeux/img/de")
 def slug(w):return w.replace("ä","ae").replace("ö","oe").replace("ü","ue").replace("Ä","Ae").replace("Ö","Oe").replace("Ü","Ue").replace("ß","ss")
 def prep(src,dst):
-    im=Image.open(src).convert("RGB")
+    im=Image.open(src)
+    if im.mode in("RGBA","LA","P"):
+        im=im.convert("RGBA");a=im.getchannel("A")
+        if a.getextrema()[0]<200:  # image détourée : on garde la transparence
+            box=a.point(lambda v:255 if v>24 else 0).getbbox() or (0,0)+im.size
+            im=im.crop(box);w,h=im.size;s=int(max(w,h)*1.06)
+            sq=Image.new("RGBA",(s,s),(0,0,0,0));sq.paste(im,((s-w)//2,(s-h)//2))
+            sq.resize((256,256),Image.LANCZOS).save(dst,"WEBP",quality=85,method=6);return
+    im=im.convert("RGB")
     bg=Image.new("RGB",im.size,(255,255,255))
     diff=ImageChops.difference(im,bg).convert("L").point(lambda v:255 if v>18 else 0)
     box=diff.getbbox() or (0,0)+im.size
