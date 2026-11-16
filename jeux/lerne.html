@@ -25,8 +25,9 @@ button{font-family:inherit;touch-action:manipulation;cursor:pointer}
 .spk svg path.w{fill:none}
 #pic{font-size:min(38vw,30vh,190px);line-height:1}
 #pic img,#pic svg{display:block}
-#word{font-size:min(11vw,48px);font-weight:700;text-align:center;line-height:1.15;overflow-wrap:anywhere}
-#word i{font-style:normal;margin-right:.25em}
+#word{font-size:min(11vw,48px);font-weight:700;text-align:center;line-height:1.15;max-width:100%}
+#word b{font-weight:700;white-space:nowrap}
+#word i{font-style:normal}
 #word i.der{color:var(--der)}#word i.die{color:var(--die)}#word i.das{color:var(--das)}
 #card.pop{animation:pop .35s}
 @keyframes pop{0%{transform:translateX(40px);opacity:0}100%{transform:none;opacity:1}}
@@ -65,7 +66,11 @@ function full(x){return(x.a?x.a+" ":"")+x.w}
 function show(){
  if(!ord.length){$("card").innerHTML='<div id="empty">Keine Wörter</div>';$("next").hidden=true;document.querySelector(".spk").hidden=true;return}
  var x=W[ord[i]];$("pic").innerHTML=x.e;
- $("word").innerHTML=(x.a?'<i class="'+x.a+'">'+x.a+"</i>":"")+x.w;
+ var wd=$("word");wd.style.fontSize="";wd.innerHTML=(x.a?'<i class="'+x.a+'">'+x.a+"</i> ":"")+"<b>"+x.w+"</b>";
+ // un mot d'un seul tenant reste sur une ligne : on réduit la taille jusqu'à ce qu'il tienne dans la carte
+ var fs=parseFloat(getComputedStyle(wd).fontSize),mw=$("card").clientWidth-36,b=wd.querySelector("b");
+ while(wd.offsetHeight>fs*1.5&&fs>30){fs-=1;wd.style.fontSize=fs+"px"} // si possible l'article reste sur la même ligne
+ while(b.offsetWidth>mw&&fs>14){fs-=1;wd.style.fontSize=fs+"px"}
  $("cnt").textContent=(i+1)+" / "+ord.length;$("sfr").style.visibility=x.fr?"":"hidden";
  var c=$("card");c.classList.remove("pop");void c.offsetWidth;c.classList.add("pop");
  setTimeout(function(){say(full(x))},250)}

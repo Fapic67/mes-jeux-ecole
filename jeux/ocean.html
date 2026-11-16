@@ -25,7 +25,7 @@ header{display:flex;align-items:center;gap:8px}
 .cd .b{background:radial-gradient(circle at 22% 72%,rgba(255,255,255,.45) 0 4%,transparent 5%),radial-gradient(circle at 30% 58%,rgba(255,255,255,.35) 0 3%,transparent 4%),radial-gradient(circle at 26% 46%,rgba(255,255,255,.3) 0 2.2%,transparent 3%),repeating-linear-gradient(100deg,rgba(255,255,255,.07) 0 8%,transparent 8% 16%),linear-gradient(180deg,#1d8fae,#0d4f66 55%,#0a3646);box-shadow:0 4px 0 #0c5468;font-size:30px;font-weight:700;color:#fff}
 .cd .f{transform:rotateY(180deg);background:var(--card);border:3px solid var(--bd);padding:4px;text-align:center}
 .cd .f .e{font-size:var(--es,40px);line-height:1}
-.cd .f .w{font-size:var(--ws,16px);font-weight:700;line-height:1.15;overflow-wrap:anywhere;hyphens:auto}
+.cd .f .w{font-size:var(--ws,16px);font-weight:700;line-height:1.15;white-space:nowrap}
 .cd .f .w{color:var(--fg)}
 .cd .f .w i{display:block;font-style:normal;font-weight:700;color:var(--me);font-size:.85em}
 .cd.ok .f{border-color:var(--ok);background:#e8f8ee}
@@ -101,12 +101,13 @@ function voiceFor(l){try{return speechSynthesis.getVoices().filter(function(v){r
 function say(t,l){try{if(!window.speechSynthesis)return;speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.lang=l==="de"?"de-DE":"fr-FR";var v=voiceFor(l||"fr");if(v)u.voice=v;u.rate=.9;speechSynthesis.speak(u)}catch(e){}}
 
 var cards,open=[],lock=false,moves=0,found=0;
+function fitW(){document.querySelectorAll(".cd .f .w").forEach(function(w){w.style.fontSize="";var f=w.parentNode,mw=f.clientWidth-8,fs=parseFloat(getComputedStyle(w).fontSize);while(w.offsetWidth>mw&&fs>9){fs-=.5;w.style.fontSize=fs+"px"}})} // un mot ne se coupe jamais : taille réduite jusqu'à ce qu'il tienne
 function deal(){var P=LV[level].p,c=[];
  shuffle(ANIMALS).slice(0,P).forEach(function(x,i){c.push({id:i,say:x.full,h:img(x)});c.push({id:i,say:x.full,w:1,h:'<span class="w"><i>'+x.a+"</i>"+x.w+"</span>"})});
  cards=shuffle(c);cards.forEach(function(x,i){x.i=i});open=[];lock=false;moves=0;found=0;
  var b=$("board"),C=LV[level].c;b.style.gridTemplateColumns="repeat("+C+",1fr)";var W=Math.min(520,innerWidth)-24,cw=(W-(C-1)*8)/C;
  b.style.setProperty("--es",Math.round(cw*.48)+"px");b.style.setProperty("--ws",Math.max(14,Math.min(22,Math.round(cw*.19)))+"px");
- b.innerHTML=cards.map(function(x){return '<button class="cd" data-i="'+x.i+'" aria-label="carte"><div class="in"><div class="b"></div><div class="f">'+x.h+"</div></div></button>"}).join("");
+ b.innerHTML=cards.map(function(x){return '<button class="cd" data-i="'+x.i+'" aria-label="carte"><div class="in"><div class="b"></div><div class="f">'+x.h+"</div></div></button>"}).join("");fitW();
  $("after").hidden=true;$("msg").textContent="";$("setb").textContent="Niveau "+level;stat()}
 function stat(){$("stat").textContent="Paires : "+found+" / "+LV[level].p+" · Coups : "+moves}
 function el(i){return document.querySelector('.cd[data-i="'+i+'"]')}
