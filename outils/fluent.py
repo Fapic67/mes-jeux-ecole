@@ -24,6 +24,8 @@ F={
 "Süßigkeit":"🍬","Strauß":"💐","Feder":"🪶","Tasse":"☕","Giraffe":"🦒",
 "Pferd":"🐎","zwölf":"1️⃣2️⃣","Katze":"🐈","Dreieck":"🔺","angeln":"🎣","Anker":"⚓","Mäuse":"🐁🐁",
 }
+# « Lerne neue Wörter » (leçon 100)
+F.update({"Mama":"👩","Papa":"👨","Oma":"👵","Opa":"👴","Familie":"👨‍👩‍👧","Mund":"👄","Zahn":"🦷","Bein":"🦵","Finger":"☝️","Herz":"❤️","Hund":"🐕","Fisch":"🐟","Schwein":"🐖","Schaf":"🐑","Ente":"🦆","Löwe":"🦁","Elefant":"🐘","Affe":"🐒","Bär":"🐻","Schlange":"🐍","Frosch":"🐸","Schmetterling":"🦋","Schnecke":"🐌","Tiger":"🐅","Zebra":"🦓","Krokodil":"🐊","Eule":"🦉","Igel":"🦔","Fuchs":"🦊","Wolf":"🐺","Huhn":"🐔","Kamel":"🐪","Känguru":"🦘","Panda":"🐼","Eichhörnchen":"🐿️","Marienkäfer":"🐞","Ameise":"🐜","Papagei":"🦜","Dinosaurier":"🦕","Einhorn":"🦄","Banane":"🍌","Birne":"🍐","Erdbeere":"🍓","Kirsche":"🍒","Zitrone":"🍋","Tomate":"🍅","Kartoffel":"🥔","Käse":"🧀","Kuchen":"🍰","Eis":"🍦","Wasser":"💧","Tee":"🍵","Schokolade":"🍫","Honig":"🍯","Nudeln":"🍝","Pizza":"🍕","Suppe":"🍲","Salat":"🥗","Ananas":"🍍","Melone":"🍉","Pilz":"🍄","Gurke":"🥒","Zwiebel":"🧅","Mais":"🌽","Pfannkuchen":"🥞","Pommes":"🍟","Kokosnuss":"🥥","Kiwi":"🥝","Brokkoli":"🥦","Salz":"🧂","Hose":"👖","T-Shirt":"👕","Schuh":"👟","Stiefel":"👢","Mütze":"🧢","Hut":"👒","Socke":"🧦","Schal":"🧣","Handschuh":"🧤","Brille":"👓","Krone":"👑","Ring":"💍","Tür":"🚪","Fenster":"🪟","Bett":"🛏️","Stuhl":"🪑","Sofa":"🛋️","Toilette":"🚽","Badewanne":"🛁","Dusche":"🚿","Schlüssel":"🔑","Telefon":"☎️","Handy":"📱","Fernseher":"📺","Computer":"💻","Löffel":"🥄","Messer":"🔪","Spiegel":"🪞","Zahnbürste":"🪥","Wecker":"⏰","Bild":"🖼️","Geschenk":"🎁","Luftballon":"🎈","Würfel":"🎲","Puzzle":"🧩","Drachen":"🪁","Roboter":"🤖","Geburtstag":"🎂","Weihnachtsmann":"🎅","Gespenst":"👻","Auto":"🚗","Fahrrad":"🚲","Zug":"🚂","Flugzeug":"✈️","Schiff":"🚢","Boot":"⛵","Rakete":"🚀","Traktor":"🚜","Motorrad":"🏍️","Hubschrauber":"🚁","Polizeiauto":"🚓","Feuerwehrauto":"🚒","Krankenwagen":"🚑","Roller":"🛴","Taxi":"🚕","Sonne":"☀️","Stern":"⭐","Blitz":"⚡","Meer":"🌊","Insel":"🏝️","Stein":"🪨","Blatt":"🍁","Vulkan":"🌋","Kaktus":"🌵","Rose":"🌹","Sonnenblume":"🌻","Tulpe":"🌷","Kleeblatt":"🍀","Erde":"🌍","Lehrer":"👨‍🏫","Lehrerin":"👩‍🏫","Arzt":"👨‍⚕️","Ärztin":"👩‍⚕️","Polizist":"👮","Koch":"👨‍🍳","Feuerwehrmann":"🧑‍🚒","Bauer":"🧑‍🌾","König":"🤴","Prinzessin":"👸","null":"0️⃣","eins":"1️⃣","drei":"3️⃣","vier":"4️⃣","fünf":"5️⃣","acht":"8️⃣","zehn":"🔟","grün":"🟢","orange":"🟠","essen":"🍽️","schlafen":"😴","weinen":"😭","schreiben":"✍️","sehen":"👀","kaufen":"🛒","klettern":"🧗","umarmen":"🤗","winken":"👋","heiß":"🥵","müde":"🥱","traurig":"😢","krank":"🤒"})
 def slug(w):return w.replace("ä","ae").replace("ö","oe").replace("ü","ue").replace("Ä","Ae").replace("Ö","Oe").replace("Ü","Ue").replace("ß","ss")
 def split(e):  # découpe une suite d'emoji en emoji (ZWJ, sélecteurs, keycaps, drapeaux)
     out=[];cur=""
@@ -41,14 +43,16 @@ def find(A,e):
     for v in ("-".join(cps),"-".join(x for x in cps if x!="fe0f")):
         p=os.path.join(A,v+".webp")
         if os.path.exists(p):return p
-    raise SystemExit("introuvable : %s %s"%(e,cps))
+    print("introuvable : %s %s"%(e,cps));return None
 t=tempfile.mkdtemp();subprocess.check_call(["npm","pack","@lobehub/fluent-emoji-3d@1.1.0"],cwd=t,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
 subprocess.check_call("tar xzf *.tgz",shell=True,cwd=t);A=os.path.join(t,"package/assets")
 D=os.path.join(R,"jeux/img/de");os.makedirs(D,exist_ok=True)
 gem=set(open(os.path.join(R,"outils/gemini-faits.txt")).read().split()) if os.path.exists(os.path.join(R,"outils/gemini-faits.txt")) else set()
 for w,e in F.items():
     if w in gem:continue
-    parts=[Image.open(find(A,x)).convert("RGBA") for x in split(e)]
+    ps=[find(A,x) for x in split(e)]
+    if None in ps:continue
+    parts=[Image.open(p).convert("RGBA") for p in ps]
     if len(parts)==1:im=parts[0].resize((256,256),Image.LANCZOS)
     else:
         n=len(parts);s=int(256/n*1.15);im=Image.new("RGBA",(256,256),(0,0,0,0))

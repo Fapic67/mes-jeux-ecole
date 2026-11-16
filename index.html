@@ -385,6 +385,7 @@ body.rw-shop #purse{display:none!important}
     <button class="game" data-play="article"><span class="ic">🔤</span><span>Der · Die · Das<small>Trouve le bon article</small></span></button>
     <button class="game" data-play="mot"><span class="ic">🖼️</span><span>Finde das Wort<small>Une image, trois mots</small></span></button>
     <button class="game" data-play="schreib"><span class="ic">✍️</span><span>Schreib das Wort<small>Regarde l'image et écris le mot</small></span></button>
+    <button class="game" data-play="lerne"><span class="ic">🆕</span><span>Lerne neue Wörter<small>Regarde, écoute et retiens</small></span></button>
   </div>
 </section>
 
@@ -764,6 +765,7 @@ var GAMES={
  quatre:{t:"Quatre en ligne",app:"quatre",subj:"jeux",prize:1},
  ocean:{t:"L'océan des animaux",app:"ocean",subj:"jeux",prize:1},
  schreib:{t:"Schreib das Wort",app:"deutsch",start:3,subj:"allemand",eco:"sdw"},
+ lerne:{t:"Lerne neue Wörter",app:"lerne",subj:"allemand"},
  mot:{t:"Finde das Wort",app:"deutsch",start:2,subj:"allemand",eco:"fdw"}
 };
 var $=function(i){return document.getElementById(i)};
@@ -1059,7 +1061,7 @@ function isPlay(k,p){p=p||prof();ensureEcon(p);return !!(!p.admin&&p.play.on&&p.
 var PUNIT={min:"min",ok:"réussites",games:"parties"};
 // Une « partie » de parcours a à peu près la même durée partout (3 à 5 min) : [nombre, ce qu'on compte, libellé]
 // "q" = questions (chaque réponse, juste ou non), "round" = fins de manche envoyées par le jeu (roundEnd)
-var PART={calcul:[20,"q","opérations"],telephone:[10,"q","nombres"],article:[20,"q","mots"],mot:[20,"q","mots"],schreib:[10,"q","mots"],
+var PART={calcul:[20,"q","opérations"],telephone:[10,"q","nombres"],article:[20,"q","mots"],mot:[20,"q","mots"],schreib:[10,"q","mots"],lerne:[20,"round","mots"],
  quique:[15,"q","phrases"],phrase:[15,"q","phrases"],conj:[12,"q","verbes"],note:[20,"q","notes"],chenille:[15,"q","perles"],courses:[3,"q","listes"],
  code:[1,"round","code"],robot:[3,"round","niveaux"],boucles:[3,"round","niveaux"],reparateur:[3,"round","niveaux"],memory:[1,"round","partie"],
  morpion:[3,"round","manches"],bulles:[1,"round","partie"],glissant:[3,"round","niveaux"],allumettes:[2,"round","manches"],pizzeria:[3,"round","commandes"],
@@ -1281,8 +1283,8 @@ function renderDeWords(){var q=($("dw-q").value||"").trim().toLowerCase(),h="",l
  if(miss.length){$("dw-misst").textContent=miss.length+" mot"+(miss.length>1?"s":"")+" sans image : "+miss.map(dwLabel).join(", ")+". Copie la consigne, colle-la dans Gemini, puis choisis l'image de chaque mot (📷), ou envoie la planche à Claude.";$("dw-prompt").value=dwPrompt(miss)}
  DE_ALL.slice().sort(function(a,b){return a.n-b.n}).forEach(function(x){if(q&&dwLabel(x).toLowerCase().indexOf(q)<0)return;
   if(x.n!==last){last=x.n;h+='<div class="dw-les"><span>'+esc(dwLes(x.n))+'</span><button data-les="'+x.n+'" data-v="1">Tout</button><button data-les="'+x.n+'" data-v="0">Aucun</button></div>'}
-  var on=!x.hid&&off.indexOf(x.w)<0;
-  h+='<div class="dw-it'+(on?"":" off")+'"><button class="dw-row'+(x.hid?" hid":"")+'" data-dw="'+esc(x.w)+'"><span class="im">'+(x.e||"❔")+'</span><span class="grow">'+esc(dwLabel(x))+"<small>"+[x.user?"➕ ajouté":"",x.own?"📷 image du téléphone":"",x.hid?"🙈 masqué pour tous":"",x.e?"":"sans image"].filter(Boolean).join(" · ")+'</small></span></button><label class="switch" aria-label="Activé"><input type="checkbox" data-on="'+esc(x.w)+'"'+(on?" checked":"")+(x.hid?" disabled":"")+"></label></div>"});
+  var on=!x.hid&&(x.neu||off.indexOf(x.w)<0);
+  h+='<div class="dw-it'+(on?"":" off")+'"><button class="dw-row'+(x.hid?" hid":"")+'" data-dw="'+esc(x.w)+'"><span class="im">'+(x.e||"❔")+'</span><span class="grow">'+esc(dwLabel(x))+"<small>"+[x.user?"➕ ajouté":"",x.own?"📷 image du téléphone":"",x.hid?"🙈 masqué pour tous":"",x.neu&&x.e?"🆕 Lerne neue Wörter":"",x.e?"":"sans image"].filter(Boolean).join(" · ")+'</small></span></button>'+(x.neu?"":'<label class="switch" aria-label="Activé"><input type="checkbox" data-on="'+esc(x.w)+'"'+(on?" checked":"")+(x.hid?" disabled":"")+"></label>")+"</div>"});
  $("dw-list").innerHTML=h||'<div class="muted">Aucun mot trouvé.</div>';
  }
 $("dw-q").oninput=renderDeWords;
