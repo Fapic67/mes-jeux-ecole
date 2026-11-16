@@ -106,7 +106,7 @@ Sujets :
 168. Un peintre avec sa palette et son pinceau devant une toile.
 169. Des flocons de neige qui tombent.
 170. Un œuf.
-171. Deux pommes.
+171. Un gros chiffre 2 coloré.
 172. Un journal plié.
 173. Deux enfants qui dansent.
 174. Une toute petite souris à côté d'un gros éléphant.
@@ -184,7 +184,7 @@ Sujets :
 222. Une tasse rouge.
 223. Une girafe.
 224. Un cheval.
-225. Douze pommes rouges en deux rangées.
+225. Un gros nombre 12 coloré.
 ```
 
 ## Planche 6
