@@ -789,9 +789,15 @@ if(NATIVE)(function(){ // synthèse vocale d'Android à la place de speechSynthe
   pause:function(){},resume:function(){},addEventListener:function(){},removeEventListener:function(){}};
  function next(){if(curU||!q.length)return;var u=curU=q.shift();S.speaking=true;S.pending=q.length>0;
   try{u.onstart&&u.onstart({utterance:u})}catch(e){}
-  T.speak({text:u.text,lang:u.lang||(u.voice&&u.voice.lang)||"fr-FR",rate:Math.max(.2,Math.min(2,u.rate||1)),pitch:u.pitch||1,volume:u.volume==null?1:u.volume,category:"playback"})
+  var lg=u.lang||(u.voice&&u.voice.lang)||"fr-FR",o={text:u.text,lang:lg,rate:Math.max(.2,Math.min(2,u.rate||1)),pitch:u.pitch||1,volume:u.volume==null?1:u.volume,category:"playback"};
+  var vi=LV[lg.slice(0,2)];if(vi!=null)o.voice=vi; // voix installée sur le téléphone (pas de voix réseau, plus lente à démarrer)
+  T.speak(o)
    .then(function(){if(u._x)return;curU=null;S.speaking=false;try{u.onend&&u.onend({utterance:u})}catch(e){}next()},
          function(){if(u._x)return;curU=null;S.speaking=false;try{u.onerror&&u.onerror({error:"synthesis-failed",utterance:u})}catch(e){}next()})}
+ // index de la meilleure voix locale (sans connexion) pour le français et l'allemand
+ var LV={};try{T.getSupportedVoices().then(function(r){var v=(r&&r.voices)||[];["fr-FR","de-DE"].forEach(function(l){var best=-1,sc=-1;
+  v.forEach(function(x,i){if(!x.lang||x.lang.toLowerCase().indexOf(l.slice(0,2))!==0||!x.localService)return;var k=(x.lang===l?2:0)+(/network/i.test(x.voiceURI||"")?0:1);if(k>sc){sc=k;best=i}});
+  if(best>=0)LV[l.slice(0,2)]=best})}).catch(function(){})}catch(e){}
  window.NATIVE_TTS={synth:S,Utt:Utt};
  try{Object.defineProperty(window,"speechSynthesis",{value:S,configurable:true,writable:true})}catch(e){}window.SpeechSynthesisUtterance=Utt})();
 /* Reconnaissance vocale (micro) pour les jeux : window.hubListen("fr-FR") → Promise de la liste des phrases entendues.
