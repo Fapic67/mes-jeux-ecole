@@ -173,3 +173,8 @@ sonnig
 Hexe
 sechs
 links
+Katze
+Dreieck
+angeln
+Anker
+Mäuse
