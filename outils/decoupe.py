@@ -1,9 +1,10 @@
-# Découpe une planche détourée (fond transparent) 5×5 : python3 outils/decoupe.py planche.png dossier → 00.png … 24.png
+# Découpe une planche détourée (fond transparent) 5×5 : python3 outils/decoupe.py planche.png dossier [colonnes lignes] → 00.png …
 # Parasites de faible opacité retirés ; chaque dessin = composantes connexes rattachées à la case de leur centre (un dessin qui déborde reste entier).
 import sys,numpy as np
 from PIL import Image,ImageFilter,ImageChops
 from collections import deque
 src,out=sys.argv[1],sys.argv[2]
+C=int(sys.argv[3]) if len(sys.argv)>3 else 5;R=int(sys.argv[4]) if len(sys.argv)>4 else 5  # colonnes, lignes
 im=Image.open(src).convert('RGBA');a=im.getchannel('A')
 m=a.point(lambda v:255 if v>160 else 0).filter(ImageFilter.MinFilter(7)).filter(ImageFilter.MaxFilter(25))
 a2=ImageChops.multiply(a,m).point(lambda v:0 if v<40 else v);im.putalpha(a2)
@@ -22,9 +23,9 @@ cells={}
 for k in range(1,n+1):
   ys,xs=np.nonzero(lab==k)
   if len(ys)<15:continue
-  c=min(4,int(xs.mean()/(W/5)));r=min(4,int(ys.mean()/(H/5)));cells.setdefault(r*5+c,[]).append(k)
+  c=min(C-1,int(xs.mean()/(W/C)));r=min(R-1,int(ys.mean()/(H/R)));cells.setdefault(r*C+c,[]).append(k)
 A=np.array(im)
-for i in range(25):
+for i in range(C*R):
   ks=cells.get(i,[]);sel=np.isin(lab,ks)
   big=np.array(Image.fromarray((sel*255).astype('uint8')).resize((im.width,im.height),Image.NEAREST))>0
   B=A.copy();B[...,3]=np.where(big,B[...,3],0)
