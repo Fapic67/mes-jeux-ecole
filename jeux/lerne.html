@@ -38,6 +38,7 @@ button{font-family:inherit;touch-action:manipulation;cursor:pointer}
 #next svg{width:44px;height:44px;fill:none;stroke:#fff;stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round}
 #empty{margin:auto;text-align:center;font-size:20px;color:var(--mut)}
 #pills{display:flex;flex-direction:column;gap:12px;width:100%}
+[hidden]{display:none!important} /* sinon display:flex l'emporte sur hidden (pastilles restées affichées après le quiz) */
 #pills button{min-height:68px;border:3px solid var(--bd);border-radius:20px;background:var(--bg);color:var(--fg);font-size:min(8vw,32px);font-weight:700;white-space:nowrap;padding:0 10px;box-shadow:0 4px 0 var(--bd)}
 #pills button.ok{background:#22a861;border-color:#22a861;color:#fff;box-shadow:0 4px 0 #17804a}
 #pills button.ko{background:#fde8e8;border-color:#e5484d;color:#b4232a;text-decoration:line-through;box-shadow:none;animation:shake .35s}
