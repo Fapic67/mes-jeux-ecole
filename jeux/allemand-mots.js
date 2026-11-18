@@ -38,7 +38,7 @@ var DE_RAW=[
  "8|die|Maus|🐭","8||malen|🎨","8|die|Musik|🎶","8|die|Ampel|🚦","8|das|Mäppchen|","8||schwimmen|🏊",
  "9|die|Traube|🍇","9|die|Laterne|🏮","9||leuchten|🔦","9||teilen|","9||falten|📄","9||bunt|🌈",
  "10|die|Nase|👃","10|die|Gans|","10|der|Mantel|🧥","10|der|Nebel|🌫️","10||brennen|🔥","10||neun|9️⃣",
- "11|der|Wald|🌲","11||weiß|⚪","11||warm|☀️","11||wünschen|🎁","11|der|Winter|❄️","11||schwarz|⚫",
+ "11|der|Wald|🌲","11||weiß|⚪","11||warm|🌡️","11||wünschen|🎁","11|der|Winter|❄️","11||schwarz|⚫",
  "12|die|Kerze|🕯️","12|der|Korb|🧺","12||kalt|🥶","12|der|Keks|🍪","12|das|Kind|🧒","12||trinken|🥤",
  "13|die|Puppe|🪆","13|der|Pinsel|🖌️","13|das|Rezept|📃","13||klopfen|✊🚪","13|das|Spritzgebäck|","13|die|Aprikose|🍑",
  "14|der|Baum|🌳","14|der|Tannenbaum|🎄","14|die|Butter|🧈","14|die|Gabel|🍴","14||backen|🧑‍🍳","14||blau|🔵",
