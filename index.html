@@ -1091,7 +1091,7 @@ function pathActive(p){p=p||prof();var P=ensurePath(p);return !p.admin&&P.on&&P.
 function pathDone(p){p=p||prof();return pathProg(p).i>=ensurePath(p).steps.length}
 function pathCur(p){p=p||prof();return pathActive(p)&&!pathDone(p)?p.path.steps[pathProg(p).i]:null}
 // Pendant une étape du Parcours, on cache dans le jeu les boutons qui sortent du programme (niveau, mode, réglages, menu)
-var PATHHIDE={calcul:"#gear",telephone:"#gear",francais:"#mn",deutsch:"#mn",code:"#lvlb",robot:"#lvlb",chenille:"#lvlb,#mk",memory:"#setb",courses:"#lvlb",musique:"#gear",glissant:"#lvlb",pizzeria:"#lvlb",tuyaux:"#lvlb",ocean:"#setb"};
+var PATHHIDE={calcul:"#gear",telephone:"#gear",francais:"#mn",deutsch:"#mn",code:"#lvlb",robot:"#lvlb",chenille:"#lvlb,#mk",memory:"#setb",courses:"#lvlb",musique:"#gear",glissant:"#lvlb",pizzeria:"#lvlb",tuyaux:"#lvlb",ocean:"#setb",drapeau:"#lvlb"};
 var PATHREN="<script>setInterval(function(){['re','again'].forEach(function(i){var b=document.getElementById(i);if(b&&b.textContent!=='▶ Partie suivante')b.textContent='▶ Partie suivante'})},300)<\/script>";
 function pathHideCss(k,g){if(!pathIsCur(k))return"";return pathHideCss0(g)+PATHREN}
 function pathHideCss0(g){var sel=PATHHIDE[g.app];if(!sel||(g.app==="francais"&&g.start===5))return"<script>window.PATHMODE=1<\/script>";
