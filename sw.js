@@ -1,6 +1,6 @@
 // Service worker : fonctionnement hors ligne.
 // Pensez à changer VERSION à chaque mise à jour des fichiers pour que les téléphones la récupèrent.
-var VERSION = "v147";
+var VERSION = "v148";
 var CACHE = "jeux-ecole-" + VERSION;
 var FILES = [
   "./",
@@ -470,6 +470,7 @@ var FILES = [
   "jeux/img/drapeaux/de.webp",
   "jeux/img/drapeaux/dk.webp",
   "jeux/img/drapeaux/ee.webp",
+  "jeux/img/drapeaux/eu.webp",
   "jeux/img/drapeaux/es.webp",
   "jeux/img/drapeaux/fi.webp",
   "jeux/img/drapeaux/fr.webp",
