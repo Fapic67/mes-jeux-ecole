@@ -480,6 +480,7 @@ body.rw-shop #purse{display:none!important}
     <div class="card">
       <h3>🏆 Type de récompense</h3>
       <div class="rmodes" id="p-rmode"></div>
+      <label class="switch" id="p-flamerow"><input type="checkbox" id="p-flame"><span class="grow">🔥 Multiplicateur de série</span></label>
       <label class="row" id="p-goalrow"><span class="grow">Objectif de jeu par jour</span><input class="field num" id="p-goal" type="number" inputmode="numeric" min="5" max="120" step="5"><span>min</span></label>
       <div class="pg" id="p-gopts" style="gap:10px">
         <div class="muted">Les étoiles gagnées s'échangent dans la boutique contre des récompenses (bonbon, bataille de coussins, jeu à débloquer…). La boutique est la même pour tous les profils.</div>
@@ -909,7 +910,7 @@ function renderPurse(bump){var p=prof(),E=ensureEcon(p),d=today(p),w=weekSum(p,E
 var lastDiff=1,lastAct=0;
 function renderEco(){var p=prof(),E=ensureEcon(p),t=tierOf(E.streak),g=GAMES[cur]&&ECON.P[GAMES[cur].eco]!=null;
  $("eco").hidden=!g||noStars();$("pstars").hidden=!!(GAMES[cur]&&GAMES[cur].subj==="jeux");var s=$("pstreak");
- s.hidden=!!(GAMES[cur]&&GAMES[cur].luck);s.className=E.streak?(t===3?"t3":t===2?"t2":""):"off";
+ s.hidden=!!(GAMES[cur]&&GAMES[cur].luck)||!!p.noFlame;s.className=E.streak?(t===3?"t3":t===2?"t2":""):"off";
  s.innerHTML=(t===3?"🔥🔥🔥":t===2?"🔥🔥":"🔥")+" "+E.streak+(t>1?'<span class="x">×'+t+"</span>":"");
  $("pgauge").firstChild.style.width=Math.min(100,E.gauge/ECON.PTS*100)+"%";
  $("pdiff").textContent=lastDiff>1?"⭐×"+String(r2(lastDiff)).replace(".",","):"";document.body.classList.toggle("ecoon",g)}
@@ -920,12 +921,13 @@ function noStars(){return prof().rmode==="none"||!!(GAMES[cur]&&GAMES[cur].subj=
 function onAnswer(m){if(noStars())return;var p=prof(),E=ensureEcon(p),P=ECON.P[m.game];if(P==null)return;rollWeek(p);
  var d=today(p),diff=Math.max(1,Math.min(3,(+m.diff||1)*ageBonus(p,cur))),q=m.q==null?1:Math.max(0,Math.min(1,+m.q));lastDiff=diff;lastAct=Date.now();d.tot++;
  if(m.ok){E.streak++;d.ok++;d.best=Math.max(d.best,E.streak);E.best=Math.max(E.best||0,E.streak);
-  var t=tierOf(E.streak);E.gauge=r2(E.gauge+P*diff*t*q);var n=0;while(E.gauge>=ECON.PTS){E.gauge=r2(E.gauge-ECON.PTS);n++}
-  if(E.streak===5)toast("🔥🔥 Série de 5 ! Tes étoiles vont 2 fois plus vite !",2600);
+  var t=p.noFlame?1:tierOf(E.streak);E.gauge=r2(E.gauge+P*diff*t*q);var n=0;while(E.gauge>=ECON.PTS){E.gauge=r2(E.gauge-ECON.PTS);n++}
+  if(p.noFlame){if(n)toast("+"+n+" ⭐")} // multiplicateur de série désactivé dans le profil : ni ×2/×3 ni annonces
+  else if(E.streak===5)toast("🔥🔥 Série de 5 ! Tes étoiles vont 2 fois plus vite !",2600);
   else if(E.streak===10)toast("🔥🔥🔥 Série de 10 ! 3 fois plus vite !",2600);
   else if(n)toast("+"+n+" ⭐");
   if(n){p.stars+=n;d.st+=n}saveP();renderPurse(n>0);var s=$("pstreak");s.classList.remove("pop");void s.offsetWidth;s.classList.add("pop")}
- else{if(E.streak>=3)toast("💨 Série cassée… recommence une série !",1800);E.streak=0;saveP();renderEco()}}
+ else{if(E.streak>=3&&!p.noFlame)toast("💨 Série cassée… recommence une série !",1800);E.streak=0;saveP();renderEco()}}
 /* ---------- Résultats par exercice et par profil (clé stats@<profil>) ----------
    g[jeu].d[jour] = {ok, tot, sec, k:{catégorie:[ok,tot]}} ; g[jeu].it[question] = [ok, tot, dernier jour] */
 var STC={};
@@ -1445,7 +1447,7 @@ function renderPrize(p){ensureShop(p);$("p-prz").innerHTML=prizeGames().map(func
 $("p-prz").addEventListener("click",function(e){var b=e.target.closest("[data-prz]");if(!b)return;var k=b.dataset.prz;
  upd(function(p){ensureShop(p);var i=p.games.indexOf(k);if(i>=0)p.games.splice(i,1);else unlockGame(p,k)})});
 function renderRmode(p){renderPrize(p);ensureShop(p);$("p-rmode").innerHTML=RMODES.map(function(m){return '<button data-rm="'+m[0]+'" class="'+(p.rmode===m[0]?"on":"")+'">'+m[1]+"<small>"+m[2]+"</small></button>"}).join("");
- $("p-goalrow").hidden=p.rmode==="none";$("p-gopts").hidden=p.rmode!=="shop";$("p-stc").hidden=p.rmode==="none";$("p-gpendc").hidden=p.rmode!=="shop";
+ $("p-goalrow").hidden=p.rmode==="none";$("p-flamerow").hidden=p.rmode==="none";$("p-flame").checked=!p.noFlame;$("p-gopts").hidden=p.rmode!=="shop";$("p-stc").hidden=p.rmode==="none";$("p-gpendc").hidden=p.rmode!=="shop";
  $("p-gpend").innerHTML=p.shopPend.length?p.shopPend.map(function(x){return '<div class="row"><span style="font-size:26px">'+x.ic+'</span><span class="grow">'+esc(x.t)+'<small class="muted" style="display:block">'+new Date(x.d+"T12:00:00").toLocaleDateString("fr-FR")+'</small></span><button class="btn okb" data-give="'+x.id+'">✅ Donné</button></div>'}).join(""):'<div class="muted">Rien à remettre pour l\'instant.</div>'}
 $("p-rmode").addEventListener("click",function(e){var b=e.target.closest("[data-rm]");if(!b)return;upd(function(p){p.rmode=b.dataset.rm;p.reward=p.rmode==="shop"})});
 $("p-gpend").addEventListener("click",function(e){var b=e.target.closest("[data-give]");if(!b)return;upd(function(p){ensureShop(p);p.shopPend=p.shopPend.filter(function(x){return x.id!==b.dataset.give});(p.shopGiven||(p.shopGiven=[])).push(b.dataset.give);p.shopGiven=p.shopGiven.slice(-300)});toast("✅ Donné",1500)});
@@ -1491,6 +1493,7 @@ $("p-birth").onblur=function(){var d=this.value.replace(/\D/g,"");if(!d.length){
 $("p-cls").onchange=function(){var v=this.value;upd(function(p){p.cls=v})};
 $("p-name").oninput=function(){var v=this.value.trim().slice(0,20);upd(function(p){p.name=v})};
 $("p-use").onclick=function(){PR.active=EDIT;saveP();renderProfil()};
+$("p-flame").onchange=function(){var v=this.checked;upd(function(p){if(v)delete p.noFlame;else p.noFlame=true})};
 $("p-admin").onchange=function(){var v=this.checked;upd(function(p){if(v)p.admin=true;else delete p.admin});renderLocks();renderTime();toast(v?"🔑 Profil administrateur":"Profil normal",1600)};
 $("p-del").onclick=function(){var p=E();if(PR.list.length<2)return;if(!confirm("Supprimer le profil « "+pname(p)+" » et ses étoiles ?"))return;
  (PR.del||(PR.del={}))[p.id]=Date.now();PR.list=PR.list.filter(function(x){return x.id!==p.id});if(PR.active===p.id)PR.active=PR.list[0].id;["robot_lvl","robot_best","stats","chenille_lvl","chenille_best","boucles_lvl","boucles_best","reparateur_lvl","reparateur_best","memory_lvl","memory_best","memory_mode","courses_lvl","courses_best","de_sel_mem","de_sel_courses","de_sel_sdw"].forEach(function(k){try{localStorage.removeItem(k+"@"+p.id)}catch(e){}});delete STC[p.id];saveP();back()};
