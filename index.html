@@ -1008,7 +1008,8 @@ function renderShopbar(){var p=prof();if(p.rmode!=="shop")return;ensureShop(p);$
  $("sb-h").textContent=nx?"Encore "+(nx.price-p.stars)+" ⭐ pour "+nx.ic+" "+nx.t:"";
  $("shopbar").classList.toggle("can",can>0)}
 function openShop(){var p=prof();ensureShop(p);$("sh-n").textContent="⭐ "+p.stars;
- $("sh-grid").innerHTML=shopItems().map(function(it){var st=itState(p,it);
+ var RK={ok:0,need:1,own:2},L=shopItems().map(function(it,i){return{it:it,i:i,st:itState(p,it)}}).sort(function(a,b){return RK[a.st]-RK[b.st]||a.i-b.i}); // achetables d'abord, puis trop chers, puis déjà à toi
+ $("sh-grid").innerHTML=L.map(function(o){var it=o.it,st=o.st;
   return '<button class="shit '+st+'" data-it="'+it.id+'"'+(st==="own"?" disabled":"")+'><span class="ic">'+it.ic+"</span><b>"+esc(it.t)+"</b>"+(it.game?'<small>🎮 jeu</small>':it.rep?"":'<small>une seule fois</small>')+
    '<span class="pr">'+(st==="own"?"✅ À toi":st==="ok"?"⭐ "+it.price:"⭐ "+it.price+" · encore "+(it.price-p.stars))+"</span></button>"}).join("")||'<div class="muted">La boutique est vide pour l\'instant.</div>';
  $("sh-pend").innerHTML=p.shopPend.length?'<h3>À demander à un parent</h3><div class="glist">'+p.shopPend.map(function(x){return"<div><span>"+x.ic+"</span>"+esc(x.t)+"</div>"}).join("")+"</div>":"";
