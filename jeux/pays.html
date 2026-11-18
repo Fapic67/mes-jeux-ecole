@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Trouve le pays</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+<script src="jeux/europe-carte.js"></script>
+<style>
+:root{--bg:#fbf6ea;--fg:#2b2440;--mut:#6c6487;--card:#fff;--bd:#eadfc8;--geo:#c08a1e;--ok:#22a861;--ko:#e5484d;--sea:#bfe3f5;--land:#f3ead2;--ctx:#dcd8cf;--line:#9a8f78;box-sizing:border-box}
+@media (prefers-color-scheme:dark){:root{--bg:#1d1a2b;--fg:#f3effa;--mut:#b4abcc;--card:#2a2640;--bd:#3d3758;--sea:#28466a;--land:#d9cfb2;--ctx:#8e8a82;--line:#5c5444}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--fg);font-family:"Fredoka",system-ui,sans-serif;user-select:none}
+button{font-family:inherit;touch-action:manipulation;cursor:pointer}
+[hidden]{display:none!important}
+#inner{position:fixed;inset:0;max-width:760px;margin:0 auto;padding:12px 10px calc(14px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px}
+#ask{display:flex;align-items:center;gap:12px;background:var(--card);border:3px solid var(--bd);border-radius:22px;padding:10px 12px}
+#ear{flex:none;width:64px;height:64px;border:0;border-radius:18px;background:var(--geo);color:#fff;font-size:30px;box-shadow:0 4px 0 #8a6210}
+#name{flex:1;font-size:min(8vw,32px);font-weight:700;white-space:nowrap;overflow:hidden}
+#mapw{flex:1;min-height:0;display:flex;align-items:center;justify-content:center}
+#map{width:100%;height:100%;max-height:100%;border-radius:18px;border:3px solid var(--bd);background:var(--sea)}
+#map path{stroke:var(--line);stroke-width:1;vector-effect:non-scaling-stroke;stroke-linejoin:round}
+#map path.c{fill:var(--ctx)}
+#map path.e{fill:var(--land);cursor:pointer}
+#map path.ok{fill:#6fcf86}
+#map path.ko{fill:#f28b8b}
+#map path.hint{fill:#ffd36b}
+#msg{min-height:26px;text-align:center;font-size:20px;font-weight:700}
+#cnt{text-align:center;color:var(--mut);font-size:18px;font-weight:600}
+#end{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;text-align:center}
+#end b{font-size:34px}#end p{font-size:22px;margin:0}
+#again{min-width:220px;height:72px;border:0;border-radius:22px;background:var(--geo);color:#fff;font-size:24px;font-weight:700;box-shadow:0 5px 0 #8a6210}
+</style>
+</head>
+<body>
+<div id="inner">
+  <div id="ask"><button id="ear" aria-label="Réécouter">🔊</button><span id="name"></span></div>
+  <div id="mapw"><svg id="map" preserveAspectRatio="xMidYMid meet"></svg></div>
+  <div id="msg"></div>
+  <div id="cnt"></div>
+  <div id="end" hidden><b>🎉 Bravo !</b><p id="score"></p><button id="again">Encore</button></div>
+</div>
+<script>
+(function(){
+// Trouve le pays (matière Géographie) : carte de l'Europe (EU_MAP, jeux/europe-carte.js) ; la voix nomme un pays, l'enfant le touche sur la carte.
+// Facile : les 5 plus grands pays d'Europe (Russie, Ukraine, France, Espagne, Suède), chacun une fois par partie.
+// Bon pays = vert (reste vert) ; autre pays = rouge un instant et la voix dit son nom ; après 2 erreurs, le bon pays clignote en jaune.
+// Un message « answer » par pays (juste du premier coup), roundEnd en fin de partie.
+var $=function(i){return document.getElementById(i)};
+function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
+function voiceFor(l){try{var v=speechSynthesis.getVoices().filter(function(v){return v.lang&&v.lang.indexOf(l)===0});return v.filter(function(x){return x.localService})[0]||v[0]||null}catch(e){return null}}
+function say(t){try{if(!window.speechSynthesis)return;speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.lang="fr-FR";var v=voiceFor("fr");if(v)u.voice=v;u.rate=.9;speechSynthesis.speak(u)}catch(e){}}
+var ac=null;function tone(f,t,d){try{if(!ac){var C=window.AudioContext||window.webkitAudioContext;if(!C)return;ac=new C()}if(ac.state==="suspended")ac.resume();var o=ac.createOscillator(),g=ac.createGain(),s=ac.currentTime+t;o.type="triangle";o.frequency.value=f;g.gain.setValueAtTime(.18,s);g.gain.exponentialRampToValueAtTime(.001,s+d);o.connect(g);g.connect(ac.destination);o.start(s);o.stop(s+d)}catch(e){}}
+// pays d'Europe (nom Natural Earth → nom français) ; les autres terres sont du décor (non cliquables)
+var FR={"Albania":"l'Albanie","Andorra":"l'Andorre","Austria":"l'Autriche","Belarus":"la Biélorussie","Belgium":"la Belgique","Bosnia and Herz.":"la Bosnie-Herzégovine","Bulgaria":"la Bulgarie","Croatia":"la Croatie","Cyprus":"Chypre","N. Cyprus":"Chypre","Czechia":"la Tchéquie","Denmark":"le Danemark","Estonia":"l'Estonie","Finland":"la Finlande","Åland":"la Finlande","France":"la France","Germany":"l'Allemagne","Greece":"la Grèce","Hungary":"la Hongrie","Iceland":"l'Islande","Ireland":"l'Irlande","Italy":"l'Italie","Kosovo":"le Kosovo","Latvia":"la Lettonie","Liechtenstein":"le Liechtenstein","Lithuania":"la Lituanie","Luxembourg":"le Luxembourg","Malta":"Malte","Moldova":"la Moldavie","Monaco":"Monaco","Montenegro":"le Monténégro","Netherlands":"les Pays-Bas","Macedonia":"la Macédoine du Nord","Norway":"la Norvège","Poland":"la Pologne","Portugal":"le Portugal","Romania":"la Roumanie","Russia":"la Russie","San Marino":"Saint-Marin","Serbia":"la Serbie","Slovakia":"la Slovaquie","Slovenia":"la Slovénie","Spain":"l'Espagne","Sweden":"la Suède","Switzerland":"la Suisse","Ukraine":"l'Ukraine","United Kingdom":"le Royaume-Uni","Vatican":"le Vatican"};
+var LV={1:{t:"Facile",p:["Russia","Ukraine","France","Spain","Sweden"]}},level=1;
+var map=$("map");map.setAttribute("viewBox","215 60 785 790"); // cadrage sur l'Europe (sans le Groenland ni le Sahara)
+map.innerHTML=EU_MAP.f.map(function(x,i){return '<path d="'+x.d+'" data-i="'+i+'" class="'+(FR[x.n]?"e":"c")+'"/>'}).join("");
+function paths(n){return Array.prototype.filter.call(map.querySelectorAll("path"),function(p){var m=EU_MAP.f[+p.dataset.i].n;return m===n||FR[m]&&FR[m]===FR[n]})}
+var deck,qi,good,cur,miss,busy;
+function cap(s){return s.charAt(0).toUpperCase()+s.slice(1)}
+function start(){deck=shuffle(LV[level].p);qi=0;good=0;map.querySelectorAll("path").forEach(function(p){p.classList.remove("ok","ko","hint")});
+ $("end").hidden=true;$("ask").hidden=$("mapw").hidden=$("cnt").hidden=$("msg").hidden=false;show()}
+function show(){cur=deck[qi];miss=0;busy=false;$("msg").textContent="";$("name").textContent=cap(FR[cur]);$("cnt").textContent=(qi+1)+" / "+deck.length;setTimeout(function(){say(FR[cur])},250)}
+$("ear").onclick=function(){if(cur)say(FR[cur])};
+map.addEventListener("click",function(e){var p=e.target.closest("path.e");if(!p||busy||!cur)return;var n=EU_MAP.f[+p.dataset.i].n;
+ if(FR[n]===FR[cur]){busy=true;paths(cur).forEach(function(q){q.classList.remove("hint");q.classList.add("ok")});tone(660,0,.12);tone(880,.1,.2);say("Bravo !");$("msg").textContent="✅ "+cap(FR[cur]);if(!miss)good++;
+  try{if(parent!==window)parent.postMessage({type:"answer",game:"pays",ok:!miss,diff:1,k:LV[level].t,item:FR[cur]},"*")}catch(er){}
+  setTimeout(function(){qi++;if(qi<deck.length)show();else end()},1500)}
+ else if(!p.classList.contains("ok")){miss++;var w=paths(n);w.forEach(function(q){q.classList.add("ko")});tone(220,0,.25);
+  $("msg").textContent="Ça, c'est "+FR[n];say("Ça, c'est "+FR[n]);
+  setTimeout(function(){w.forEach(function(q){q.classList.remove("ko")})},900);
+  if(miss>=2)paths(cur).forEach(function(q){q.classList.add("hint")})}});
+function end(){$("ask").hidden=$("mapw").hidden=$("cnt").hidden=$("msg").hidden=true;$("end").hidden=false;$("score").textContent=good+" / "+deck.length+" du premier coup";cur=null;
+ [523,659,784,1047].forEach(function(f,k){tone(f,k*.1,.25)});
+ try{if(parent!==window)parent.postMessage({type:"roundEnd"},"*")}catch(e){}}
+$("again").onclick=start;
+window.__P={cur:function(){return cur},click:function(n){var p=paths(n)[0];if(p)p.dispatchEvent(new MouseEvent("click",{bubbles:true}))}};
+start();
+})();
+</script>
+</body>
+</html>
