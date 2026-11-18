@@ -107,6 +107,7 @@ body.rw-shop #purse{display:none!important}
 .shopbar.can{border-color:var(--star);box-shadow:0 0 0 3px color-mix(in srgb,var(--star) 35%,transparent)}
 .sb-st{font-size:24px;font-weight:700;color:var(--star);white-space:nowrap}.sb-st b{font-size:30px}
 .sb-t{flex:1;min-width:0;display:flex;flex-direction:column}.sb-t b{font-size:20px}.sb-t small{font-size:16px;color:var(--soft);font-weight:600}
+.sb-shop b{font-size:28px}
 .sb-go{font-size:34px;color:var(--soft);font-weight:700}
 .shopbar.can .sb-go{animation:gwig 1.1s ease-in-out infinite}
 .shgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;width:100%}
@@ -345,7 +346,7 @@ body.rw-shop #purse{display:none!important}
   </div>
     <div class="purse" id="purse" style="flex:none"><span class="lines grow"><span class="l1"><span class="st">⭐ <span id="h-day">0</span></span> / <span id="h-goal">20</span> aujourd'hui</span><span class="minibar"><i id="h-bar"></i></span><span class="hint" id="hint"></span></span></div>
 
-  <button class="shopbar" id="shopbar" aria-label="La boutique"><span class="sb-st">⭐ <b id="sb-n">0</b></span><span class="sb-t"><b>🛍️ La boutique</b></span></button>
+  <button class="shopbar" id="shopbar" aria-label="La boutique"><span class="sb-t sb-shop"><b>🛍️ Boutique</b></span><span class="sb-st">⭐ <b id="sb-n">0</b></span></button>
 
   <button class="shopbar pathbar" id="pathbar" hidden><span class="sb-st">🧭</span><span class="sb-t"><b id="pb-t"></b><small id="pb-h"></small></span><span class="sb-go">›</span></button>
 
