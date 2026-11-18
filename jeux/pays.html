@@ -19,7 +19,9 @@ button{font-family:inherit;touch-action:manipulation;cursor:pointer}
 #ask{display:flex;align-items:center;gap:12px;background:var(--card);border:3px solid var(--bd);border-radius:22px;padding:10px 12px}
 #ear{flex:none;width:64px;height:64px;border:0;border-radius:18px;background:var(--geo);color:#fff;font-size:30px;box-shadow:0 4px 0 #8a6210}
 #name{flex:1;font-size:min(8vw,32px);font-weight:700;white-space:nowrap;overflow:hidden}
-#mapw{flex:1;min-height:0;display:flex;align-items:center;justify-content:center}
+#mapw{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;position:relative}
+#flag{position:absolute;top:10px;left:50%;transform:translateX(-50%);width:min(46%,200px);aspect-ratio:4/3;border-radius:10px;box-shadow:0 0 0 3px #fff,0 6px 18px rgba(0,0,0,.35);pointer-events:none;animation:fin .25s}
+@keyframes fin{from{opacity:0;transform:translateX(-50%) scale(.6)}}
 #map{width:100%;height:100%;max-height:100%;border-radius:18px;border:3px solid var(--bd);background:var(--sea)}
 #map path{stroke:var(--line);stroke-width:1;vector-effect:non-scaling-stroke;stroke-linejoin:round}
 #map path.c{fill:var(--ctx)}
@@ -51,7 +53,7 @@ button{font-family:inherit;touch-action:manipulation;cursor:pointer}
 <div id="inner">
   <div id="top"><button id="lvlb"></button></div>
   <div id="ask"><button id="ear" aria-label="Réécouter">🔊</button><span id="name"></span></div>
-  <div id="mapw"><svg id="map" preserveAspectRatio="xMidYMid meet"></svg></div>
+  <div id="mapw"><svg id="map" preserveAspectRatio="xMidYMid meet"></svg><img id="flag" alt="" hidden></div>
   <div id="msg"></div>
   <div id="cnt"></div>
   <div id="end" hidden><b>🎉 Bravo !</b><p id="score"></p><button id="again">Encore</button></div>
@@ -60,7 +62,7 @@ button{font-family:inherit;touch-action:manipulation;cursor:pointer}
 <script>
 (function(){
 // Trouve le pays (matière Géographie) : carte de l'Europe (EU_MAP, jeux/europe-carte.js) ; la voix nomme un pays, l'enfant le touche sur la carte.
-// Facile : les 5 plus grands pays d'Europe (Russie, Ukraine, France, Espagne, Suède) ; Moyen : carte du monde, les 7 continents. Chacun une fois par partie.
+// Trouve le pays : France, Allemagne, Espagne, Italie, Grande-Bretagne (drapeau du pays touché affiché) ; Moyen : carte du monde, les 7 continents. Chacun une fois par partie.
 // Bon pays = vert (reste vert) ; autre pays = rouge un instant et la voix dit son nom ; après 2 erreurs, le bon pays clignote en jaune.
 // Un message « answer » par pays (juste du premier coup), roundEnd en fin de partie.
 var $=function(i){return document.getElementById(i)};
@@ -69,14 +71,17 @@ function voiceFor(l){try{var v=speechSynthesis.getVoices().filter(function(v){re
 function say(t){try{if(!window.speechSynthesis)return;speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.lang="fr-FR";var v=voiceFor("fr");if(v)u.voice=v;u.rate=.9;speechSynthesis.speak(u)}catch(e){}}
 var ac=null;function tone(f,t,d){try{if(!ac){var C=window.AudioContext||window.webkitAudioContext;if(!C)return;ac=new C()}if(ac.state==="suspended")ac.resume();var o=ac.createOscillator(),g=ac.createGain(),s=ac.currentTime+t;o.type="triangle";o.frequency.value=f;g.gain.setValueAtTime(.18,s);g.gain.exponentialRampToValueAtTime(.001,s+d);o.connect(g);g.connect(ac.destination);o.start(s);o.stop(s+d)}catch(e){}}
 // pays d'Europe (nom Natural Earth → nom français) ; les autres terres sont du décor (non cliquables)
-var FR={"Albania":"l'Albanie","Andorra":"l'Andorre","Austria":"l'Autriche","Belarus":"la Biélorussie","Belgium":"la Belgique","Bosnia and Herz.":"la Bosnie-Herzégovine","Bulgaria":"la Bulgarie","Croatia":"la Croatie","Cyprus":"Chypre","N. Cyprus":"Chypre","Czechia":"la Tchéquie","Denmark":"le Danemark","Estonia":"l'Estonie","Finland":"la Finlande","Åland":"la Finlande","France":"la France","Germany":"l'Allemagne","Greece":"la Grèce","Hungary":"la Hongrie","Iceland":"l'Islande","Ireland":"l'Irlande","Italy":"l'Italie","Kosovo":"le Kosovo","Latvia":"la Lettonie","Liechtenstein":"le Liechtenstein","Lithuania":"la Lituanie","Luxembourg":"le Luxembourg","Malta":"Malte","Moldova":"la Moldavie","Monaco":"Monaco","Montenegro":"le Monténégro","Netherlands":"les Pays-Bas","Macedonia":"la Macédoine du Nord","Norway":"la Norvège","Poland":"la Pologne","Portugal":"le Portugal","Romania":"la Roumanie","Russia":"la Russie","San Marino":"Saint-Marin","Serbia":"la Serbie","Slovakia":"la Slovaquie","Slovenia":"la Slovénie","Spain":"l'Espagne","Sweden":"la Suède","Switzerland":"la Suisse","Ukraine":"l'Ukraine","United Kingdom":"le Royaume-Uni","Vatican":"le Vatican"};
+var FR={"Albania":"l'Albanie","Andorra":"l'Andorre","Austria":"l'Autriche","Belarus":"la Biélorussie","Belgium":"la Belgique","Bosnia and Herz.":"la Bosnie-Herzégovine","Bulgaria":"la Bulgarie","Croatia":"la Croatie","Cyprus":"Chypre","N. Cyprus":"Chypre","Czechia":"la Tchéquie","Denmark":"le Danemark","Estonia":"l'Estonie","Finland":"la Finlande","Åland":"la Finlande","France":"la France","Germany":"l'Allemagne","Greece":"la Grèce","Hungary":"la Hongrie","Iceland":"l'Islande","Ireland":"l'Irlande","Italy":"l'Italie","Kosovo":"le Kosovo","Latvia":"la Lettonie","Liechtenstein":"le Liechtenstein","Lithuania":"la Lituanie","Luxembourg":"le Luxembourg","Malta":"Malte","Moldova":"la Moldavie","Monaco":"Monaco","Montenegro":"le Monténégro","Netherlands":"les Pays-Bas","Macedonia":"la Macédoine du Nord","Norway":"la Norvège","Poland":"la Pologne","Portugal":"le Portugal","Romania":"la Roumanie","Russia":"la Russie","San Marino":"Saint-Marin","Serbia":"la Serbie","Slovakia":"la Slovaquie","Slovenia":"la Slovénie","Spain":"l'Espagne","Sweden":"la Suède","Switzerland":"la Suisse","Ukraine":"l'Ukraine","United Kingdom":"la Grande-Bretagne","Vatican":"le Vatican"};
 // Niveaux : Facile = carte de l'Europe, les 5 plus grands pays ; Moyen = carte du monde (WORLD_MAP, jeux/monde-carte.js), les 7 continents.
+// drapeau affiché quand on touche un pays (images de Retrouve le drapeau)
+var FLAG={"l'Albanie":"al","l'Andorre":"ad","l'Autriche":"at","la Biélorussie":"by","la Belgique":"be","la Bosnie-Herzégovine":"ba","la Bulgarie":"bg","la Croatie":"hr","Chypre":"cy","la Tchéquie":"cz","le Danemark":"dk","l'Estonie":"ee","la Finlande":"fi","la France":"fr","l'Allemagne":"de","la Grèce":"gr","la Hongrie":"hu","l'Islande":"is","l'Irlande":"ie","l'Italie":"it","la Lettonie":"lv","le Liechtenstein":"li","la Lituanie":"lt","le Luxembourg":"lu","Malte":"mt","la Moldavie":"md","Monaco":"mc","le Monténégro":"me","les Pays-Bas":"nl","la Macédoine du Nord":"mk","la Norvège":"no","la Pologne":"pl","le Portugal":"pt","la Roumanie":"ro","la Russie":"ru","Saint-Marin":"sm","la Serbie":"rs","la Slovaquie":"sk","la Slovénie":"si","l'Espagne":"es","la Suède":"se","la Suisse":"ch","l'Ukraine":"ua","la Grande-Bretagne":"gb","le Vatican":"va"};
+function flag(k){var c=FLAG[k],f=$("flag");if(!c){f.hidden=true;return}f.hidden=true;f.src="jeux/img/drapeaux/"+c+".webp";void f.offsetWidth;f.hidden=false;clearTimeout(flag.t);flag.t=setTimeout(function(){f.hidden=true},cur&&k===cur?1500:1800)}
 var CN={EU:"l'Europe",AS:"l'Asie",AF:"l'Afrique",NA:"l'Amérique du Nord",SA:"l'Amérique du Sud",OC:"l'Océanie",AN:"l'Antarctique"};
 var CC={EU:"#8fb4ee",AS:"#f4cd6a",AF:"#ec9a74",NA:"#93d293",SA:"#c4a0e0",OC:"#6fd0d0",AN:"#d8e0e4"};
 // Deux exercices dans ce fichier (à la demande de l'utilisateur) : « Trouve le pays » (START 1, carte de l'Europe) et « Trouve le continent » (START 2, carte du monde).
 var CONT=window.START==2,GAME=CONT?"continent":"pays";
 var LV=CONT?[null,{t:"Continents",d:"Le monde : les 7 continents",map:"world",p:["l'Europe","l'Asie","l'Afrique","l'Amérique du Nord","l'Amérique du Sud","l'Océanie","l'Antarctique"]}]
- :[null,{t:"Facile",d:"L'Europe : les 5 plus grands pays",map:"eu",p:["la Russie","l'Ukraine","la France","l'Espagne","la Suède"]}];
+ :[null,{t:"Facile",d:"L'Europe : France, Allemagne, Espagne, Italie, Grande-Bretagne",map:"eu",p:["la France","l'Allemagne","l'Espagne","l'Italie","la Grande-Bretagne"]}];
 var PK="@"+(window.PROFILE||"p1");function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
 var level=Math.min(LV.length-1,Math.max(1,parseInt(ls(GAME+"_lvl"+PK))||1));
 if(LV.length<3)document.getElementById("top").hidden=true; // un seul niveau : pas de bouton Niveau
@@ -96,15 +101,15 @@ var deck,qi,good,cur,miss,busy;
 function cap(s){return s.charAt(0).toUpperCase()+s.slice(1)}
 function start(){draw();deck=shuffle(LV[level].p);qi=0;good=0;$("lvlb").textContent="Niveau : "+LV[level].t;
  $("end").hidden=true;$("ask").hidden=$("mapw").hidden=$("cnt").hidden=$("msg").hidden=false;show()}
-function show(){cur=deck[qi];miss=0;busy=false;$("msg").textContent="";$("name").textContent=cap(cur);$("cnt").textContent=(qi+1)+" / "+deck.length;setTimeout(function(){say(cur)},250)}
+function show(){cur=deck[qi];miss=0;busy=false;$("msg").textContent="";$("flag").hidden=true;$("name").textContent=cap(cur);$("cnt").textContent=(qi+1)+" / "+deck.length;setTimeout(function(){say(cur)},250)}
 $("ear").onclick=function(){if(cur)say(cur)};
 map.addEventListener("click",function(e){var p=e.target.closest("path.e");if(!p||busy||!cur)return;var k=p.dataset.k;
  if(k===cur){busy=true;paths(cur).forEach(function(q){q.classList.remove("hint");q.classList.add("ok")});var t=map.querySelector('text[data-l="'+cur+'"]');if(t)t.removeAttribute("hidden");
-  tone(660,0,.12);tone(880,.1,.2);say("Bravo !");$("msg").textContent="✅ "+cap(cur);if(!miss)good++;
+  tone(660,0,.12);tone(880,.1,.2);say("Bravo !");$("msg").textContent="✅ "+cap(cur);flag(cur);if(!miss)good++;
   try{if(parent!==window)parent.postMessage({type:"answer",game:GAME,ok:!miss,diff:1,k:LV[level].t,item:cur},"*")}catch(er){}
   setTimeout(function(){qi++;if(qi<deck.length)show();else end()},1500)}
  else if(!p.classList.contains("ok")){miss++;var w=paths(k);w.forEach(function(q){q.classList.add("ko")});tone(220,0,.25);
-  $("msg").textContent="Ça, c'est "+k;say("Ça, c'est "+k);
+  $("msg").textContent="Ça, c'est "+k;flag(k);say("Ça, c'est "+k);
   setTimeout(function(){w.forEach(function(q){q.classList.remove("ko")})},900);
   if(miss>=2)paths(cur).forEach(function(q){q.classList.add("hint")})}});
 function end(){$("ask").hidden=$("mapw").hidden=$("cnt").hidden=$("msg").hidden=true;$("end").hidden=false;$("score").textContent=good+" / "+deck.length+" du premier coup";cur=null;
