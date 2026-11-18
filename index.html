@@ -708,7 +708,7 @@ body.rw-shop #purse{display:none!important}
 
 <!-- La boutique (enfant) -->
 <div class="sheet" id="shop" hidden><div class="panel">
-  <h2 style="justify-content:space-between"><span>🛍️ La boutique</span><span class="sb-st" id="sh-n"></span></h2>
+  <h2 style="gap:10px"><button class="btn icon-btn" id="sh-back" aria-label="Retour" style="flex:none"><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 4.5 8.5 12l7 7.5"/></svg></button><span style="flex:1">🛍️ La boutique</span><span class="sb-st" id="sh-n"></span></h2>
   <div class="shgrid" id="sh-grid"></div>
   <div id="sh-pend"></div>
   <button class="btn" id="sh-close" style="width:100%">Fermer</button>
@@ -1012,7 +1012,7 @@ function openShop(){var p=prof();ensureShop(p);$("sh-n").textContent="⭐ "+p.st
   return '<button class="shit '+st+'" data-it="'+it.id+'"'+(st==="own"?" disabled":"")+'><span class="ic">'+it.ic+"</span><b>"+esc(it.t)+"</b>"+(it.game?'<small>🎮 jeu</small>':it.rep?"":'<small>une seule fois</small>')+
    '<span class="pr">'+(st==="own"?"✅ À toi":st==="ok"?"⭐ "+it.price:"⭐ "+it.price+" · encore "+(it.price-p.stars))+"</span></button>"}).join("")||'<div class="muted">La boutique est vide pour l\'instant.</div>';
  $("sh-pend").innerHTML=p.shopPend.length?'<h3>À demander à un parent</h3><div class="glist">'+p.shopPend.map(function(x){return"<div><span>"+x.ic+"</span>"+esc(x.t)+"</div>"}).join("")+"</div>":"";
- $("shop").hidden=false}
+ if($("shop").hidden)openOv("shop")} // fenêtre : le retour (← ou bouton du téléphone) la ferme
 var BUY=null;
 function askBuy(it){var p=prof(),st=itState(p,it);BUY=it;$("by-stage").innerHTML='<div class="prize"><div class="pic">'+it.ic+"</div></div>";$("by-ok").hidden=true;
  if(st==="need"){$("by-t").textContent=it.t;$("by-txt").textContent="Il te faut encore "+(it.price-p.stars)+" ⭐. Continue à jouer pour en gagner !";$("by-btns").hidden=true;$("by-ok").hidden=false;$("by-ok").textContent="D'accord";}
@@ -1024,7 +1024,7 @@ $("by-yes").onclick=function(){var p=prof(),it=BUY;if(!it||!buyItem(p,it))return
  confetti($("buy").firstChild);[523,659,784,1047].forEach(function(f,k){gTone(f,k*.1,.25)});hubSay("Bravo ! "+it.t+" !");renderPurse();openShop()};
 $("by-no").onclick=$("by-ok").onclick=function(){$("buy").hidden=true;BUY=null};
 $("sh-grid").addEventListener("click",function(e){var b=e.target.closest("[data-it]");if(!b)return;var it=shop().items.filter(function(x){return x.id===b.dataset.it})[0];if(it)askBuy(it)});
-$("sh-close").onclick=function(){$("shop").hidden=true};
+$("sh-close").onclick=$("sh-back").onclick=function(){$("buy").hidden=true;closeOv("shop")};
 $("shopbar").onclick=openShop;
 /* ---------- Gestion de la boutique (Paramètres) ---------- */
 var EMO=["🍬","🍭","🍫","🍦","🍰","🍕","🍟","🧃","🛋️","🤸","⚽","🚲","🛝","🏊","🎨","🧩","📖","📺","🎬","🎮","🎲","🎤","🎵","🧸","🪀","🎈","🎁","💶","🪙","⭐","🌙","🛁","🐶","🌳","🏖️","🎢","🍿","🥞","🤗","❤️"];
@@ -1573,7 +1573,7 @@ function back(){if(OV.length){closeOv(OV[OV.length-1]);return}
  if(depth()>0){history.back();return}
  var p=parentOf(cur);if(p===cur){return}history.replaceState({d:0,r:p},"",url(p));show(p)}
 /* fenêtres (paramètres, code) : le retour les ferme d'abord */
-var OV=[],ovCb=null,OVEL={settings:"settings",pin:"pin"};
+var OV=[],ovCb=null,OVEL={settings:"settings",pin:"pin",shop:"shop"};
 function hideOv(n){if(n.indexOf("pg")===0){PG.pop();renderPage();return}$(OVEL[n]).hidden=true;if(n==="settings")renderPurse();if(n==="pin")pinCb=null}
 function openOv(n){$(OVEL[n]).hidden=false;OV.push(n);history.pushState({d:depth()+1,r:cur,ov:n},"",location.href)}
 function closeOv(n,cb){if(OV[OV.length-1]===n&&history.state&&history.state.ov===n){ovCb=cb||null;history.back()}else{OV=OV.filter(function(x){return x!==n});hideOv(n);cb&&cb()}}
