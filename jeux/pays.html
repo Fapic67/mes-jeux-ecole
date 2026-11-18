@@ -73,10 +73,13 @@ var FR={"Albania":"l'Albanie","Andorra":"l'Andorre","Austria":"l'Autriche","Bela
 // Niveaux : Facile = carte de l'Europe, les 5 plus grands pays ; Moyen = carte du monde (WORLD_MAP, jeux/monde-carte.js), les 7 continents.
 var CN={EU:"l'Europe",AS:"l'Asie",AF:"l'Afrique",NA:"l'Amérique du Nord",SA:"l'Amérique du Sud",OC:"l'Océanie",AN:"l'Antarctique"};
 var CC={EU:"#8fb4ee",AS:"#f4cd6a",AF:"#ec9a74",NA:"#93d293",SA:"#c4a0e0",OC:"#6fd0d0",AN:"#d8e0e4"};
-var LV=[null,{t:"Facile",d:"L'Europe : les 5 plus grands pays",map:"eu",p:["la Russie","l'Ukraine","la France","l'Espagne","la Suède"]},
- {t:"Moyen",d:"Le monde : les 7 continents",map:"world",p:["l'Europe","l'Asie","l'Afrique","l'Amérique du Nord","l'Amérique du Sud","l'Océanie","l'Antarctique"]}];
+// Deux exercices dans ce fichier (à la demande de l'utilisateur) : « Trouve le pays » (START 1, carte de l'Europe) et « Trouve le continent » (START 2, carte du monde).
+var CONT=window.START==2,GAME=CONT?"continent":"pays";
+var LV=CONT?[null,{t:"Continents",d:"Le monde : les 7 continents",map:"world",p:["l'Europe","l'Asie","l'Afrique","l'Amérique du Nord","l'Amérique du Sud","l'Océanie","l'Antarctique"]}]
+ :[null,{t:"Facile",d:"L'Europe : les 5 plus grands pays",map:"eu",p:["la Russie","l'Ukraine","la France","l'Espagne","la Suède"]}];
 var PK="@"+(window.PROFILE||"p1");function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
-var level=Math.min(LV.length-1,Math.max(1,parseInt(ls("pays_lvl"+PK))||1));
+var level=Math.min(LV.length-1,Math.max(1,parseInt(ls(GAME+"_lvl"+PK))||1));
+if(LV.length<3)document.getElementById("top").hidden=true; // un seul niveau : pas de bouton Niveau
 var map=$("map");
 function esc(s){return s.replace(/"/g,"&quot;")}
 function draw(){var L=LV[level];
@@ -98,7 +101,7 @@ $("ear").onclick=function(){if(cur)say(cur)};
 map.addEventListener("click",function(e){var p=e.target.closest("path.e");if(!p||busy||!cur)return;var k=p.dataset.k;
  if(k===cur){busy=true;paths(cur).forEach(function(q){q.classList.remove("hint");q.classList.add("ok")});var t=map.querySelector('text[data-l="'+cur+'"]');if(t)t.removeAttribute("hidden");
   tone(660,0,.12);tone(880,.1,.2);say("Bravo !");$("msg").textContent="✅ "+cap(cur);if(!miss)good++;
-  try{if(parent!==window)parent.postMessage({type:"answer",game:"pays",ok:!miss,diff:level===2?1.25:1,k:LV[level].t,item:cur},"*")}catch(er){}
+  try{if(parent!==window)parent.postMessage({type:"answer",game:GAME,ok:!miss,diff:1,k:LV[level].t,item:cur},"*")}catch(er){}
   setTimeout(function(){qi++;if(qi<deck.length)show();else end()},1500)}
  else if(!p.classList.contains("ok")){miss++;var w=paths(k);w.forEach(function(q){q.classList.add("ko")});tone(220,0,.25);
   $("msg").textContent="Ça, c'est "+k;say("Ça, c'est "+k);
@@ -109,7 +112,7 @@ function end(){$("ask").hidden=$("mapw").hidden=$("cnt").hidden=$("msg").hidden=
  try{if(parent!==window)parent.postMessage({type:"roundEnd"},"*")}catch(e){}}
 $("again").onclick=start;
 $("lvlb").onclick=function(){$("lvls").innerHTML=LV.map(function(L,i){return L?'<button class="opt'+(i===level?" on":"")+'" data-l="'+i+'">'+L.t+"<small>"+L.d+"</small></button>":""}).join("");$("sheet").hidden=false};
-$("lvls").onclick=function(e){var b=e.target.closest("[data-l]");if(!b)return;level=+b.dataset.l;ls("pays_lvl"+PK,level);$("sheet").hidden=true;start()};
+$("lvls").onclick=function(e){var b=e.target.closest("[data-l]");if(!b)return;level=+b.dataset.l;ls(GAME+"_lvl"+PK,level);$("sheet").hidden=true;start()};
 $("close").onclick=function(){$("sheet").hidden=true};
 window.hubBack=function(){if(!$("sheet").hidden){$("sheet").hidden=true;return true}return false};
 window.__P={cur:function(){return cur},click:function(k){var p=paths(k)[0];if(p)p.dispatchEvent(new MouseEvent("click",{bubbles:true}))}};
