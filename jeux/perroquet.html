@@ -56,7 +56,7 @@ function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorag
 var ac=null;function note(f,d,v,ty){try{if(!ac){var C=window.AudioContext||window.webkitAudioContext;if(!C)return;ac=new C()}if(ac.state==="suspended")ac.resume();var o=ac.createOscillator(),g=ac.createGain(),s=ac.currentTime;o.type=ty||"triangle";o.frequency.value=f;g.gain.setValueAtTime(.0001,s);g.gain.exponentialRampToValueAtTime(v||.25,s+.02);g.gain.exponentialRampToValueAtTime(.0001,s+(d||.35));o.connect(g);g.connect(ac.destination);o.start(s);o.stop(s+(d||.35)+.05)}catch(e){}}
 // do mi sol do (4 boutons) ; do ré mi fa sol la (6 boutons)
 var PADS=[{c:"#ff5c7a",f:261.6,ic:"🍓"},{c:"#4a7cff",f:329.6,ic:"🫐"},{c:"#22a861",f:392,ic:"🍏"},{c:"#ffc400",f:523.3,ic:"🍋"},{c:"#9b6bff",f:293.7,ic:"🍇"},{c:"#ff8a3d",f:440,ic:"🍊"}];
-var MODES=[{id:"4",n:4,t:"4 fruits",d:"Pour commencer",ic:"🍓"},{id:"6",n:6,t:"6 fruits",d:"Plus de couleurs, plus difficile",ic:"🍇"},{id:"son",n:4,t:"Les yeux fermés",d:"Seulement le son, sans lumière",ic:"👂",blind:1}];
+var MODES=[{id:"4",n:4,t:"4 fruits",d:"Pour commencer",ic:"🍓"},{id:"6",n:6,t:"6 fruits",d:"Plus de couleurs, plus difficile",ic:"🍇"}];
 var M,seq=[],pos=0,listen=false,round=0,tok=0; // tok : annule les musiques d'une partie quittée
 function best(id){return parseInt(ls("perroquet_best_"+id+PK))||0}
 function menu(){tok++;$("menu").hidden=false;$("game").hidden=true;listen=false;
