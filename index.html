@@ -16,7 +16,7 @@
 <style>
 /* ---------- Design system (tactile) ----------
    Cibles tactiles >= 56px, bordures 3px, textes secondaires >= 16px. */
-:root{--bg:#f4f1ff;--card:#fff;--ink:#22204a;--soft:#5f5b8a;--line:#d9d3f3;--fr:#22a861;--math:#4a7cff;--de:#ff5c7a;--lo:#9b6bff;--jx:#ff8a3d;--mu:#13a8a8;--me:#d94fc4;--star:#ffb800;--ok:#22a861;--ko:#e5484d;
+:root{--bg:#f4f1ff;--card:#fff;--ink:#22204a;--soft:#5f5b8a;--line:#d9d3f3;--fr:#22a861;--math:#4a7cff;--de:#ff5c7a;--lo:#9b6bff;--jx:#ff8a3d;--mu:#13a8a8;--me:#d94fc4;--geo:#c08a1e;--star:#ffb800;--ok:#22a861;--ko:#e5484d;
  --tap:56px;--r:20px;--bw:3px;box-sizing:border-box}
 @media (prefers-color-scheme:dark){:root{--bg:#16152b;--card:#232142;--ink:#f2f0ff;--soft:#b3afdb;--line:#3d3a68}}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -36,7 +36,7 @@ h1{margin:0;font-size:34px;font-weight:700;line-height:1.15}
 .tile:active{transform:translateY(4px);box-shadow:0 3px 0 rgba(0,0,0,.18)}
 .tile .ic{font-size:46px;line-height:1}
 .tile small{display:block;font-size:18px;font-weight:500;opacity:.95;margin-top:2px}
-.fr{background:var(--fr)}.math{background:var(--math)}.lo{background:var(--lo)}.jx{background:var(--jx)}.mu{background:var(--mu)}.de{background:var(--de)}.me{background:var(--me)}
+.fr{background:var(--fr)}.math{background:var(--math)}.lo{background:var(--lo)}.jx{background:var(--jx)}.mu{background:var(--mu)}.de{background:var(--de)}.me{background:var(--me)}.geo{background:var(--geo)}
 
 .game{display:flex;align-items:center;gap:16px;width:100%;min-height:96px;border:var(--bw) solid var(--line);background:var(--card);color:var(--ink);border-radius:24px;padding:16px 18px;font:700 24px "Fredoka",sans-serif;text-align:left;cursor:pointer;box-shadow:0 5px 0 var(--line)}
 .game:active{transform:translateY(3px);box-shadow:0 2px 0 var(--line)}
@@ -358,6 +358,7 @@ body.rw-shop #purse{display:none!important}
     <button class="tile de" data-go="allemand"><span class="ic">🇩🇪</span><span>Allemand<small>Der · Die · Das, mots en images, écrire</small></span></button>
     <button class="tile lo" data-go="logique"><span class="ic">🧩</span><span>Logique<small>Code secret, petit robot</small></span></button>
     <button class="tile me" data-go="memoire"><span class="ic">🧠</span><span>Mémoire<small>Memory, liste des courses</small></span></button>
+    <button class="tile geo" data-go="geo"><span class="ic">🌍</span><span>Géographie<small>Retrouve le drapeau</small></span></button>
     <button class="tile mu" data-go="musique"><span class="ic">🎵</span><span>Musique<small>Trouve la note</small></span></button>
     <button class="tile jx" data-go="jeux"><span class="ic">🎲</span><span>Jeux<small>Morpion, jeux de la boutique 🛍️</small></span></button>
   </div>
@@ -406,6 +407,13 @@ body.rw-shop #purse{display:none!important}
   <div class="mid">
     <button class="game" data-play="memory"><span class="ic">🃏</span><span>Memory<small>Retrouve les paires : images ou mots allemands</small></span></button>
     <button class="game" data-play="courses"><span class="ic">🧺</span><span>Die Einkaufsliste<small>Écoute la liste des courses en allemand</small></span></button>
+  </div>
+</section>
+
+<section class="view" id="v-geo">
+  <div class="top"><button class="btn icon-btn" data-back="1" aria-label="Retour"><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 4.5 8.5 12l7 7.5"/></svg></button><h2 class="ttl">🌍 Géographie</h2><span class="purse" style="flex:none"><span class="st">⭐ <span class="nst">0</span></span></span></div>
+  <div class="mid">
+    <button class="game" data-play="drapeau"><span class="ic">🇪🇺</span><span>Retrouve le drapeau<small>Écoute le pays et touche son drapeau</small></span></button>
   </div>
 </section>
 
@@ -753,6 +761,7 @@ var GAMES={
  boucles:{t:"Le robot qui répète",app:"robot",start:2,subj:"logique",eco:"boucles"},
  reparateur:{t:"Le robot réparateur",app:"robot",start:3,subj:"logique",eco:"reparateur"},
  note:{t:"Trouve la note",app:"musique",subj:"musique",eco:"note"},
+ drapeau:{t:"Retrouve le drapeau",app:"drapeau",subj:"geo",eco:"drapeau"},
  memory:{t:"Memory",app:"memory",subj:"memoire",eco:"memory",luck:1}, // luck : jeu en partie de hasard → pas de série 🔥, étoiles à la fin de la partie
  courses:{t:"Die Einkaufsliste",app:"courses",subj:"memoire",eco:"courses"},
  morpion:{t:"Morpion",app:"morpion",subj:"jeux"},
@@ -860,7 +869,7 @@ function money(v,p){p=p||prof();v=r2(v);return v.toLocaleString("fr-FR",v%1?{min
    Les jeux envoient {type:"answer", game, ok, diff, q} à chaque réponse.
    Points = P(jeu) × difficulté × palier de série (×1, ×2 dès 5, ×3 dès 10) × qualité ; 10 points = 1 ⭐.
    Barème : objectif (min/jour) × 7 jours ≈ autant d'étoiles = maximum €/semaine ; le surplus est reporté. */
-var ECON={P:{calcul:.7,telephone:.9,dde:.5,fdw:.5,quique:1.1,phrase:1.1,note:.5,code:7,robot:5,boucles:6,reparateur:4,chenille:.8,memory:1,courses:2.5,conj:.8,sdw:1.1},PTS:10};
+var ECON={P:{calcul:.7,telephone:.9,dde:.5,fdw:.5,quique:1.1,phrase:1.1,note:.5,code:7,robot:5,boucles:6,reparateur:4,chenille:.8,memory:1,courses:2.5,conj:.8,sdw:1.1,drapeau:.5},PTS:10};
 function tierOf(st){return st>=10?3:st>=5?2:1}
 function pad(n){return(n<10?"0":"")+n}
 function dkey(d){d=d||new Date();return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())}
@@ -924,7 +933,7 @@ function recordStat(m){if(!GAMES[cur])return;var p=prof(),G=stG(p.id,cur),D=stDa
   var ks=Object.keys(G.it);if(ks.length>400){ks.sort(function(a,b){return G.it[a][2]<G.it[b][2]?-1:1});ks.slice(0,ks.length-400).forEach(function(x){delete G.it[x]})}}
  stSave(p.id)}
 var RS={pid:null,per:7};
-var RDESC={quique:"phrases justes du premier coup",phrase:"mots bien écrits du premier coup",calcul:"opérations justes du premier coup",telephone:"nombres composés justes du premier coup",article:"articles justes du premier coup",mot:"mots trouvés du premier coup",code:"codes trouvés en 5 essais ou moins",robot:"programmes réussis (chaque essai raté compte)",boucles:"programmes réussis (chaque essai raté compte)",reparateur:"programmes réparés (chaque essai raté compte)",chenille:"perles trouvées du premier coup",conj:"verbes bien écrits du premier coup",schreib:"mots bien écrits du premier coup (avec l'article)",lerne:"mots reconnus du premier coup (image → mot)",nombre:"nombres bien dits du premier coup (un nombre mal compris par le micro ne compte pas)",memory:"paires trouvées sans erreur de mémoire (une erreur = la carte jumelle avait déjà été vue)",courses:"listes retenues en entier",note:"notes reconnues du premier coup"};
+var RDESC={quique:"phrases justes du premier coup",phrase:"mots bien écrits du premier coup",calcul:"opérations justes du premier coup",telephone:"nombres composés justes du premier coup",article:"articles justes du premier coup",mot:"mots trouvés du premier coup",code:"codes trouvés en 5 essais ou moins",robot:"programmes réussis (chaque essai raté compte)",boucles:"programmes réussis (chaque essai raté compte)",reparateur:"programmes réparés (chaque essai raté compte)",chenille:"perles trouvées du premier coup",conj:"verbes bien écrits du premier coup",schreib:"mots bien écrits du premier coup (avec l'article)",drapeau:"drapeaux trouvés du premier coup",lerne:"mots reconnus du premier coup (image → mot)",nombre:"nombres bien dits du premier coup (un nombre mal compris par le micro ne compte pas)",memory:"paires trouvées sans erreur de mémoire (une erreur = la carte jumelle avait déjà été vue)",courses:"listes retenues en entier",note:"notes reconnues du premier coup"};
 function rKind(g,k){if(g==="calcul")return{add:"Additions",sub:"Soustractions",comp:"Compléments"}[k]||k;if(g==="telephone")return k+" à "+(+k+9);if(g==="mot")return"Leçon "+String(k).slice(1);return k}
 function rCls(o,t){if(!t)return"";var x=o/t;return x>=.9?"g":x>=.75?"g":x>=.6?"y":"r"}
 function rVerdict(o,t){if(t<10)return'<span class="rs-v n">Peu de réponses</span>';var x=o/t;
@@ -1068,7 +1077,7 @@ var PUNIT={min:"min",ok:"réussites",games:"parties"};
 // Une « partie » de parcours a à peu près la même durée partout (3 à 5 min) : [nombre, ce qu'on compte, libellé]
 // "q" = questions (chaque réponse, juste ou non), "round" = fins de manche envoyées par le jeu (roundEnd)
 var PART={calcul:[20,"q","opérations"],telephone:[10,"q","nombres"],article:[20,"q","mots"],mot:[20,"q","mots"],schreib:[10,"q","mots"],lerne:[12,"q","mots"],
- quique:[15,"q","phrases"],phrase:[15,"q","phrases"],conj:[12,"q","verbes"],note:[20,"q","notes"],chenille:[15,"q","perles"],courses:[3,"q","listes"],
+ quique:[15,"q","phrases"],phrase:[15,"q","phrases"],conj:[12,"q","verbes"],note:[20,"q","notes"],drapeau:[10,"q","drapeaux"],chenille:[15,"q","perles"],courses:[3,"q","listes"],
  code:[1,"round","code"],robot:[3,"round","niveaux"],boucles:[3,"round","niveaux"],reparateur:[3,"round","niveaux"],memory:[1,"round","partie"],
  morpion:[3,"round","manches"],bulles:[1,"round","partie"],glissant:[3,"round","niveaux"],allumettes:[2,"round","manches"],pizzeria:[3,"round","commandes"],
  tuyaux:[2,"round","niveaux"],perroquet:[2,"round","parties"],quatre:[1,"round","partie"],ocean:[1,"round","partie"]};
@@ -1374,7 +1383,7 @@ function acc(o,t){return t?Math.round(o/t*100)+" %":"—"}
 /* ---------- 📊 Bilan (fiche profil) : épuré, à la demande de l'utilisateur ----------
    1. temps par jeu sur la période (jeux disponibles seulement : pas les jeux de la boutique non débloqués), barres défilant à l'horizontale ;
    2. réussite du premier coup par matière (courbes), puis compétences = catégories des réponses (ou le jeu entier), classées Acquis / En cours / À travailler. */
-var SUBJ=[["maths","Maths","#4a7cff"],["allemand","Allemand","#ff5c7a"],["musique","Musique","#13a8a8"],["logique","Logique","#9b6bff"],["francais","Français","#22a861"],["memoire","Mémoire","#d94fc4"],["jeux","Jeux","#ff8a3d"]]; // ordre validé (couleurs distinctes, daltonisme compris)
+var SUBJ=[["maths","Maths","#4a7cff"],["allemand","Allemand","#ff5c7a"],["musique","Musique","#13a8a8"],["logique","Logique","#9b6bff"],["francais","Français","#22a861"],["memoire","Mémoire","#d94fc4"],["geo","Géographie","#c08a1e"],["jeux","Jeux","#ff8a3d"]]; // ordre validé (couleurs distinctes, daltonisme compris)
 var SUBJC={};SUBJ.forEach(function(x){SUBJC[x[0]]=x});
 var GICON={};document.querySelectorAll("[data-play]").forEach(function(b){var i=b.querySelector(".ic");if(i)GICON[b.dataset.play]=i.textContent});
 var BL={per:7,hi:null};

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Retrouve le drapeau</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#fbf6ea;--fg:#2b2440;--mut:#6c6487;--card:#fff;--bd:#eadfc8;--geo:#c08a1e;--ok:#22a861;--ko:#e5484d;box-sizing:border-box}
+@media (prefers-color-scheme:dark){:root{--bg:#1d1a2b;--fg:#f3effa;--mut:#b4abcc;--card:#2a2640;--bd:#3d3758}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--fg);font-family:"Fredoka",system-ui,sans-serif;user-select:none}
+button{font-family:inherit;touch-action:manipulation;cursor:pointer}
+[hidden]{display:none!important}
+#inner{position:fixed;inset:0;max-width:560px;margin:0 auto;padding:12px 14px calc(16px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:16px}
+#ask{display:flex;align-items:center;gap:12px;background:var(--card);border:3px solid var(--bd);border-radius:22px;padding:10px 12px}
+#ear{flex:none;width:64px;height:64px;border:0;border-radius:18px;background:var(--geo);color:#fff;font-size:30px;box-shadow:0 4px 0 #8a6210}
+#name{flex:1;font-size:min(8vw,32px);font-weight:700;white-space:nowrap;overflow:hidden}
+#grid{flex:1;min-height:0;display:grid;grid-template-columns:1fr 1fr;gap:14px;align-content:center}
+.fl{aspect-ratio:3/2;border:4px solid var(--bd);border-radius:16px;background:var(--card);padding:6px;display:flex;align-items:center;justify-content:center;position:relative}
+.fl svg{width:100%;height:100%;border-radius:6px;box-shadow:0 0 0 1px rgba(0,0,0,.18)}
+.fl.ok{border-color:var(--ok);box-shadow:0 0 0 4px var(--ok);animation:pop .4s}
+.fl.ko{border-color:var(--ko);opacity:.45;animation:shake .35s}
+.fl.ko::after{content:"✕";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:64px;font-weight:700;color:var(--ko)}
+@keyframes pop{50%{transform:scale(1.07)}}
+@keyframes shake{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+#cnt{text-align:center;color:var(--mut);font-size:18px;font-weight:600}
+#end{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;text-align:center}
+#end b{font-size:34px}#end p{font-size:22px;margin:0}
+#again{min-width:220px;height:72px;border:0;border-radius:22px;background:var(--geo);color:#fff;font-size:24px;font-weight:700;box-shadow:0 5px 0 #8a6210}
+</style>
+</head>
+<body>
+<div id="inner">
+  <div id="ask"><button id="ear" aria-label="Réécouter">🔊</button><span id="name"></span></div>
+  <div id="grid"></div>
+  <div id="cnt"></div>
+  <div id="end" hidden><b>🎉 Bravo !</b><p id="score"></p><button id="again">Encore</button></div>
+</div>
+<script>
+(function(){
+// Retrouve le drapeau (matière Géographie) : la voix nomme un pays de l'Union européenne, l'enfant touche son drapeau parmi 4.
+// Partie de 10 pays ; un message « answer » par pays (juste du premier coup), roundEnd en fin de partie. Drapeaux dessinés en SVG (simplifiés).
+var $=function(i){return document.getElementById(i)};
+function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
+function voiceFor(l){try{var v=speechSynthesis.getVoices().filter(function(v){return v.lang&&v.lang.indexOf(l)===0});return v.filter(function(x){return x.localService})[0]||v[0]||null}catch(e){return null}}
+function say(t){try{if(!window.speechSynthesis)return;speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.lang="fr-FR";var v=voiceFor("fr");if(v)u.voice=v;u.rate=.9;speechSynthesis.speak(u)}catch(e){}}
+var ac=null;function tone(f,t,d){try{if(!ac){var C=window.AudioContext||window.webkitAudioContext;if(!C)return;ac=new C()}if(ac.state==="suspended")ac.resume();var o=ac.createOscillator(),g=ac.createGain(),s=ac.currentTime+t;o.type="triangle";o.frequency.value=f;g.gain.setValueAtTime(.18,s);g.gain.exponentialRampToValueAtTime(.001,s+d);o.connect(g);g.connect(ac.destination);o.start(s);o.stop(s+d)}catch(e){}}
+function h3(a,b,c){return '<rect width="30" height="20" fill="'+c+'"/><rect width="30" height="13.34" fill="'+b+'"/><rect width="30" height="6.67" fill="'+a+'"/>'}
+function v3(a,b,c){return '<rect width="30" height="20" fill="'+c+'"/><rect width="20" height="20" fill="'+b+'"/><rect width="10" height="20" fill="'+a+'"/>'}
+function nordic(bg,cr,w,h,x,y,t){return '<svg viewBox="0 0 '+w+" "+h+'" preserveAspectRatio="none"><rect width="'+w+'" height="'+h+'" fill="'+bg+'"/><rect x="'+x+'" width="'+t+'" height="'+h+'" fill="'+cr+'"/><rect y="'+y+'" width="'+w+'" height="'+t+'" fill="'+cr+'"/></svg>'}
+function S(b){return '<svg viewBox="0 0 30 20" preserveAspectRatio="none">'+b+"</svg>"}
+var GR=(function(){var s="";for(var i=0;i<9;i++)s+='<rect y="'+(i*20/9)+'" width="30" height="'+(20/9+.05)+'" fill="'+(i%2?"#fff":"#0D5EAF")+'"/>';
+ var c=5*20/9;return s+'<rect width="'+c+'" height="'+c+'" fill="#0D5EAF"/><rect x="'+(c/2-1.1)+'" width="2.2" height="'+c+'" fill="#fff"/><rect y="'+(c/2-1.1)+'" width="'+c+'" height="2.2" fill="#fff"/>'})();
+// [nom affiché, phrase dite, drapeau]
+var C=[["la France","la France",S(v3("#0055A4","#fff","#EF4135"))],
+ ["l'Allemagne","l'Allemagne",S(h3("#000","#DD0000","#FFCE00"))],
+ ["l'Italie","l'Italie",S(v3("#009246","#fff","#CE2B37"))],
+ ["l'Espagne","l'Espagne",S('<rect width="30" height="20" fill="#AA151B"/><rect y="5" width="30" height="10" fill="#F1BF00"/>')],
+ ["le Portugal","le Portugal",S('<rect width="30" height="20" fill="#FF0000"/><rect width="12" height="20" fill="#006600"/><circle cx="12" cy="10" r="4.2" fill="#FFE000"/><circle cx="12" cy="10" r="2.6" fill="#fff"/><path d="M10.4 8h3.2v2.6a1.6 1.6 0 0 1-3.2 0z" fill="#D21034"/>')],
+ ["la Belgique","la Belgique",S(v3("#000","#FAE042","#ED2939"))],
+ ["les Pays-Bas","les Pays-Bas",S(h3("#AE1C28","#fff","#21468B"))],
+ ["le Luxembourg","le Luxembourg",S(h3("#EA141D","#fff","#51ADDA"))],
+ ["l'Autriche","l'Autriche",S(h3("#C8102E","#fff","#C8102E"))],
+ ["l'Irlande","l'Irlande",S(v3("#169B62","#fff","#FF883E"))],
+ ["la Grèce","la Grèce",S(GR)],
+ ["la Pologne","la Pologne",S('<rect width="30" height="20" fill="#DC143C"/><rect width="30" height="10" fill="#fff"/>')],
+ ["la Suède","la Suède",nordic("#006AA7","#FECC00",16,10,5,4,2)],
+ ["la Finlande","la Finlande",nordic("#fff","#003580",18,11,5,4,3)],
+ ["le Danemark","le Danemark",nordic("#C8102E","#fff",37,28,12,12,4)]];
+var N=10,deck,qi,good,cur,miss,busy;
+function start(){deck=shuffle(C).slice(0,N);qi=0;good=0;$("end").hidden=true;$("ask").hidden=$("grid").hidden=$("cnt").hidden=false;show()}
+function show(){cur=deck[qi];miss=false;busy=false;
+ var ch=shuffle([cur].concat(shuffle(C.filter(function(x){return x!==cur})).slice(0,3)));
+ $("grid").innerHTML=ch.map(function(x){return '<button class="fl" data-n="'+C.indexOf(x)+'" aria-label="drapeau">'+x[2]+"</button>"}).join("");
+ $("name").textContent=cur[0].charAt(0).toUpperCase()+cur[0].slice(1);$("cnt").textContent=(qi+1)+" / "+N;
+ setTimeout(function(){say(cur[1])},250)}
+$("ear").onclick=function(){if(cur)say(cur[1])};
+$("grid").addEventListener("click",function(e){var b=e.target.closest(".fl");if(!b||busy||b.classList.contains("ko"))return;var x=C[+b.dataset.n];
+ if(x===cur){busy=true;b.classList.add("ok");tone(660,0,.12);tone(880,.1,.2);say("Bravo !");if(!miss)good++;
+  try{if(parent!==window)parent.postMessage({type:"answer",game:"drapeau",ok:!miss,diff:1,k:"Union européenne",item:cur[0]},"*")}catch(er){}
+  setTimeout(function(){qi++;if(qi<N)show();else end()},1400)}
+ else{miss=true;b.classList.add("ko");tone(220,0,.25)}});
+function end(){$("ask").hidden=$("grid").hidden=$("cnt").hidden=true;$("end").hidden=false;$("score").textContent=good+" / "+N+" du premier coup";cur=null;
+ [523,659,784,1047].forEach(function(f,k){tone(f,k*.1,.25)});
+ try{if(parent!==window)parent.postMessage({type:"roundEnd"},"*")}catch(e){}}
+$("again").onclick=start;
+window.__D={cur:function(){return cur&&cur[0]},all:function(){return C.map(function(x){return x[2]})}};
+start();
+})();
+</script>
+</body>
+</html>
