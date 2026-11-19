@@ -1103,7 +1103,11 @@ function partOf(g){return PART[g]||[1,"round","partie"]}
 // autres découpages possibles d'une partie (st.s="r") : Téléphone = 1 numéro (fin d'appel = roundEnd), à la demande de l'utilisateur
 var PALT={telephone:[1,"round","numéro"]};
 function partOfSt(st){return st.s==="r"&&PALT[st.g]?PALT[st.g]:partOf(st.g)}
-function partSize(st){var P=partOfSt(st);return P[1]==="q"&&st.s&&st.s!=="r"?+st.s:P[0]}
+// tailles de partie proposées quand 5 / 10 / 20 ne collent pas au jeu : Lerne = séries de 6 mots + quiz ; conjugaison = 6 personnes par verbe ;
+// pays / continents / océans = tous une fois (5, 7, 5) ; drapeaux : 16 au niveau Facile ; courses : une liste ≈ 1 min
+var PSIZES={lerne:[6,12],conj:[6,12],pays:[5],continent:[7],oceans:[5],drapeau:[5,10],courses:[1,3,5]};
+function sOk(st){var Z=PSIZES[st.g]||[5,10,20];return st.s&&st.s!=="r"&&Z.indexOf(+st.s)>=0}
+function partSize(st){var P=partOfSt(st);return P[1]==="q"&&sOk(st)?+st.s:P[0]}
 function partTxt(g,n,P){P=P||partOf(g);n=n||P[0];return n>1?n+" "+P[2]:P[2]==="partie"?"":"1 "+P[2]}
 function unitTxt(st,n){if(st.t!=="games")return PUNIT[st.t];var t=partTxt(st.g,partSize(st),partOfSt(st));return(n>1?"parties":"partie")+(t?" de "+t:"")}
 function ensurePath(p){if(!p.path)p.path={on:false,steps:[],prog:{}};var P=p.path;P.steps.forEach(function(s){if(s.g==="calcul")s.g="addition"});
@@ -1119,7 +1123,8 @@ function pathCur(p){p=p||prof();return pathActive(p)&&!pathDone(p)?p.path.steps[
 // Pendant une étape du Parcours, on cache dans le jeu les boutons qui sortent du programme (niveau, mode, réglages, menu)
 var PATHHIDE={calcul:"#gear",telephone:"#gear",francais:"#mn",deutsch:"#mn",code:"#lvlb",robot:"#lvlb",chenille:"#lvlb,#mk",memory:"#setb",courses:"#lvlb",musique:"#gear",glissant:"#lvlb",pizzeria:"#lvlb",tuyaux:"#lvlb",ocean:"#setb",drapeau:"#lvlb",pays:"#lvlb",heure:"#lvlb"};
 var PATHREN="<script>setInterval(function(){['re','again'].forEach(function(i){var b=document.getElementById(i);if(b&&b.textContent!=='▶ Partie suivante')b.textContent='▶ Partie suivante'})},300)<\/script>";
-function pathHideCss(k,g){if(!pathIsCur(k))return"";return pathHideCss0(g)+PATHREN}
+function pathHideCss(k,g){if(!pathIsCur(k))return"";var c=pathCur(),N=c.t==="games"&&partOfSt(c)[1]==="q"?partSize(c):0;
+ return pathHideCss0(g)+PATHREN+(N?"<script>window.PATHN="+N+"<\/script>":"")} // PATHN : le jeu fait des parties de la taille choisie dans le parcours
 function pathHideCss0(g){var sel=PATHHIDE[g.app];if(!sel||(g.app==="francais"&&g.start===5))return"<script>window.PATHMODE=1<\/script>";
  return"<style>"+sel+"{display:none!important}</style><script>window.PATHMODE=1<\/script>"}
 // en jeu pendant le parcours : pas de retour (ni bouton ←, ni retour du téléphone) tant que l'étape n'est pas finie ou que « Étape réussie » est affichée
@@ -1138,9 +1143,9 @@ function pathAdd(kind,n){var p=prof(),c=pathCur(p);if(!c||c.g!==cur||c.t!==kind)
  if(pr.c>=pathGoal(c)){pr.i++;pr.c=0;pr.q=0;pathProg(p);saveP();renderPathbar();pathStepDone(p)}}
 function pathStepDone(p){var nx=pathCur(p),P=p.path;$("pd-ic").textContent=nx?"✅":"🎉";$("pd-t").textContent=nx?"Étape réussie !":"Parcours terminé !";
  $("pd-h").textContent=nx?"Étape "+(P.prog.i+1)+" / "+P.steps.length+" : "+GAMES[nx.g].t:"Tu peux jouer à ce que tu veux.";
- $("pd-go").textContent=nx?"▶ Étape suivante":"🏠 Retour à l'accueil";$("pathdone").hidden=false;updPback();pathFreeze()}
+ $("pd-go").textContent=nx?"▶ Étape suivante":"🏠 Retour à l'accueil";$("pathdone").hidden=false;updPback();freezeGame()}
 /* étape finie : le jeu s'arrête (plus de question suivante ni de voix derrière la fenêtre) */
-function pathFreeze(){if(!GAMES[cur])return;loadTok++;var f=$("frame");try{f.contentWindow&&f.contentWindow.speechSynthesis&&f.contentWindow.speechSynthesis.cancel()}catch(e){}try{window.speechSynthesis&&speechSynthesis.cancel()}catch(e){}if(f.hasAttribute("srcdoc"))setFrame(null)}
+function freezeGame(){if(!GAMES[cur])return;loadTok++;var f=$("frame");try{f.contentWindow&&f.contentWindow.speechSynthesis&&f.contentWindow.speechSynthesis.cancel()}catch(e){}try{window.speechSynthesis&&speechSynthesis.cancel()}catch(e){}if(f.hasAttribute("srcdoc"))setFrame(null)}
 $("pd-go").onclick=function(){$("pathdone").hidden=true;updPback();var nx=pathCur();
  if(!nx){if(GAMES[cur]){var d=depth();if(d>1)history.go(1-d);else{history.replaceState({d:1,r:""},"",url(""));show("")}}return} // parcours terminé : retour à l'accueil
  if(nx.g===cur){var c=cur;cur=null;show(c);return}if(GAMES[cur]){back();setTimeout(function(){go(nx.g)},350)}else go(nx.g)};
@@ -1175,7 +1180,7 @@ function dayLeft(p){p=p||prof();ensureEcon(p);var D=p.daily,b=D.bonus&&D.bonus.d
 function dayMark(p){var D=p.daily;return dkey()+"|"+(D.bonus&&D.bonus.d===dkey()?D.bonus.sec:0)+"|"+D.min+"|"+dayRs(p)}
 function dayOver(p){p=p||prof();return dayOn(p)&&(dayLeft(p)<=0||p.daily.done===dayMark(p))}
 var dayUp=false,dayT=null,dayInGame=false;
-function endDay(){clearTimeout(dayT);dayT=null;if(!GAMES[cur])return;saveP();showDayOver(true)}
+function endDay(){clearTimeout(dayT);dayT=null;if(!GAMES[cur])return;saveP();freezeGame();showDayOver(true)}
 function showDayOver(inGame){dayInGame=inGame;$("dayover").hidden=false}
 $("do-ok").onclick=function(){$("dayover").hidden=true;dayUp=false;if(dayInGame)back();renderLocks()};
 $("do-parent").onclick=function(){$("dayover").hidden=true;checkCode(function(){var p=prof(),D=p.daily,b=D.bonus&&D.bonus.d===dkey()?D.bonus.sec:0;
@@ -1200,7 +1205,7 @@ setInterval(function(){if(!GAMES[cur]||document.hidden||Date.now()-lastAct>60000
  if(dayOn(p)&&!dayUp&&dayLeft(p)<=0){dayUp=true;p.daily.done=dayMark(p);saveP();toast("⏱️ C'est presque fini pour aujourd'hui : termine ton jeu !",3500);dayT=setTimeout(endDay,300000)}
  if(isPlay(cur,p)&&!timeUp&&playLeft(p)<=0){timeUp=true;toast("⏳ Le temps de jeu est fini : termine ta partie !",3500);graceT=setTimeout(endPlay,180000)}
  renderTime()},1000);
-function endPlay(){clearTimeout(graceT);graceT=null;if(!GAMES[cur]||!isPlay(cur))return;saveP();$("tu-txt").textContent="Tu pourras rejouer après "+mins(learnNeeded(prof()))+" min d'apprentissage.";$("timeup").hidden=false}
+function endPlay(){clearTimeout(graceT);graceT=null;if(!GAMES[cur]||!isPlay(cur))return;saveP();freezeGame();$("tu-txt").textContent="Tu pourras rejouer après "+mins(learnNeeded(prof()))+" min d'apprentissage.";$("timeup").hidden=false}
 $("tu-ok").onclick=function(){$("timeup").hidden=true;timeUp=false;back()};
 var lockKey=null;
 function showLockInfo(k){lockKey=k;$("li-txt").textContent=lockMsg(prof());$("lockinfo").hidden=false}
@@ -1473,9 +1478,10 @@ function renderRmode(p){renderPrize(p);ensureShop(p);$("p-rmode").innerHTML=RMOD
  $("p-gpend").innerHTML=p.shopPend.length?p.shopPend.map(function(x){return '<div class="row"><span style="font-size:26px">'+x.ic+'</span><span class="grow">'+esc(x.t)+'<small class="muted" style="display:block">'+new Date(x.d+"T12:00:00").toLocaleDateString("fr-FR")+'</small></span><button class="btn okb" data-give="'+x.id+'">✅ Donné</button></div>'}).join(""):'<div class="muted">Rien à remettre pour l\'instant.</div>'}
 $("p-rmode").addEventListener("click",function(e){var b=e.target.closest("[data-rm]");if(!b)return;upd(function(p){p.rmode=b.dataset.rm;p.reward=p.rmode==="shop"})});
 $("p-gpend").addEventListener("click",function(e){var b=e.target.closest("[data-give]");if(!b)return;upd(function(p){ensureShop(p);p.shopPend=p.shopPend.filter(function(x){return x.id!==b.dataset.give});(p.shopGiven||(p.shopGiven=[])).push(b.dataset.give);p.shopGiven=p.shopGiven.slice(-300)});toast("✅ Donné",1500)});
-function unitVal(st){return st.t==="games"&&st.s&&(partOf(st.g)[1]==="q"||st.s==="r")?"games:"+st.s:st.t}
+function unitVal(st){if(st.t!=="games")return st.t;if(st.s==="r"&&PALT[st.g])return"games:r";var P=partOf(st.g);if(P[1]!=="q")return"games";
+ return sOk(st)?"games:"+st.s:(PSIZES[st.g]||[5,10,20]).indexOf(P[0])>=0?"games:"+P[0]:"games"}
 function unitOpts(st){var P=partOf(st.g),o=[["min",PUNIT.min],["ok",PUNIT.ok]];
- if(P[1]==="q"){[5,10,20].forEach(function(n){o.push(["games:"+n,"parties de "+partTxt(st.g,n)])});if([5,10,20].indexOf(P[0])<0)o.push(["games","parties de "+partTxt(st.g)])}
+ if(P[1]==="q"){var Z=PSIZES[st.g]||[5,10,20];Z.forEach(function(n){o.push(["games:"+n,"parties de "+partTxt(st.g,n)])});if(Z.indexOf(P[0])<0)o.push(["games","parties de "+partTxt(st.g)])}
  else o.push(["games",unitTxt({t:"games",g:st.g},2)]);
  if(PALT[st.g])o.push(["games:r","parties d'"+partTxt(st.g,1,PALT[st.g])]);
  if(P[1]==="q"&&st.t==="games"&&!st.s&&[5,10,20].indexOf(P[0])>=0)o.forEach(function(x){if(x[0]==="games:"+P[0])x[0]="games"}); // taille par défaut = une des trois

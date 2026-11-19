@@ -93,7 +93,7 @@ var C=120,clock=$("clock");
 var T={h:12,m:0}; // heure affichée
 function hands(t){var ma=t.m*6,ha=((t.h%12)+t.m/60)*30;function set(id,a,r){var e=$(id),x=a*Math.PI/180;e.setAttribute("x2",C+r*Math.sin(x));e.setAttribute("y2",C-r*Math.cos(x))}set("hh",ha,52);set("mh",ma,70)} // la grande aiguille s'arrête avant les chiffres
 /* partie */
-var N=10,qs,qi,good,cur,miss,busy,mode;
+var N=window.PATHN||10,qs,qi,good,cur,miss,busy,mode;
 function start(){qs=[];var used={};for(var i=0;i<N;i++){var t,k=0;do{t=rt();k++}while(used[t.h+":"+t.m]&&k<20);used[t.h+":"+t.m]=1;qs.push({t:t,mode:i%2?"set":"read"})}
  qi=0;good=0;$("lvlb").textContent="Niveau : "+LV[level].t;$("end").hidden=true;["q","clockw","msg","cnt"].forEach(function(i){$(i).hidden=false});show()}
 function show(){var Q=qs[qi];cur=Q.t;mode=Q.mode;miss=0;busy=false;$("msg").textContent="";clock.classList.remove("ok","set");$("cnt").textContent=(qi+1)+" / "+N;

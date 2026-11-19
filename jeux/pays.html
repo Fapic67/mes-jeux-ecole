@@ -131,7 +131,7 @@ function draw(){var L=LV[level];map.style.background="";
 function paths(k){return Array.prototype.filter.call(map.querySelectorAll("path.e"),function(p){return p.dataset.k===k})}
 var deck,qi,good,cur,miss,busy;
 function cap(s){return s.charAt(0).toUpperCase()+s.slice(1)}
-function start(){draw();deck=shuffle(LV[level].p);qi=0;good=0;$("lvlb").textContent="Niveau : "+LV[level].t;
+function start(){draw();deck=shuffle(LV[level].p);if(window.PATHN)deck=deck.slice(0,window.PATHN);qi=0;good=0;$("lvlb").textContent="Niveau : "+LV[level].t;
  $("end").hidden=true;$("ask").hidden=$("mapw").hidden=$("cnt").hidden=$("msg").hidden=false;show()}
 function show(){cur=deck[qi];miss=0;busy=false;$("msg").textContent="";$("flag").hidden=true;fitName(cap(cur));$("cnt").textContent=(qi+1)+" / "+deck.length;setTimeout(function(){say(cur)},250)}
 $("ear").onclick=function(){if(cur)say(cur)};

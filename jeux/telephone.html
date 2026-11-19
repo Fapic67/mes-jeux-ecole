@@ -42,9 +42,9 @@ input{-webkit-user-select:text;user-select:text}
 <label><input type="checkbox" id="bs" style="width:auto;margin-right:8px">Favoriser une plage de nombres</label>
 <div id="bsf" style="display:flex;gap:8px;align-items:center;margin-top:6px;flex-wrap:wrap">De <input type="number" id="bmin" min="10" max="99" inputmode="numeric" style="width:64px"> à <input type="number" id="bmax" min="10" max="99" inputmode="numeric" style="width:64px"> : <input type="number" id="bpct" min="0" max="100" inputmode="numeric" style="width:64px"> %</div>
 </div>
-<div id="msg">Appuie sur Jouer !</div>
+<div id="msg">Écoute bien puis compose !</div>
 <div id="disp"></div>
-<button id="go">▶ Jouer</button>
+<button id="go" hidden>🔁 Répéter</button>
 <div id="pad"></div>
 <div id="lock" hidden><div class="box"><div id="lt"></div><input id="lp" type="password" inputmode="numeric" maxlength="4" pattern="[0-9]*" autocomplete="off"><div id="le"></div><div class="row"><button id="lc">Annuler</button><button id="lo">OK</button></div></div></div>
 <script>
@@ -77,7 +77,7 @@ function dictate(){
 function start(){
  if(busy)return;ctx();
  if(!window.speechSynthesis){msg("🔇 Pas de voix ici : ouvre le lien dans le navigateur du téléphone");return}
- $("set").hidden=true;stopAll();target=gen();entry="";render();colorKeys();playing=true;$("go").textContent="🔁 Répéter";msg("Écoute bien puis compose !");dictate()}
+ clearTimeout(autoT);$("set").hidden=true;stopAll();target=gen();entry="";render();colorKeys();playing=true;$("go").hidden=false;msg("Écoute bien puis compose !");dictate()}
 function repeat(){if(cur)say(spk(cur),null,.9)}
 function press(k){
  if(busy)return;dtmf(k);if(!playing)return;
@@ -89,16 +89,18 @@ function press(k){
 function del(){if(busy||!playing)return;if(waitMode&&entry.length<=base)return;entry=entry.slice(0,-1);render()}
 function ring(){for(var i=0;i<2;i++)tone([440,480],i*2.2,1.2,.1)}
 function busyTone(){for(var i=0;i<4;i++)tone([480,620],i,.5,.1)}
-function end(m){try{if(parent!==window)parent.postMessage({type:"roundEnd"},"*")}catch(e){}entry="";render();busy=false;playing=false;target="";$("go").textContent="▶ Jouer";msg(m)}
+function end(m){try{if(parent!==window)parent.postMessage({type:"roundEnd"},"*")}catch(e){}entry="";render();busy=false;playing=false;target="";$("go").hidden=true;msg(m);auto(2500)}
+/* pas de bouton Jouer : le numéro suivant part tout seul (sauf réglages ouverts) */
+var autoT=null;function auto(ms){clearTimeout(autoT);autoT=setTimeout(function(){if(!playing&&!busy&&$("set").hidden&&$("lock").hidden)start()},ms)}
 function call(){
  if(busy||!playing||!entry)return;ctx();busy=true;stopAll();msg("📞 Ça sonne…");
- if(entry===target){ring();setTimeout(function(){tone([900],0,.05,.2);wins++;ls("tel_wins",wins);var w=wins%10===0?(window.PRENOM?"Bravo "+window.PRENOM+" !":"Bravo champion !"):WIN[Math.floor(Math.random()*WIN.length)];msg("🎉 "+w+" +3 ⭐");say("Allô ? "+w,function(){end("Rejoue avec ▶ Jouer")},.85)},4600)}
- else{busyTone();setTimeout(function(){msg("📵 Occupé… Essaie encore !")},200);setTimeout(function(){tone([300],0,.15,.15);end("Appuie sur ▶ Jouer")},4200)}}
+ if(entry===target){ring();setTimeout(function(){tone([900],0,.05,.2);wins++;ls("tel_wins",wins);var w=wins%10===0?(window.PRENOM?"Bravo "+window.PRENOM+" !":"Bravo champion !"):WIN[Math.floor(Math.random()*WIN.length)];msg("🎉 "+w+" +3 ⭐");say("Allô ? "+w,function(){end("📞 Nouveau numéro…")},.85)},4600)}
+ else{busyTone();setTimeout(function(){msg("📵 Occupé… Essaie encore !")},200);setTimeout(function(){tone([300],0,.15,.15);end("📞 Nouveau numéro…")},4200)}}
 (function(){var p=$("pad"),h="";K.forEach(function(k){h+='<button data-k="'+k+'">'+k+'</button>'});h+='<button class="del" id="del">⌫</button><button class="call" id="call">📞</button>';p.innerHTML=h;
 p.addEventListener("click",function(e){var b=e.target.closest("button");if(b&&b.dataset.k)press(b.dataset.k)})})();
 $("del").onclick=del;$("call").onclick=call;
-$("go").onclick=function(){if(busy)return;ctx();if(playing)repeat();else start()};
-$("gear").onclick=function(){if(!$("set").hidden){$("set").hidden=true;return}if(busy)return;gate(function(){$("set").hidden=false})};
+$("go").onclick=function(){if(busy)return;ctx();if(playing)repeat()};
+$("gear").onclick=function(){if(!$("set").hidden){$("set").hidden=true;if(!playing)auto(400);return}if(busy)return;gate(function(){$("set").hidden=false})};
 $("mx").value=maxn;$("mv").textContent=maxn;$("bs").checked=boost;$("bmin").value=bmin;$("bmax").value=bmax;$("bpct").value=bpct;
 $("mx").oninput=function(){var v=parseInt(this.value);if(v>=10&&v<=99){maxn=v;$("mv").textContent=v;ls("tel_max",v)}};
 $("bs").onchange=function(){boost=this.checked;ls("tel_boost",boost?"1":"0")};
@@ -126,5 +128,6 @@ function numDone(){if(!numErr)answer(true);numErr=true}
 function gate(ok){try{if(parent!==window&&parent.hubGate){parent.hubGate(ok);return}}catch(e){}var m=ls("tel_lock");if(m==="wa"&&ls("tel_cred")){try{waGet(ok,function(){if(!playing)msg("🔒 Accès refusé")})}catch(e){if(!playing)msg("🔒 Accès refusé")}}else if(m==="pin")askPin(ok);else setupLock(ok)}
 render();
 // Bouton retour du téléphone : ferme d'abord le verrou ou les réglages
-window.hubBack=function(){var l=document.getElementById("lock"),s=document.getElementById("set");if(l&&!l.hidden){l.hidden=true;return true}if(s&&!s.hidden){s.hidden=true;return true}return false};
+window.hubBack=function(){var l=document.getElementById("lock"),s=document.getElementById("set");if(l&&!l.hidden){l.hidden=true;return true}if(s&&!s.hidden){s.hidden=true;if(!playing)auto(400);return true}return false};
+auto(500);
 </script></body></html>
