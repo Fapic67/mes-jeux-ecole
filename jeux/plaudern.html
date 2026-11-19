@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Plaudern mit Anna</title>
+<title>Unterhalte dich mit Anna</title>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#fff8ec;--fg:#2b2440;--mut:#6c6487;--card:#fff;--bd:#eadfc8;--de:#ff5c7a;--bot:#fff;--me:#dce5ef;--ok:#22a861;--ko:#e5484d;box-sizing:border-box}
@@ -19,7 +19,8 @@ button{font-family:inherit;touch-action:manipulation;cursor:pointer;color:var(--
 .m.me{align-self:flex-end;flex-direction:row-reverse}
 @keyframes in{from{opacity:0;transform:translateY(10px)}}
 .av{flex:none;width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;background:#cfe0ff;font-weight:700}
-.me .av{background:var(--de);color:#fff;font-size:22px}
+.me .av{background:var(--de);color:#fff;font-size:22px;overflow:hidden}
+.av img{width:100%;height:100%;object-fit:cover;display:block}
 .b{background:var(--bot);border:2px solid var(--bd);border-radius:20px 20px 20px 6px;padding:10px 14px;font-size:21px;line-height:1.35;font-weight:600}
 .me .b{background:var(--me);border-color:#c9d5e3;border-radius:20px 20px 6px 20px}
 .tools{display:flex;gap:8px;margin-top:8px}
@@ -59,7 +60,7 @@ button{font-family:inherit;touch-action:manipulation;cursor:pointer;color:var(--
 </div>
 <script>
 (function(){
-// Plaudern mit Anna (Allemand, à la demande de l'utilisateur) : une gentille dame, Anna, se présente et pose des questions à l'enfant (prénom, âge, où il habite…).
+// Unterhalte dich mit Anna (« Discute avec Anna », Allemand, à la demande de l'utilisateur) : une gentille dame, Anna, se présente et pose des questions à l'enfant (prénom, âge, où il habite…).
 // L'enfant répond en touchant dans l'ordre des étiquettes de mots qui composent la phrase ; plusieurs réponses justes possibles (« Ich habe einen Hund / eine Katze… »).
 // Prénom et âge = ceux du profil (window.PRENOM, window.AGE), sinon des données fictives. Un message « answer » par réponse (juste du premier coup), roundEnd à la fin.
 var $=function(i){return document.getElementById(i)};
@@ -69,6 +70,8 @@ function say(t,l){l=l||"de";try{if(!window.speechSynthesis)return;speechSynthesi
 var ac=null;function tone(f,t,d){try{if(!ac){var C=window.AudioContext||window.webkitAudioContext;if(!C)return;ac=new C()}if(ac.state==="suspended")ac.resume();var o=ac.createOscillator(),g=ac.createGain(),s=ac.currentTime+t;o.type="triangle";o.frequency.value=f;g.gain.setValueAtTime(.16,s);g.gain.exponentialRampToValueAtTime(.001,s+d);o.connect(g);g.connect(ac.destination);o.start(s);o.stop(s+d)}catch(e){}}
 function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;")}
 var NAME=(window.PRENOM||"").trim()||"Lena",INI=NAME.charAt(0).toUpperCase();
+// portrait du joueur = photo du profil (fiche profil), sinon son initiale (à la demande de l'utilisateur)
+var PHOTO=null;try{var pp=parent.prof&&parent.prof();if(pp&&pp.photo&&/^data:image\//.test(pp.photo))PHOTO=pp.photo}catch(e){}
 var NUM=["null","eins","zwei","drei","vier","fünf","sechs","sieben","acht","neun","zehn","elf","zwölf"];
 var AGE=+window.AGE>=3&&+window.AGE<=12?NUM[+window.AGE]:null; // âge du profil, sinon on choisit parmi plusieurs
 function pick(a,n){return shuffle(a).slice(0,n)}
@@ -96,7 +99,7 @@ var chat=$("chat");
 function scroll(){chat.scrollTop=chat.scrollHeight;requestAnimationFrame(function(){chat.scrollTop=chat.scrollHeight})}
 // la zone de réponse (étiquettes) change de taille à chaque question : on redescend en bas de la conversation
 if(window.ResizeObserver){var ro=new ResizeObserver(function(){chat.scrollTop=chat.scrollHeight});ro.observe(chat);ro.observe($("zone"))}
-function bubble(me,html){var d=document.createElement("div");d.className="m"+(me?" me":"");d.innerHTML='<div class="av">'+(me?esc(INI):"👩🏼")+'</div><div class="b">'+html+"</div>";chat.appendChild(d);scroll();return d}
+function bubble(me,html){var d=document.createElement("div");d.className="m"+(me?" me":"");d.innerHTML='<div class="av">'+(me?(PHOTO?'<img src="'+PHOTO+'" alt="">':esc(INI)):"👩🏼")+'</div><div class="b">'+html+"</div>";chat.appendChild(d);scroll();return d}
 function botSay(Q,pre){var d=bubble(false,'<span class="dots"><i></i><i></i><i></i></span>');busy=true;
  setTimeout(function(){var txt=(pre?pre+" ":"")+Q.q;
   d.querySelector(".b").innerHTML=esc(txt)+'<div class="tools"><button class="tde" aria-label="Wiederholen"><span>🔊</span></button></div>';
