@@ -1100,9 +1100,12 @@ var PART={calcul:[20,"q","opérations"],addition:[20,"q","additions"],soustracti
  tuyaux:[2,"round","niveaux"],perroquet:[2,"round","parties"],quatre:[1,"round","partie"],ocean:[1,"round","partie"]};
 function partOf(g){return PART[g]||[1,"round","partie"]}
 // taille d'une partie pour une étape : 5, 10 ou 20 questions au choix quand le jeu compte des questions (st.s), sinon la taille du jeu (à la demande de l'utilisateur)
-function partSize(st){var P=partOf(st.g);return P[1]==="q"&&st.s?+st.s:P[0]}
-function partTxt(g,n){var P=partOf(g);n=n||P[0];return n>1?n+" "+P[2]:P[2]==="partie"?"":"1 "+P[2]}
-function unitTxt(st,n){if(st.t!=="games")return PUNIT[st.t];var t=partTxt(st.g,partSize(st));return(n>1?"parties":"partie")+(t?" de "+t:"")}
+// autres découpages possibles d'une partie (st.s="r") : Téléphone = 1 numéro (fin d'appel = roundEnd), à la demande de l'utilisateur
+var PALT={telephone:[1,"round","numéro"]};
+function partOfSt(st){return st.s==="r"&&PALT[st.g]?PALT[st.g]:partOf(st.g)}
+function partSize(st){var P=partOfSt(st);return P[1]==="q"&&st.s&&st.s!=="r"?+st.s:P[0]}
+function partTxt(g,n,P){P=P||partOf(g);n=n||P[0];return n>1?n+" "+P[2]:P[2]==="partie"?"":"1 "+P[2]}
+function unitTxt(st,n){if(st.t!=="games")return PUNIT[st.t];var t=partTxt(st.g,partSize(st),partOfSt(st));return(n>1?"parties":"partie")+(t?" de "+t:"")}
 function ensurePath(p){if(!p.path)p.path={on:false,steps:[],prog:{}};var P=p.path;P.steps.forEach(function(s){if(s.g==="calcul")s.g="addition"});
  // Calcul malin scindé (à la demande de l'utilisateur) : une fois, l'étape Additions est suivie de Soustractions et Compléments (même unité, même nombre)
  if(!P.v3){P.v3=1;var i=-1;P.steps.forEach(function(s,k){if(s.g==="addition"&&i<0)i=k});
@@ -1126,10 +1129,10 @@ function pathIsCur(k,p){var c=pathCur(p);return !!(c&&c.g===k)}
 function pathLocked(k,p){var c=pathCur(p);return !!(c&&c.g!==k)}
 function pathGoal(st){return st.t==="min"?st.n*60:st.n}
 function pathLeft(p){var c=pathCur(p),pr=pathProg(p);if(!c)return"";var r=Math.max(0,pathGoal(c)-pr.c);
- if(c.t==="games"){var P=partOf(c.g),N=partSize(c);return "encore "+r+" partie"+(r>1?"s":"")+(N>1?" · "+(pr.q||0)+" / "+N+" "+P[2]:"")}
+ if(c.t==="games"){var P=partOfSt(c),N=partSize(c);return "encore "+r+" partie"+(r>1?"s":"")+(N>1?" · "+(pr.q||0)+" / "+N+" "+P[2]:"")}
  return c.t==="min"?"encore "+Math.max(1,Math.ceil(r/60))+" min":"encore "+r+" bonne"+(r>1?"s":"")+" réponse"+(r>1?"s":"")}
 // événement d'un jeu pour les étapes « parties » : on compte les questions ou les fins de manche, puis une partie toutes les N
-function pathEvt(kind){var c=pathCur();if(!c||c.g!==cur||c.t!=="games")return;var P=partOf(c.g),N=partSize(c);if(P[1]!==kind)return;var pr=pathProg(prof());pr.q=(pr.q||0)+1;
+function pathEvt(kind){var c=pathCur();if(!c||c.g!==cur||c.t!=="games")return;var P=partOfSt(c),N=partSize(c);if(P[1]!==kind)return;var pr=pathProg(prof());pr.q=(pr.q||0)+1;
  if(pr.q>=N){pr.q=0;pathAdd("games",1)}else renderPathbar()}
 function pathAdd(kind,n){var p=prof(),c=pathCur(p);if(!c||c.g!==cur||c.t!==kind)return;var pr=pathProg(p);pr.c+=n;
  if(pr.c>=pathGoal(c)){pr.i++;pr.c=0;pr.q=0;pathProg(p);saveP();renderPathbar();pathStepDone(p)}}
@@ -1468,10 +1471,11 @@ function renderRmode(p){renderPrize(p);ensureShop(p);$("p-rmode").innerHTML=RMOD
  $("p-gpend").innerHTML=p.shopPend.length?p.shopPend.map(function(x){return '<div class="row"><span style="font-size:26px">'+x.ic+'</span><span class="grow">'+esc(x.t)+'<small class="muted" style="display:block">'+new Date(x.d+"T12:00:00").toLocaleDateString("fr-FR")+'</small></span><button class="btn okb" data-give="'+x.id+'">✅ Donné</button></div>'}).join(""):'<div class="muted">Rien à remettre pour l\'instant.</div>'}
 $("p-rmode").addEventListener("click",function(e){var b=e.target.closest("[data-rm]");if(!b)return;upd(function(p){p.rmode=b.dataset.rm;p.reward=p.rmode==="shop"})});
 $("p-gpend").addEventListener("click",function(e){var b=e.target.closest("[data-give]");if(!b)return;upd(function(p){ensureShop(p);p.shopPend=p.shopPend.filter(function(x){return x.id!==b.dataset.give});(p.shopGiven||(p.shopGiven=[])).push(b.dataset.give);p.shopGiven=p.shopGiven.slice(-300)});toast("✅ Donné",1500)});
-function unitVal(st){return st.t==="games"&&st.s&&partOf(st.g)[1]==="q"?"games:"+st.s:st.t}
+function unitVal(st){return st.t==="games"&&st.s&&(partOf(st.g)[1]==="q"||st.s==="r")?"games:"+st.s:st.t}
 function unitOpts(st){var P=partOf(st.g),o=[["min",PUNIT.min],["ok",PUNIT.ok]];
  if(P[1]==="q"){[5,10,20].forEach(function(n){o.push(["games:"+n,"parties de "+partTxt(st.g,n)])});if([5,10,20].indexOf(P[0])<0)o.push(["games","parties de "+partTxt(st.g)])}
  else o.push(["games",unitTxt({t:"games",g:st.g},2)]);
+ if(PALT[st.g])o.push(["games:r","parties d'"+partTxt(st.g,1,PALT[st.g])]);
  if(P[1]==="q"&&st.t==="games"&&!st.s&&[5,10,20].indexOf(P[0])>=0)o.forEach(function(x){if(x[0]==="games:"+P[0])x[0]="games"}); // taille par défaut = une des trois
  return o}
 function renderPathAdm(p){var P=ensurePath(p),pr=pathProg(p);$("pa-on").checked=P.on;$("pa-opts").hidden=!P.on;
@@ -1483,7 +1487,7 @@ $("pa-add").onclick=function(){upd(function(p){var P=ensurePath(p),l=P.steps[P.s
 $("pa-rs").onclick=function(){upd(function(p){ensurePath(p).prog={d:dkey(),i:0,c:0,q:0}});toast("🧭 Parcours du jour remis à 0",1500)};
 $("pa-list").addEventListener("change",function(e){var r=e.target.closest("[data-i]"),f=e.target.dataset.f;if(!r||!f)return;var i=+r.dataset.i,v=e.target.value;
  upd(function(p){var st=ensurePath(p).steps[i];if(f==="n"){v=Math.max(1,Math.min(999,Math.round(+v)||1))}
-  if(f==="t"){var m=v.split(":");st.t=m[0];if(m[1])st.s=+m[1];else delete st.s;return}
+  if(f==="t"){var m=v.split(":");st.t=m[0];if(m[1])st.s=m[1]==="r"?"r":+m[1];else delete st.s;return}
   if(f==="g")delete st.s;st[f]=v})});
 $("pa-list").addEventListener("click",function(e){var b=e.target.closest("[data-a]"),r=e.target.closest("[data-i]");if(!b||!r)return;var i=+r.dataset.i;
  upd(function(p){var S=ensurePath(p).steps;if(b.dataset.a==="del")S.splice(i,1);else if(i>0){var t=S[i-1];S[i-1]=S[i];S[i]=t}})});
