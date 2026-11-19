@@ -31,7 +31,7 @@ button{font-family:inherit;touch-action:manipulation;cursor:pointer;color:var(--
 @keyframes dt{50%{opacity:.25;transform:translateY(-3px)}}
 #ans{min-height:68px;border:3px dashed var(--bd);border-radius:20px;padding:6px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:var(--card)}
 #ans.ko{border-color:var(--ko);animation:shake .4s}
-#ans:empty::before{content:"👆";font-size:24px;opacity:.5;padding-left:8px}
+.slot{min-width:64px;height:52px;border-bottom:4px solid var(--mut);opacity:.55;margin:0 2px} /* un trait par mot attendu */
 @keyframes shake{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
 #pool{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;min-height:60px}
 .t{min-height:56px;padding:0 16px;border:3px solid var(--bd);border-radius:16px;background:var(--card);font-size:22px;font-weight:700;box-shadow:0 4px 0 var(--bd);white-space:nowrap}
@@ -74,17 +74,17 @@ var AGE=+window.AGE>=3&&+window.AGE<=12?NUM[+window.AGE]:null; // âge du profil
 function pick(a,n){return shuffle(a).slice(0,n)}
 // q = question (allemand), fr = traduction, k = catégorie des résultats, a = réponses justes (un mot ou une liste de mots au choix), x = mots en trop
 function convo(){return[
- {q:"Hallo! Ich bin Anna. Wie heißt du?",fr:"Bonjour ! Je suis Anna. Comment tu t'appelles ?",k:"Se présenter",a:[["Ich","heiße",NAME]],x:["bin"]},
- {q:"Freut mich, "+NAME+"! Wie alt bist du?",fr:"Enchanté, "+NAME+" ! Quel âge as-tu ?",k:"L'âge",a:[["Ich","bin",AGE||pick(["fünf","sechs","sieben"],3),"Jahre","alt"]],x:["habe"]},
- {q:"Ich bin dreißig Jahre alt. Wie geht es dir?",fr:"Moi, j'ai trente ans. Comment vas-tu ?",k:"Comment ça va ?",a:[["Mir","geht","es",["gut","super"]]],x:["ich"]},
- {q:"Wo wohnst du?",fr:"Où habites-tu ?",k:"Où j'habite",a:[["Ich","wohne","in",["Frankreich","Deutschland"]]],x:["bin"]},
- {q:"Gehst du in die Schule?",fr:"Tu vas à l'école ?",k:"L'école",a:[["Ja,","ich","gehe","in","die","Schule"]],x:["der"]},
- {q:"Hast du Geschwister?",fr:"As-tu des frères et sœurs ?",k:"La famille",a:[["Ja,","ich","habe","einen","Bruder"],["Ja,","ich","habe","eine","Schwester"],["Nein,","ich","habe","keine","Geschwister"]],x:[]},
- {q:"Hast du ein Haustier?",fr:"As-tu un animal ?",k:"Les animaux",a:[["Ich","habe","einen","Hund"],["Ich","habe","eine","Katze"],["Ich","habe","kein","Haustier"]],x:[]},
- {q:"Was ist deine Lieblingsfarbe?",fr:"Quelle est ta couleur préférée ?",k:"Les couleurs",a:[["Meine","Lieblingsfarbe","ist",pick(["rot","blau","grün","gelb","rosa","lila"],3)]],x:["Mein"]},
- {q:"Was isst du gern?",fr:"Qu'est-ce que tu aimes manger ?",k:"Manger",a:[["Ich","esse","gern",pick(["Pizza","Nudeln","Äpfel","Schokolade","Pommes"],3)]],x:["trinke"]},
- {q:"Was spielst du gern?",fr:"À quoi aimes-tu jouer ?",k:"Jouer",a:[["Ich","spiele","gern",pick(["Fußball","Verstecken","Memory","Lego"],3)]],x:["esse"]},
- {q:"Das war schön, "+NAME+"! Ich muss jetzt gehen. Tschüss!",fr:"C'était super, "+NAME+" ! Je dois partir maintenant. Au revoir !",k:"Dire au revoir",a:[["Tschüss,","Anna!"]],x:["Hallo,"]}]}
+ {q:"Hallo! Ich bin Anna. Wie heißt du?",fr:"Bonjour ! Je suis Anna. Comment tu t'appelles ?",k:"Se présenter",a:[["Ich","heiße",NAME]],x:["bin","du","heißt"]},
+ {q:"Freut mich, "+NAME+"! Wie alt bist du?",fr:"Enchanté, "+NAME+" ! Quel âge as-tu ?",k:"L'âge",a:[["Ich","bin",AGE||pick(["fünf","sechs","sieben"],3),"Jahre","alt"]],x:["habe","bist","Jahr"]},
+ {q:"Ich bin dreißig Jahre alt. Wie geht es dir?",fr:"Moi, j'ai trente ans. Comment vas-tu ?",k:"Comment ça va ?",a:[["Mir","geht","es",["gut","super"]]],x:["ich","dir","bin"]},
+ {q:"Wo wohnst du?",fr:"Où habites-tu ?",k:"Où j'habite",a:[["Ich","wohne","in",["Frankreich","Deutschland"]]],x:["bin","wohnst","im"]},
+ {q:"Gehst du in die Schule?",fr:"Tu vas à l'école ?",k:"L'école",a:[["Ja,","ich","gehe","in","die","Schule"]],x:["der","gehst","im"]},
+ {q:"Hast du Geschwister?",fr:"As-tu des frères et sœurs ?",k:"La famille",a:[["Ja,","ich","habe","einen","Bruder"],["Ja,","ich","habe","eine","Schwester"],["Nein,","ich","habe","keine","Geschwister"]],x:["einer","keinen","hast"]},
+ {q:"Hast du ein Haustier?",fr:"As-tu un animal ?",k:"Les animaux",a:[["Ich","habe","einen","Hund"],["Ich","habe","eine","Katze"],["Ich","habe","kein","Haustier"]],x:["ein","keine","hast"]},
+ {q:"Was ist deine Lieblingsfarbe?",fr:"Quelle est ta couleur préférée ?",k:"Les couleurs",a:[["Meine","Lieblingsfarbe","ist",pick(["rot","blau","grün","gelb","rosa","lila"],3)]],x:["Mein","deine","sind"]},
+ {q:"Was isst du gern?",fr:"Qu'est-ce que tu aimes manger ?",k:"Manger",a:[["Ich","esse","gern",pick(["Pizza","Nudeln","Äpfel","Schokolade","Pommes"],3)]],x:["trinke","isst","spiele"]},
+ {q:"Was spielst du gern?",fr:"À quoi aimes-tu jouer ?",k:"Jouer",a:[["Ich","spiele","gern",pick(["Fußball","Verstecken","Memory","Lego"],3)]],x:["esse","spielst","gehe"]},
+ {q:"Das war schön, "+NAME+"! Ich muss jetzt gehen. Tschüss!",fr:"C'était super, "+NAME+" ! Je dois partir maintenant. Au revoir !",k:"Dire au revoir",a:[["Tschüss,","Anna!"]],x:["Hallo,","Danke,"]}]}
 var REACT=["Super!","Toll!","Prima!","Schön!","Klasse!"];
 // toutes les phrases justes (les listes de mots au choix sont développées)
 function sentences(Q){var out=[];Q.a.forEach(function(t){var acc=[[]];t.forEach(function(w){var o=Array.isArray(w)?w:[w],n=[];acc.forEach(function(s){o.forEach(function(v){n.push(s.concat(v))})});acc=n});out=out.concat(acc)});return out}
@@ -105,10 +105,11 @@ function botSay(Q,pre){var d=bubble(false,'<span class="dots"><i></i><i></i><i><
 function render(){$("ans").className="";var S=sentences(cur),nx=null;
  if(miss>=2){S.forEach(function(s){if(nx===null&&placed.every(function(w,i){return s[i]===w})&&s.length>placed.length)nx=s[placed.length]})} // après 2 erreurs : le mot suivant clignote
  var hinted=false;
- $("ans").innerHTML=placed.map(function(w,i){return '<button class="t" data-a="'+i+'">'+esc(w)+"</button>"}).join("");
+ var L=sentences(cur)[0].length; // toutes les réponses justes d'une question ont le même nombre de mots
+ $("ans").innerHTML=placed.map(function(w,i){return '<button class="t" data-a="'+i+'">'+esc(w)+"</button>"}).join("")+new Array(Math.max(0,L-placed.length)+1).join('<span class="slot"></span>');
  $("pool").innerHTML=pool.map(function(w,i){var h=!hinted&&nx!==null&&w===nx;if(h)hinted=true;return '<button class="t'+(h?" hint":"")+'" data-p="'+i+'">'+esc(w)+"</button>"}).join("");
  $("ok").disabled=!placed.length||busy;scroll()}
-$("pool").addEventListener("click",function(e){var b=e.target.closest("[data-p]");if(!b||busy)return;placed.push(pool.splice(+b.dataset.p,1)[0]);tone(520,0,.06);render()});
+$("pool").addEventListener("click",function(e){var b=e.target.closest("[data-p]");if(!b||busy||placed.length>=sentences(cur)[0].length)return;placed.push(pool.splice(+b.dataset.p,1)[0]);tone(520,0,.06);render()});
 $("ans").addEventListener("click",function(e){var b=e.target.closest("[data-a]");if(!b||busy)return;pool.push(placed.splice(+b.dataset.a,1)[0]);render()});
 function answer(ok){try{if(parent!==window)parent.postMessage({type:"answer",game:"plaudern",ok:ok,diff:1,k:cur.k,item:cur.q.split(NAME).join("…")},"*")}catch(e){}}
 $("ok").onclick=function(){if(busy||!placed.length)return;
