@@ -1163,7 +1163,9 @@ function lockMsg(p){var d=today(p),r=p.play.ratio,k=Math.round(4*r/(1-r)*10)/10;
 function dayOn(p){p=p||prof();ensureEcon(p);return !!(!p.admin&&p.daily.on)&&!(pathActive(p)&&!pathDone(p))}
 // daily.rs = {d, sec} : temps déjà compté au moment d'un « Réinitialiser » par un parent (le compteur du jour repart de 0, le bilan garde le vrai temps)
 function dayRs(p){var r=p.daily.rs;return r&&r.d===dkey()?r.sec:0}
-function dayUsed(p){p=p||prof();ensureEcon(p);return Math.max(0,today(p).sec-dayRs(p))}
+function dayPs(p){var r=p.daily.rs,d=today(p);return (d.ps||0)-(r&&r.d===dkey()?r.ps||0:0)} // secondes de Parcours depuis le début du jour (ou la remise à 0)
+// le temps passé en mode Parcours ne compte pas dans la limite « Temps par jour » (à la demande de l'utilisateur)
+function dayUsed(p){p=p||prof();ensureEcon(p);return Math.max(0,today(p).sec-dayRs(p)-dayPs(p))}
 function dayLeft(p){p=p||prof();ensureEcon(p);var D=p.daily,b=D.bonus&&D.bonus.d===dkey()?D.bonus.sec:0;return D.min*60+b-dayUsed(p)}
 function dayMark(p){var D=p.daily;return dkey()+"|"+(D.bonus&&D.bonus.d===dkey()?D.bonus.sec:0)+"|"+D.min+"|"+dayRs(p)}
 function dayOver(p){p=p||prof();return dayOn(p)&&(dayLeft(p)<=0||p.daily.done===dayMark(p))}
@@ -1188,7 +1190,7 @@ function renderTime(){var t=$("ptime");updPback();
  if(GAMES[cur]&&dayOn()&&(dayUp||dayLeft()<300)){t.hidden=false;var dl=dayLeft();t.className=dayUp?"up":"warn";t.textContent=dayUp?"⏱️ Termine ton jeu !":"⏱️ "+fmtClock(dl);return}
  var lim=GAMES[cur]&&isPlay(cur);t.hidden=!lim;if(!lim)return;var l=playLeft();
  t.className=timeUp?"up":l<60?"warn":"";t.textContent=timeUp?"⏳ Termine ta partie !":"⏳ "+fmtClock(l)}
-setInterval(function(){if(!GAMES[cur]||document.hidden||Date.now()-lastAct>60000)return;var p=prof(),d=today(p);d.sec++;if(isPlay(cur,p))d.play++;else d.learn++;stDay(stG(p.id,cur)).sec++;pathAdd("min",1);
+setInterval(function(){if(!GAMES[cur]||document.hidden||Date.now()-lastAct>60000)return;var p=prof(),d=today(p);d.sec++;if(pathActive(p)&&!pathDone(p))d.ps=(d.ps||0)+1; /* temps passé en Parcours : hors limite « Temps par jour » */if(isPlay(cur,p))d.play++;else d.learn++;stDay(stG(p.id,cur)).sec++;pathAdd("min",1);
  if(++tick%15===0){saveP();stSave(p.id)}
  if(dayOn(p)&&!dayUp&&dayLeft(p)<=0){dayUp=true;p.daily.done=dayMark(p);saveP();toast("⏱️ C'est presque fini pour aujourd'hui : termine ton jeu !",3500);dayT=setTimeout(endDay,300000)}
  if(isPlay(cur,p)&&!timeUp&&playLeft(p)<=0){timeUp=true;toast("⏳ Le temps de jeu est fini : termine ta partie !",3500);graceT=setTimeout(endPlay,180000)}
@@ -1490,7 +1492,7 @@ function renderDaily(p){ensureEcon(p);var D=p.daily;$("dl-on").checked=D.on;
  $("dl-txt").textContent="Aujourd'hui : "+fmtMin(dayUsed(p))+" utilisées"+(D.on?" · reste "+fmtMin(Math.max(0,dayLeft(p))):"")+"."}
 $("dl-on").onchange=function(){var v=this.checked;upd(function(p){ensureEcon(p);p.daily.on=v})};
 // champ en minutes (1 à 600), enregistré quand on quitte le champ ou valide
-$("dl-rs").onclick=function(){upd(function(p){ensureEcon(p);p.daily.rs={d:dkey(),sec:today(p).sec};if(p.daily.bonus&&p.daily.bonus.d===dkey())p.daily.bonus={d:dkey(),sec:0}});dayUp=false;clearTimeout(dayT);renderLocks();toast("⏱️ Temps du jour remis à 0",1600)};
+$("dl-rs").onclick=function(){upd(function(p){ensureEcon(p);p.daily.rs={d:dkey(),sec:today(p).sec,ps:today(p).ps||0};if(p.daily.bonus&&p.daily.bonus.d===dkey())p.daily.bonus={d:dkey(),sec:0}});dayUp=false;clearTimeout(dayT);renderLocks();toast("⏱️ Temps du jour remis à 0",1600)};
 // vide = illimité (daily.on faux) ; sinon 1 à 600 minutes
 $("dl-min").onchange=function(){var t=this.value.trim();if(t===""){upd(function(p){ensureEcon(p);p.daily.on=false});toast("⏱️ Pas de limite par jour",1400);return}
  var v=Math.round(+t);if(!(v>=1&&v<=600)){toast("Entre 1 et 600 minutes, ou vide pour illimité",2000);var D=E().daily;this.value=D.on?D.min:"";return}

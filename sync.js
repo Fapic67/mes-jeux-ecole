@@ -31,7 +31,7 @@ function add(a,b,sg){ // a + sg*b (nombres additionnés, textes : max, tableaux 
  return a}
 function clone(x){return x==null?x:JSON.parse(JSON.stringify(x))}
 function hash(s){var h=5381;for(var i=0;i<s.length;i++)h=(h*33+s.charCodeAt(i))|0;return h+":"+s.length}
-var ADDF=["st","ok","tot","sec","learn","play"];
+var ADDF=["st","ok","tot","sec","learn","play","ps"];
 
 /* --- part de ce téléphone --- */
 var LOCALP=["stars","econ","shopBought","shopPend","shopLog","shopGiven"]; // la photo du profil est synchronisée (demande de l'utilisateur) // champs d'un profil qui ne sont pas des « réglages »
