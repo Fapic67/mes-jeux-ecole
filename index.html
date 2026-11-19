@@ -391,6 +391,7 @@ body.rw-shop #purse{display:none!important}
     <button class="game" data-play="lerne"><span class="ic">🆕</span><span>Lerne neue Wörter<small>Regarde, écoute et retiens</small></span></button>
     <button class="game" data-play="mot"><span class="ic">🖼️</span><span>Finde das Wort<small>Une image, trois mots</small></span></button>
     <button class="game" data-play="article"><span class="ic">🔤</span><span>Der · Die · Das<small>Trouve le bon article</small></span></button>
+    <button class="game" data-play="plaudern"><span class="ic">💬</span><span>Plaudern mit Robo<small>Réponds au petit robot</small></span></button>
     <button class="game" data-play="schreib"><span class="ic">✍️</span><span>Schreib das Wort<small>Regarde l'image et écris le mot</small></span></button>
   </div>
 </section>
@@ -792,6 +793,7 @@ var GAMES={
  ocean:{t:"L'océan des animaux",app:"ocean",subj:"jeux",prize:1},
  schreib:{t:"Schreib das Wort",app:"deutsch",start:3,subj:"allemand",eco:"sdw"},
  lerne:{t:"Lerne neue Wörter",app:"lerne",subj:"allemand"},
+ plaudern:{t:"Plaudern mit Robo",app:"plaudern",subj:"allemand",eco:"plaudern"},
  mot:{t:"Finde das Wort",app:"deutsch",start:2,subj:"allemand",eco:"fdw"}
 };
 var $=function(i){return document.getElementById(i)};
@@ -885,7 +887,7 @@ function money(v,p){p=p||prof();v=r2(v);return v.toLocaleString("fr-FR",v%1?{min
    Les jeux envoient {type:"answer", game, ok, diff, q} à chaque réponse.
    Points = P(jeu) × difficulté × palier de série (×1, ×2 dès 5, ×3 dès 10) × qualité ; 10 points = 1 ⭐.
    Barème : objectif (min/jour) × 7 jours ≈ autant d'étoiles = maximum €/semaine ; le surplus est reporté. */
-var ECON={P:{calcul:.7,telephone:.9,dde:.5,fdw:.5,quique:1.1,phrase:1.1,note:.5,code:7,robot:5,boucles:6,reparateur:4,chenille:.8,memory:1,courses:2.5,conj:.8,sdw:1.1,drapeau:.5,pays:.6,continent:.6,oceans:.6,heure:.8},PTS:10};
+var ECON={P:{plaudern:2,calcul:.7,telephone:.9,dde:.5,fdw:.5,quique:1.1,phrase:1.1,note:.5,code:7,robot:5,boucles:6,reparateur:4,chenille:.8,memory:1,courses:2.5,conj:.8,sdw:1.1,drapeau:.5,pays:.6,continent:.6,oceans:.6,heure:.8},PTS:10};
 function tierOf(st){return st>=10?3:st>=5?2:1}
 function pad(n){return(n<10?"0":"")+n}
 function dkey(d){d=d||new Date();return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())}
@@ -950,7 +952,7 @@ function recordStat(m){if(!GAMES[cur])return;var p=prof(),G=stG(p.id,cur),D=stDa
   var ks=Object.keys(G.it);if(ks.length>400){ks.sort(function(a,b){return G.it[a][2]<G.it[b][2]?-1:1});ks.slice(0,ks.length-400).forEach(function(x){delete G.it[x]})}}
  stSave(p.id)}
 var RS={pid:null,per:7};
-var RDESC={quique:"phrases justes du premier coup",phrase:"mots bien écrits du premier coup",calcul:"opérations justes du premier coup",addition:"additions justes du premier coup",soustraction:"soustractions justes du premier coup",complement:"compléments justes du premier coup",telephone:"nombres composés justes du premier coup",article:"articles justes du premier coup",mot:"mots trouvés du premier coup",code:"codes trouvés en 5 essais ou moins",robot:"programmes réussis (chaque essai raté compte)",boucles:"programmes réussis (chaque essai raté compte)",reparateur:"programmes réparés (chaque essai raté compte)",chenille:"perles trouvées du premier coup",conj:"verbes bien écrits du premier coup",schreib:"mots bien écrits du premier coup (avec l'article)",drapeau:"drapeaux trouvés du premier coup",heure:"heures lues ou réglées du premier coup",pays:"pays trouvés sur la carte du premier coup",continent:"continents trouvés sur la carte du premier coup",oceans:"océans trouvés sur la carte du premier coup",lerne:"mots reconnus du premier coup (image → mot)",nombre:"nombres bien dits du premier coup (un nombre mal compris par le micro ne compte pas)",memory:"paires trouvées sans erreur de mémoire (une erreur = la carte jumelle avait déjà été vue)",courses:"listes retenues en entier",note:"notes reconnues du premier coup"};
+var RDESC={quique:"phrases justes du premier coup",phrase:"mots bien écrits du premier coup",calcul:"opérations justes du premier coup",addition:"additions justes du premier coup",soustraction:"soustractions justes du premier coup",complement:"compléments justes du premier coup",telephone:"nombres composés justes du premier coup",article:"articles justes du premier coup",mot:"mots trouvés du premier coup",code:"codes trouvés en 5 essais ou moins",robot:"programmes réussis (chaque essai raté compte)",boucles:"programmes réussis (chaque essai raté compte)",reparateur:"programmes réparés (chaque essai raté compte)",chenille:"perles trouvées du premier coup",conj:"verbes bien écrits du premier coup",schreib:"mots bien écrits du premier coup (avec l'article)",drapeau:"drapeaux trouvés du premier coup",heure:"heures lues ou réglées du premier coup",pays:"pays trouvés sur la carte du premier coup",continent:"continents trouvés sur la carte du premier coup",oceans:"océans trouvés sur la carte du premier coup",lerne:"mots reconnus du premier coup (image → mot)",plaudern:"réponses bien construites du premier coup",nombre:"nombres bien dits du premier coup (un nombre mal compris par le micro ne compte pas)",memory:"paires trouvées sans erreur de mémoire (une erreur = la carte jumelle avait déjà été vue)",courses:"listes retenues en entier",note:"notes reconnues du premier coup"};
 function rKind(g,k){if(g==="calcul"||g==="addition"||g==="soustraction"||g==="complement")return{add:"Additions",sub:"Soustractions",comp:"Compléments"}[k]||k;if(g==="telephone")return k+" à "+(+k+9);if(g==="mot")return"Leçon "+String(k).slice(1);return k}
 function rCls(o,t){if(!t)return"";var x=o/t;return x>=.9?"g":x>=.75?"g":x>=.6?"y":"r"}
 function rVerdict(o,t){if(t<10)return'<span class="rs-v n">Peu de réponses</span>';var x=o/t;
@@ -1093,7 +1095,7 @@ function isPlay(k,p){p=p||prof();ensureEcon(p);return !!(!p.admin&&p.play.on&&p.
 var PUNIT={min:"min",ok:"réussites",games:"parties"};
 // Une « partie » de parcours a à peu près la même durée partout (3 à 5 min) : [nombre, ce qu'on compte, libellé]
 // "q" = questions (chaque réponse, juste ou non), "round" = fins de manche envoyées par le jeu (roundEnd)
-var PART={calcul:[20,"q","opérations"],addition:[20,"q","additions"],soustraction:[20,"q","soustractions"],complement:[20,"q","compléments"],telephone:[10,"q","nombres"],article:[20,"q","mots"],mot:[20,"q","mots"],schreib:[10,"q","mots"],lerne:[12,"q","mots"],
+var PART={calcul:[20,"q","opérations"],addition:[20,"q","additions"],soustraction:[20,"q","soustractions"],complement:[20,"q","compléments"],telephone:[10,"q","nombres"],article:[20,"q","mots"],mot:[20,"q","mots"],schreib:[10,"q","mots"],lerne:[12,"q","mots"],plaudern:[1,"round","conversation"],
  quique:[15,"q","phrases"],phrase:[15,"q","phrases"],conj:[12,"q","verbes"],note:[20,"q","notes"],drapeau:[10,"q","drapeaux"],heure:[10,"q","heures"],pays:[5,"q","pays"],continent:[7,"q","continents"],oceans:[5,"q","océans"],chenille:[15,"q","perles"],courses:[3,"q","listes"],
  code:[1,"round","code"],robot:[3,"round","niveaux"],boucles:[3,"round","niveaux"],reparateur:[3,"round","niveaux"],memory:[1,"round","partie"],
  morpion:[3,"round","manches"],bulles:[1,"round","partie"],glissant:[3,"round","niveaux"],allumettes:[2,"round","manches"],pizzeria:[3,"round","commandes"],
@@ -1600,7 +1602,7 @@ $("s-nopin").onclick=function(){if(confirm("Remettre le code par défaut 0000 ?"
 var cache={},loadTok=0;
 function load(app){return cache[app]||(cache[app]=fetch("jeux/"+app+".html").then(function(r){if(!r.ok)throw new Error(r.status);return r.text()}).catch(function(e){delete cache[app];throw e}))}
 function src(g,h){
- var pre="<script>window.START="+(g.start||0)+";window.PRENOM="+JSON.stringify(prof().name).replace(/</g,"\\u003c")+";window.PROFILE="+JSON.stringify(prof().id)+";if(parent.NATIVE_TTS){try{Object.defineProperty(window,\"speechSynthesis\",{value:parent.NATIVE_TTS.synth,configurable:true,writable:true})}catch(e){}window.SpeechSynthesisUtterance=parent.NATIVE_TTS.Utt}<\/script>"+pathHideCss(cur,g);
+ var pre="<script>window.START="+(g.start||0)+";window.PRENOM="+JSON.stringify(prof().name).replace(/</g,"\\u003c")+";window.PROFILE="+JSON.stringify(prof().id)+";window.AGE="+(ageOf(prof())||0)+";if(parent.NATIVE_TTS){try{Object.defineProperty(window,\"speechSynthesis\",{value:parent.NATIVE_TTS.synth,configurable:true,writable:true})}catch(e){}window.SpeechSynthesisUtterance=parent.NATIVE_TTS.Utt}<\/script>"+pathHideCss(cur,g);
  return h.replace("<head>","<head>"+pre)}
 // Un nouvel iframe à chaque fois : modifier src/srcdoc d'un iframe existant ajouterait une entrée d'historique
 function setFrame(html){var old=$("frame"),f=document.createElement("iframe");f.id="frame";f.setAttribute("allow",old.getAttribute("allow"));if(html!=null)f.srcdoc=html;

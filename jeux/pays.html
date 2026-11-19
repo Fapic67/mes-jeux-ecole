@@ -48,15 +48,27 @@ button{font-family:inherit;touch-action:manipulation;cursor:pointer}
 #cnt{text-align:center;color:var(--mut);font-size:18px;font-weight:600}
 #end{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;text-align:center}
 #end b{font-size:34px}#end p{font-size:22px;margin:0}
+#map.lm path.e:not(.lit){opacity:.28}
+#map path.w.lit{stroke:#2b2440!important;stroke-width:2.2}
+#map path.lit:not(.w){fill:#ffc94a;animation:lit 1.2s ease-in-out infinite alternate}
+@keyframes lit{to{fill:#ffa31a}}
+#lflag{flex:none;width:78px;aspect-ratio:4/3;object-fit:cover;border-radius:8px;box-shadow:0 0 0 2px rgba(0,0,0,.2)}
+#fact{font-size:19px;line-height:1.35;font-weight:600;color:var(--fg);margin-top:4px}#fact:empty{display:none}
+#nb{flex:1;min-width:0;display:flex;flex-direction:column}
+#lbar{display:flex;align-items:center;justify-content:space-between;gap:12px}
+#lcnt{color:var(--mut);font-size:18px;font-weight:600}
+#lnext{width:104px;height:68px;border:0;border-radius:22px;background:var(--geo);color:#fff;font-size:36px;font-weight:700;box-shadow:0 5px 0 #8a6210}
+#lskip{height:56px;padding:0 14px;border:3px solid var(--bd);background:var(--card);color:var(--mut);border-radius:16px;font-size:18px;font-weight:700}
 #again{min-width:220px;height:72px;border:0;border-radius:22px;background:var(--geo);color:#fff;font-size:24px;font-weight:700;box-shadow:0 5px 0 #8a6210}
 </style>
 </head>
 <body>
 <div id="inner">
   <div id="top"><button id="lvlb"></button></div>
-  <div id="ask"><button id="ear" aria-label="Réécouter">🔊</button><span id="name"></span></div>
+  <div id="ask"><button id="ear" aria-label="Réécouter">🔊</button><div id="nb"><span id="name"></span><div id="fact"></div></div><img id="lflag" alt="" hidden></div>
   <div id="mapw"><svg id="map" preserveAspectRatio="xMidYMid meet"></svg><img id="flag" alt="" hidden><button id="unzoom" hidden aria-label="Voir toute la carte">🔍</button></div>
   <div id="msg"></div>
+  <div id="lbar" hidden><button id="lskip">⏭ Jouer</button><span id="lcnt"></span><button id="lnext" aria-label="Suivant">→</button></div>
   <div id="cnt"></div>
   <div id="end" hidden><b>🎉 Bravo !</b><p id="score"></p><button id="again">Encore</button></div>
 </div>
@@ -129,13 +141,37 @@ function draw(){var L=LV[level];map.style.background="";
   for(var k2 in W.l)s+='<text x="'+W.l[k2][0]+'" y="'+W.l[k2][1]+'" data-l="'+esc(CN[k2])+'" hidden>'+cap(CN[k2]).replace(/^L'/,"")+"</text>";
   map.innerHTML=s}}
 function paths(k){return Array.prototype.filter.call(map.querySelectorAll("path.e"),function(p){return p.dataset.k===k})}
+// Apprentissage avant le jeu (à la demande de l'utilisateur, comme Lerne neue Wörter) : chaque lieu de la partie s'allume sur la carte,
+// avec son nom, une phrase à retenir (et le drapeau pour un pays), dite à voix haute ; flèche → = suivant ; toucher un autre lieu dit son nom.
+var FACT={"la France":"Sa capitale est Paris. C'est là que se trouve la tour Eiffel.","l'Allemagne":"Sa capitale est Berlin. On y parle allemand.",
+ "l'Espagne":"Sa capitale est Madrid. On y parle espagnol.","l'Italie":"Sa capitale est Rome. Elle a la forme d'une botte !","la Grande-Bretagne":"C'est une grande île. Sa capitale est Londres et on y parle anglais.",
+ "l'Europe":"C'est notre continent : la France est en Europe.","l'Asie":"C'est le plus grand continent. Les pandas vivent en Asie.",
+ "l'Afrique":"Il y fait très chaud. Les lions et les girafes vivent en Afrique.","l'Amérique du Nord":"On y trouve le Canada et les États-Unis.",
+ "l'Amérique du Sud":"On y trouve la grande forêt d'Amazonie.","l'Océanie":"On y trouve l'Australie, où vivent les kangourous.",
+ "l'Antarctique":"C'est le continent le plus froid, tout couvert de glace. Les manchots y vivent.",
+ "l'océan Atlantique":"Il est entre l'Europe, l'Afrique et l'Amérique. Il borde la France.","l'océan Pacifique":"C'est le plus grand océan du monde.",
+ "l'océan Indien":"Il est au sud de l'Asie, entre l'Afrique et l'Australie.","l'océan Arctique":"Il est tout au nord, autour du pôle Nord. Il est souvent gelé : c'est là que vivent les ours polaires.",
+ "l'océan Austral":"Il est tout au sud, autour de l'Antarctique."};
+var LEARN=false,li=0;
+function voici(k){return "Voici "+k+". "+(FACT[k]||"")}
+function unlit(){map.querySelectorAll("path.lit").forEach(function(q){q.classList.remove("lit")});map.querySelectorAll("text[data-l]").forEach(function(x){x.setAttribute("hidden","")})}
+function card(){var k=deck[li];unlit();paths(k).forEach(function(q){q.classList.add("lit")});var t=map.querySelector('text[data-l="'+k+'"]');if(t)t.removeAttribute("hidden");
+ var lf=$("lflag");lf.hidden=!FLAG[k];if(FLAG[k])lf.src="jeux/img/drapeaux/"+FLAG[k]+".webp";
+ fitName(cap(k));$("fact").textContent=FACT[k]||"";$("lcnt").textContent="📖 "+(li+1)+" / "+deck.length;
+ setTimeout(function(){say(voici(k))},250)}
+function learn(){LEARN=true;map.classList.add("lm");li=0;cur=null;$("cnt").hidden=$("msg").hidden=true;$("lbar").hidden=false;card()}
+function quiz(){LEARN=false;map.classList.remove("lm");$("lflag").hidden=true;unlit();$("fact").textContent="";$("flag").hidden=true;$("lbar").hidden=true;$("cnt").hidden=$("msg").hidden=false;qi=0;show()}
+$("lnext").onclick=function(){if(!LEARN)return;li++;if(li<deck.length)card();else quiz()};
+$("lskip").onclick=function(){if(LEARN)quiz()};
 var deck,qi,good,cur,miss,busy;
 function cap(s){return s.charAt(0).toUpperCase()+s.slice(1)}
 function start(){draw();deck=shuffle(LV[level].p);if(window.PATHN)deck=deck.slice(0,window.PATHN);qi=0;good=0;$("lvlb").textContent="Niveau : "+LV[level].t;
- $("end").hidden=true;$("ask").hidden=$("mapw").hidden=$("cnt").hidden=$("msg").hidden=false;show()}
+ $("end").hidden=true;$("ask").hidden=$("mapw").hidden=false;learn()}
 function show(){cur=deck[qi];miss=0;busy=false;$("msg").textContent="";$("flag").hidden=true;fitName(cap(cur));$("cnt").textContent=(qi+1)+" / "+deck.length;setTimeout(function(){say(cur)},250)}
-$("ear").onclick=function(){if(cur)say(cur)};
-function choose(e){var p=e.target.closest&&e.target.closest("path.e");if(!p||busy||!cur)return;var k=p.dataset.k;
+$("ear").onclick=function(){if(LEARN)say(voici(deck[li]));else if(cur)say(cur)};
+function choose(e){var p=e.target.closest&&e.target.closest("path.e");
+ if(LEARN){if(p){var k0=p.dataset.k;if(k0===deck[li])say(voici(k0));else{say("Ça, c'est "+k0);flag(k0)}}return} // apprentissage : toucher un lieu dit son nom
+ if(!p||busy||!cur)return;var k=p.dataset.k;
  if(k===cur){busy=true;paths(cur).forEach(function(q){q.classList.remove("hint");q.classList.add("ok")});var t=map.querySelector('text[data-l="'+cur+'"]');if(t)t.removeAttribute("hidden");
   tone(660,0,.12);tone(880,.1,.2);say("Bravo !");$("msg").textContent="✅ "+cap(cur);flag(cur);if(!miss)good++;
   try{if(parent!==window)parent.postMessage({type:"answer",game:GAME,ok:!miss,diff:1,k:LV[level].t,item:cur},"*")}catch(er){}

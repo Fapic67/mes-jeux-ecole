@@ -37,6 +37,13 @@ button{font-family:inherit;touch-action:manipulation;cursor:pointer}
 #cnt{text-align:center;color:var(--mut);font-size:18px;font-weight:600}
 #end{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;text-align:center}
 #end b{font-size:34px}#end p{font-size:22px;margin:0}
+#learn{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;text-align:center}
+#lfl{width:min(82%,340px);aspect-ratio:4/3;object-fit:contain;border-radius:12px;box-shadow:0 0 0 2px rgba(0,0,0,.25),0 8px 20px rgba(0,0,0,.18);animation:pop .4s}
+#fact{margin:0;font-size:21px;line-height:1.45;font-weight:600}#fact span{white-space:nowrap}
+#lbar{display:flex;align-items:center;justify-content:space-between;gap:12px}
+#lcnt{color:var(--mut);font-size:18px;font-weight:600}
+#lnext{width:104px;height:72px;border:0;border-radius:22px;background:var(--geo);color:#fff;font-size:36px;font-weight:700;box-shadow:0 5px 0 #8a6210}
+#lskip{height:56px;padding:0 14px;border:3px solid var(--bd);background:var(--card);color:var(--mut);border-radius:16px;font-size:18px;font-weight:700}
 #again{min-width:220px;height:72px;border:0;border-radius:22px;background:var(--geo);color:#fff;font-size:24px;font-weight:700;box-shadow:0 5px 0 #8a6210}
 </style>
 </head>
@@ -45,6 +52,8 @@ button{font-family:inherit;touch-action:manipulation;cursor:pointer}
   <div id="top"><button id="lvlb"></button></div>
   <div id="ask"><button id="ear" aria-label="Réécouter">🔊</button><span id="name"></span></div>
   <div id="grid"></div>
+  <div id="learn" hidden><img id="lfl" alt=""><p id="fact"></p></div>
+  <div id="lbar" hidden><button id="lskip">⏭ Jouer</button><span id="lcnt"></span><button id="lnext" aria-label="Suivant">→</button></div>
   <div id="cnt"></div>
   <div id="end" hidden><b>🎉 Bravo !</b><p id="score"></p><button id="again">Encore</button></div>
 </div>
@@ -67,15 +76,41 @@ var LV=[null,{t:"Facile",d:"15 pays connus de l'Union européenne et son drapeau
 var PK="@"+(window.PROFILE||"p1");function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
 var level=Math.min(3,Math.max(1,parseInt(ls("drapeau_lvl"+PK))||1));
 function img(x){return '<img src="jeux/img/drapeaux/'+x[0]+'.webp" alt="" draggable="false">'}
+// Apprentissage avant le jeu (à la demande de l'utilisateur, comme Lerne neue Wörter) : chaque drapeau de la partie est montré en grand,
+// avec ses couleurs et la capitale du pays, et dit à voix haute ; flèche → = suivant ; ensuite le jeu porte sur ces drapeaux.
+var INFO={fr:["bleu, blanc et rouge","Paris"],de:["noir, rouge et jaune","Berlin"],it:["vert, blanc et rouge","Rome"],es:["rouge et jaune, avec un blason","Madrid"],pt:["vert et rouge, avec un blason","Lisbonne"],
+ be:["noir, jaune et rouge","Bruxelles"],nl:["rouge, blanc et bleu","Amsterdam"],lu:["rouge, blanc et bleu clair","Luxembourg"],at:["rouge, blanc et rouge","Vienne"],ie:["vert, blanc et orange","Dublin"],
+ gr:["bleu et blanc, avec une croix","Athènes"],pl:["blanc et rouge","Varsovie"],se:["bleu avec une croix jaune","Stockholm"],fi:["blanc avec une croix bleue","Helsinki"],dk:["rouge avec une croix blanche","Copenhague"],
+ eu:["bleu avec douze étoiles jaunes en cercle",""],al:["rouge avec un aigle noir à deux têtes","Tirana"],ad:["bleu, jaune et rouge, avec un blason","Andorre-la-Vieille"],by:["rouge et vert, avec un motif rouge et blanc","Minsk"],
+ ba:["bleu avec un triangle jaune et des étoiles blanches","Sarajevo"],bg:["blanc, vert et rouge","Sofia"],hr:["rouge, blanc et bleu, avec un damier rouge et blanc","Zagreb"],cy:["blanc avec la forme de l'île en orange","Nicosie"],
+ cz:["blanc et rouge, avec un triangle bleu","Prague"],ee:["bleu, noir et blanc","Tallinn"],hu:["rouge, blanc et vert","Budapest"],is:["bleu avec une croix rouge bordée de blanc","Reykjavik"],lv:["rouge foncé avec une bande blanche","Riga"],
+ li:["bleu et rouge, avec une couronne dorée","Vaduz"],lt:["jaune, vert et rouge","Vilnius"],mt:["blanc et rouge, avec une petite croix grise","La Valette"],md:["bleu, jaune et rouge, avec un aigle","Chisinau"],mc:["rouge et blanc","Monaco"],
+ me:["rouge avec un bord doré et un aigle doré","Podgorica"],mk:["rouge avec un soleil jaune","Skopje"],no:["rouge avec une croix bleue bordée de blanc","Oslo"],ro:["bleu, jaune et rouge","Bucarest"],ru:["blanc, bleu et rouge","Moscou"],
+ sm:["blanc et bleu clair, avec un blason","Saint-Marin"],rs:["rouge, bleu et blanc, avec un blason","Belgrade"],sk:["blanc, bleu et rouge, avec un blason","Bratislava"],si:["blanc, bleu et rouge, avec un blason","Ljubljana"],
+ ch:["rouge et carré, avec une croix blanche","Berne"],ua:["bleu et jaune","Kyiv"],gb:["bleu avec des croix rouges et blanches","Londres"],va:["jaune et blanc, avec deux clés",""]};
+var EXTRA={eu:"Ce n'est pas un pays : c'est le drapeau de l'Union européenne, des pays qui travaillent ensemble.",va:"C'est le plus petit pays du monde, au milieu de la ville de Rome."};
+function deOf(n){return n.indexOf("le ")===0?"du "+n.slice(3):n.indexOf("les ")===0?"des "+n.slice(4):"de "+n}
+function nb(s){return s.split(" ").map(function(w){return"<span>"+w+"</span>"}).join(" ")}
+var LEARN=false,li=0;
+function learnTxt(x){var I=INFO[x[0]]||["",""];return(x[0]==="eu"?"Voici le drapeau de l'Union européenne":"Voici le drapeau "+deOf(x[1]))+". Il est "+I[0]+"."+(I[1]?" Sa capitale est "+I[1]+".":"")+(EXTRA[x[0]]&&x[0]!=="eu"?" "+EXTRA[x[0]]:"")}
+function card(){var x=deck[li],I=INFO[x[0]]||["",""];fitName(x[1].charAt(0).toUpperCase()+x[1].slice(1));
+ var f=$("lfl");f.style.animation="none";f.src="jeux/img/drapeaux/"+x[0]+".webp";void f.offsetWidth;f.style.animation="";
+ $("fact").innerHTML="🎨 "+nb(I[0])+(I[1]?"<br>🏛️ Capitale : <span>"+I[1]+"</span>":"")+(EXTRA[x[0]]?"<br>"+nb(EXTRA[x[0]]):"");
+ $("lcnt").textContent="📖 "+(li+1)+" / "+deck.length;setTimeout(function(){say(learnTxt(x))},250)}
+function learn(){LEARN=true;li=0;cur=null;$("grid").hidden=$("cnt").hidden=true;$("learn").hidden=$("lbar").hidden=false;card()}
+function quiz(){LEARN=false;$("learn").hidden=$("lbar").hidden=true;$("grid").hidden=$("cnt").hidden=false;qi=0;show()}
+$("lnext").onclick=function(){if(!LEARN)return;li++;if(li<deck.length)card();else quiz()};
+$("lskip").onclick=function(){if(LEARN)quiz()};
 var N=10,deck,qi,good,cur,miss,busy,P;
-function start(){P=C.slice(0,LV[level].n);N=Math.min(window.PATHN||10,P.length);deck=shuffle(P).slice(0,N);qi=0;good=0;$("lvlb").textContent="Niveau : "+LV[level].t;$("end").hidden=true;$("ask").hidden=$("grid").hidden=$("cnt").hidden=false;show()}
+function start(){P=C.slice(0,LV[level].n);N=Math.min(window.PATHN||10,P.length);deck=shuffle(P).slice(0,N);qi=0;good=0;$("lvlb").textContent="Niveau : "+LV[level].t;$("end").hidden=true;$("ask").hidden=false;learn()}
 function show(){cur=deck[qi];miss=false;busy=false;var L=LV[level];
- var ch=shuffle([cur].concat(shuffle(P.filter(function(x){return x!==cur})).slice(0,L.c-1)));
+  var S=deck.length>=L.c?deck:P; // les autres drapeaux proposés : ceux qu'on vient d'apprendre
+ var ch=shuffle([cur].concat(shuffle(S.filter(function(x){return x!==cur})).slice(0,L.c-1)));
  $("grid").className=L.c>4?"g6":"";
  $("grid").innerHTML=ch.map(function(x){return '<button class="fl" data-n="'+C.indexOf(x)+'" aria-label="drapeau">'+img(x)+"</button>"}).join("");
  fitName(cur[1].charAt(0).toUpperCase()+cur[1].slice(1));$("cnt").textContent=(qi+1)+" / "+N;
  setTimeout(function(){say(cur[1])},250)}
-$("ear").onclick=function(){if(cur)say(cur[1])};
+$("ear").onclick=function(){if(LEARN)say(learnTxt(deck[li]));else if(cur)say(cur[1])};
 $("grid").addEventListener("click",function(e){var b=e.target.closest(".fl");if(!b||busy||b.classList.contains("ko"))return;var x=C[+b.dataset.n];
  if(x===cur){busy=true;b.classList.add("ok");tone(660,0,.12);tone(880,.1,.2);say("Bravo !");if(!miss)good++;
   try{if(parent!==window)parent.postMessage({type:"answer",game:"drapeau",ok:!miss,diff:LV[level].x,k:LV[level].t,item:cur[1]},"*")}catch(er){}
@@ -89,6 +124,7 @@ $("lvlb").onclick=function(){$("lvls").innerHTML=[1,2,3].map(function(i){return 
 $("lvls").onclick=function(e){var b=e.target.closest("[data-l]");if(!b)return;level=+b.dataset.l;ls("drapeau_lvl"+PK,level);$("sheet").hidden=true;start()};
 $("close").onclick=function(){$("sheet").hidden=true};
 window.hubBack=function(){if(!$("sheet").hidden){$("sheet").hidden=true;return true}return false};
+window.__D2={learn:function(){return LEARN}};
 window.__D={cur:function(){return cur&&cur[0]}};
 start();
 })();

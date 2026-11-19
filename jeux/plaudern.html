@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Plaudern mit Robo</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#fff8ec;--fg:#2b2440;--mut:#6c6487;--card:#fff;--bd:#eadfc8;--de:#ff5c7a;--bot:#eef3ff;--me:#ffe3ea;--ok:#22a861;--ko:#e5484d;box-sizing:border-box}
+@media (prefers-color-scheme:dark){:root{--bg:#1d1a2b;--fg:#f3effa;--mut:#b4abcc;--card:#2a2640;--bd:#3d3758;--bot:#2f3556;--me:#5a2f42}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--fg);font-family:"Fredoka",system-ui,sans-serif;user-select:none}
+button{font-family:inherit;touch-action:manipulation;cursor:pointer;color:var(--fg)}
+[hidden]{display:none!important}
+#inner{position:fixed;inset:0;max-width:600px;margin:0 auto;padding:10px 12px calc(12px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:10px}
+#chat{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding:4px 2px 8px;scroll-behavior:smooth}
+.m{display:flex;align-items:flex-end;gap:8px;max-width:92%;animation:in .3s}
+.m.me{align-self:flex-end;flex-direction:row-reverse}
+@keyframes in{from{opacity:0;transform:translateY(10px)}}
+.av{flex:none;width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;background:#cfe0ff;font-weight:700}
+.me .av{background:var(--de);color:#fff;font-size:22px}
+.b{background:var(--bot);border-radius:20px 20px 20px 6px;padding:10px 14px;font-size:21px;line-height:1.35;font-weight:600}
+.me .b{background:var(--me);border-radius:20px 20px 6px 20px}
+.b .fr{display:block;margin-top:6px;font-size:17px;color:var(--mut);font-weight:600}
+.tools{display:flex;gap:8px;margin-top:8px}
+.tools button{width:52px;height:44px;border:2px solid var(--bd);border-radius:14px;background:var(--card);font-size:20px;display:flex;align-items:center;justify-content:center;padding:0}
+.tools .tde{background:linear-gradient(#1a1a1a 0 33.3%,#dd0000 33.3% 66.6%,#ffce00 66.6%)}
+.tools .tfr{background:linear-gradient(90deg,#0055a4 0 33.3%,#fff 33.3% 66.6%,#ef4135 66.6%)}
+.tools .tde span,.tools .tfr span{background:rgba(20,20,30,.55);border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:15px}
+.dots{display:inline-flex;gap:5px;padding:6px 2px}.dots i{width:9px;height:9px;border-radius:50%;background:var(--mut);animation:dt 1s infinite}
+.dots i:nth-child(2){animation-delay:.15s}.dots i:nth-child(3){animation-delay:.3s}
+@keyframes dt{50%{opacity:.25;transform:translateY(-3px)}}
+#ans{min-height:68px;border:3px dashed var(--bd);border-radius:20px;padding:6px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:var(--card)}
+#ans.ko{border-color:var(--ko);animation:shake .4s}
+#ans:empty::before{content:"👆";font-size:24px;opacity:.5;padding-left:8px}
+@keyframes shake{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+#pool{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;min-height:60px}
+.t{min-height:56px;padding:0 16px;border:3px solid var(--bd);border-radius:16px;background:var(--card);font-size:22px;font-weight:700;box-shadow:0 4px 0 var(--bd);white-space:nowrap}
+.t:active{transform:translateY(3px);box-shadow:0 1px 0 var(--bd)}
+#ans .t{border-color:var(--de);box-shadow:0 3px 0 var(--de)}
+.t.hint{border-color:#f5b400;box-shadow:0 0 0 4px #ffd36b;animation:pu 1s infinite}
+@keyframes pu{50%{transform:scale(1.07)}}
+#ok{height:64px;border:0;border-radius:20px;background:var(--de);color:#fff;font-size:26px;font-weight:700;box-shadow:0 5px 0 #b8324d}
+#ok:disabled{opacity:.4}
+#end{display:flex;justify-content:center}
+#again{min-width:220px;height:68px;border:0;border-radius:22px;background:var(--de);color:#fff;font-size:24px;font-weight:700;box-shadow:0 5px 0 #b8324d}
+</style>
+</head>
+<body>
+<div id="inner">
+  <div id="chat"></div>
+  <div id="zone">
+    <div id="ans"></div>
+    <div id="pool" style="margin-top:10px"></div>
+    <button id="ok" style="width:100%;margin-top:10px" disabled>✓</button>
+  </div>
+  <div id="end" hidden><button id="again">↻ Nochmal</button></div>
+</div>
+<script>
+(function(){
+// Plaudern mit Robo (Allemand, à la demande de l'utilisateur) : un petit robot se présente et pose des questions à l'enfant (prénom, âge, où il habite…).
+// L'enfant répond en touchant dans l'ordre des étiquettes de mots qui composent la phrase ; plusieurs réponses justes possibles (« Ich habe einen Hund / eine Katze… »).
+// Prénom et âge = ceux du profil (window.PRENOM, window.AGE), sinon des données fictives. Un message « answer » par réponse (juste du premier coup), roundEnd à la fin.
+var $=function(i){return document.getElementById(i)};
+function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
+function voiceFor(l){try{var v=speechSynthesis.getVoices().filter(function(v){return v.lang&&v.lang.indexOf(l)===0});return v.filter(function(x){return x.localService})[0]||v[0]||null}catch(e){return null}}
+function say(t,l){l=l||"de";try{if(!window.speechSynthesis)return;speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.lang=l==="de"?"de-DE":"fr-FR";var v=voiceFor(l);if(v)u.voice=v;u.rate=.85;speechSynthesis.speak(u)}catch(e){}}
+var ac=null;function tone(f,t,d){try{if(!ac){var C=window.AudioContext||window.webkitAudioContext;if(!C)return;ac=new C()}if(ac.state==="suspended")ac.resume();var o=ac.createOscillator(),g=ac.createGain(),s=ac.currentTime+t;o.type="triangle";o.frequency.value=f;g.gain.setValueAtTime(.16,s);g.gain.exponentialRampToValueAtTime(.001,s+d);o.connect(g);g.connect(ac.destination);o.start(s);o.stop(s+d)}catch(e){}}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;")}
+var NAME=(window.PRENOM||"").trim()||"Lena",INI=NAME.charAt(0).toUpperCase();
+var NUM=["null","eins","zwei","drei","vier","fünf","sechs","sieben","acht","neun","zehn","elf","zwölf"];
+var AGE=+window.AGE>=3&&+window.AGE<=12?NUM[+window.AGE]:null; // âge du profil, sinon on choisit parmi plusieurs
+function pick(a,n){return shuffle(a).slice(0,n)}
+// q = question (allemand), fr = traduction, k = catégorie des résultats, a = réponses justes (un mot ou une liste de mots au choix), x = mots en trop
+function convo(){return[
+ {q:"Hallo! Ich bin Robo, ein kleiner Roboter. Wie heißt du?",fr:"Bonjour ! Je suis Robo, un petit robot. Comment tu t'appelles ?",k:"Se présenter",a:[["Ich","heiße",NAME]],x:["bin"]},
+ {q:"Freut mich, "+NAME+"! Wie alt bist du?",fr:"Enchanté, "+NAME+" ! Quel âge as-tu ?",k:"L'âge",a:[["Ich","bin",AGE||pick(["fünf","sechs","sieben"],3),"Jahre","alt"]],x:["habe"]},
+ {q:"Ich bin erst zwei Jahre alt. Wie geht es dir?",fr:"Moi, j'ai seulement deux ans. Comment vas-tu ?",k:"Comment ça va ?",a:[["Mir","geht","es",["gut","super"]]],x:["ich"]},
+ {q:"Wo wohnst du?",fr:"Où habites-tu ?",k:"Où j'habite",a:[["Ich","wohne","in",["Frankreich","Deutschland"]]],x:["bin"]},
+ {q:"Gehst du in die Schule?",fr:"Tu vas à l'école ?",k:"L'école",a:[["Ja,","ich","gehe","in","die","Schule"]],x:["der"]},
+ {q:"Hast du Geschwister?",fr:"As-tu des frères et sœurs ?",k:"La famille",a:[["Ja,","ich","habe","einen","Bruder"],["Ja,","ich","habe","eine","Schwester"],["Nein,","ich","habe","keine","Geschwister"]],x:[]},
+ {q:"Hast du ein Haustier?",fr:"As-tu un animal ?",k:"Les animaux",a:[["Ich","habe","einen","Hund"],["Ich","habe","eine","Katze"],["Ich","habe","kein","Haustier"]],x:[]},
+ {q:"Was ist deine Lieblingsfarbe?",fr:"Quelle est ta couleur préférée ?",k:"Les couleurs",a:[["Meine","Lieblingsfarbe","ist",pick(["rot","blau","grün","gelb","rosa","lila"],3)]],x:["Mein"]},
+ {q:"Was isst du gern?",fr:"Qu'est-ce que tu aimes manger ?",k:"Manger",a:[["Ich","esse","gern",pick(["Pizza","Nudeln","Äpfel","Schokolade","Pommes"],3)]],x:["trinke"]},
+ {q:"Was spielst du gern?",fr:"À quoi aimes-tu jouer ?",k:"Jouer",a:[["Ich","spiele","gern",pick(["Fußball","Verstecken","Memory","Lego"],3)]],x:["esse"]},
+ {q:"Das war schön, "+NAME+"! Ich muss jetzt gehen. Tschüss!",fr:"C'était super, "+NAME+" ! Je dois partir maintenant. Au revoir !",k:"Dire au revoir",a:[["Tschüss,","Robo!"]],x:["Hallo,"]}]}
+var REACT=["Super!","Toll!","Prima!","Schön!","Klasse!"];
+// toutes les phrases justes (les listes de mots au choix sont développées)
+function sentences(Q){var out=[];Q.a.forEach(function(t){var acc=[[]];t.forEach(function(w){var o=Array.isArray(w)?w:[w],n=[];acc.forEach(function(s){o.forEach(function(v){n.push(s.concat(v))})});acc=n});out=out.concat(acc)});return out}
+// étiquettes : chaque mot autant de fois que la phrase qui en a le plus besoin, + mots en trop, mélangées
+function tags(Q){var S=sentences(Q),need={};S.forEach(function(s){var c={};s.forEach(function(w){c[w]=(c[w]||0)+1});for(var w in c)need[w]=Math.max(need[w]||0,c[w])});
+ var r=[];for(var w in need)for(var i=0;i<need[w];i++)r.push(w);Q.x.forEach(function(w){if(!need[w])r.push(w)});return shuffle(r)}
+var C,qi,cur,placed,pool,miss,busy,good;
+var chat=$("chat");
+function scroll(){chat.scrollTop=chat.scrollHeight}
+function bubble(me,html){var d=document.createElement("div");d.className="m"+(me?" me":"");d.innerHTML='<div class="av">'+(me?esc(INI):"🤖")+'</div><div class="b">'+html+"</div>";chat.appendChild(d);scroll();return d}
+function botSay(Q,pre){var d=bubble(false,'<span class="dots"><i></i><i></i><i></i></span>');busy=true;
+ setTimeout(function(){var txt=(pre?pre+" ":"")+Q.q;
+  d.querySelector(".b").innerHTML=esc(txt)+'<span class="fr" hidden>'+esc(Q.fr)+'</span><div class="tools"><button class="tde" aria-label="Wiederholen"><span>🔊</span></button><button class="tfr" aria-label="En français"><span>🔊</span></button></div>';
+  d.querySelector(".tde").onclick=function(){say(txt)};
+  d.querySelector(".tfr").onclick=function(){d.querySelector(".fr").hidden=false;scroll();say(Q.fr,"fr")};
+  scroll();say(txt);busy=false;render()},900)}
+function render(){$("ans").className="";var S=sentences(cur),nx=null;
+ if(miss>=2){S.forEach(function(s){if(nx===null&&placed.every(function(w,i){return s[i]===w})&&s.length>placed.length)nx=s[placed.length]})} // après 2 erreurs : le mot suivant clignote
+ var hinted=false;
+ $("ans").innerHTML=placed.map(function(w,i){return '<button class="t" data-a="'+i+'">'+esc(w)+"</button>"}).join("");
+ $("pool").innerHTML=pool.map(function(w,i){var h=!hinted&&nx!==null&&w===nx;if(h)hinted=true;return '<button class="t'+(h?" hint":"")+'" data-p="'+i+'">'+esc(w)+"</button>"}).join("");
+ $("ok").disabled=!placed.length||busy}
+$("pool").addEventListener("click",function(e){var b=e.target.closest("[data-p]");if(!b||busy)return;placed.push(pool.splice(+b.dataset.p,1)[0]);tone(520,0,.06);render()});
+$("ans").addEventListener("click",function(e){var b=e.target.closest("[data-a]");if(!b||busy)return;pool.push(placed.splice(+b.dataset.a,1)[0]);render()});
+function answer(ok){try{if(parent!==window)parent.postMessage({type:"answer",game:"plaudern",ok:ok,diff:1,k:cur.k,item:cur.q.split(NAME).join("…")},"*")}catch(e){}}
+$("ok").onclick=function(){if(busy||!placed.length)return;
+ var ok=sentences(cur).some(function(s){return s.length===placed.length&&s.every(function(w,i){return w===placed[i]})});
+ if(ok){busy=true;var s=placed.join(" ");s=/[.!?]$/.test(s)?s:s+".";bubble(true,esc(s));tone(660,0,.12);tone(880,.1,.2);if(!miss){good++;answer(true)}
+  placed=[];pool=[];render();setTimeout(function(){say(s)},150);
+  setTimeout(function(){qi++;if(qi<C.length)next(REACT[Math.floor(Math.random()*REACT.length)]);else end()},2200)}
+ else{if(!miss)answer(false);miss++;tone(220,0,.25);$("ans").className="ko";
+  setTimeout(function(){pool=pool.concat(placed);placed=[];render()},600)}};
+function next(pre){cur=C[qi];placed=[];pool=tags(cur);miss=0;render();$("pool").innerHTML="";botSay(cur,qi>=3&&qi<C.length-1?pre:"")}
+function end(){$("zone").hidden=true;$("end").hidden=false;scroll();tone(523,0,.2);tone(659,.12,.2);tone(784,.24,.3);
+ try{if(parent!==window)parent.postMessage({type:"roundEnd"},"*")}catch(e){}}
+function start(){C=convo();qi=0;good=0;busy=false;chat.innerHTML="";$("zone").hidden=false;$("end").hidden=true;next("")}
+$("again").onclick=start;
+window.__R={cur:function(){return cur&&sentences(cur)[0]},placed:function(){return placed}};
+start();
+})();
+</script>
+</body>
+</html>
