@@ -66,7 +66,9 @@ function fitName(t){var e=document.getElementById("name");e.style.fontSize="";e.
 var $=function(i){return document.getElementById(i)};
 function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
 function voiceFor(l){try{var v=speechSynthesis.getVoices().filter(function(v){return v.lang&&v.lang.indexOf(l)===0});return v.filter(function(x){return x.localService})[0]||v[0]||null}catch(e){return null}}
-function say(t){try{if(!window.speechSynthesis)return;speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.lang="fr-FR";var v=voiceFor("fr");if(v)u.voice=v;u.rate=.9;speechSynthesis.speak(u)}catch(e){}}
+// voix propre à l'exercice (à la demande de l'utilisateur) : Retrouve le drapeau = voix enjouée, un peu aiguë et vive
+var VX={p:1.25,r:.95};
+function say(t){try{if(!window.speechSynthesis)return;speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.lang="fr-FR";var v=voiceFor("fr");if(v)u.voice=v;u.rate=VX.r;u.pitch=VX.p;speechSynthesis.speak(u)}catch(e){}}
 var ac=null;function tone(f,t,d){try{if(!ac){var C=window.AudioContext||window.webkitAudioContext;if(!C)return;ac=new C()}if(ac.state==="suspended")ac.resume();var o=ac.createOscillator(),g=ac.createGain(),s=ac.currentTime+t;o.type="triangle";o.frequency.value=f;g.gain.setValueAtTime(.18,s);g.gain.exponentialRampToValueAtTime(.001,s+d);o.connect(g);g.connect(ac.destination);o.start(s);o.stop(s+d)}catch(e){}}
 // Drapeaux : jeux/img/drapeaux/<code>.webp (paquet flag-icons, licence MIT, rendus en 320×240).
 var C=[["fr","la France"],["de","l'Allemagne"],["it","l'Italie"],["es","l'Espagne"],["pt","le Portugal"],["be","la Belgique"],["nl","les Pays-Bas"],["lu","le Luxembourg"],["at","l'Autriche"],["ie","l'Irlande"],["gr","la Grèce"],["pl","la Pologne"],["se","la Suède"],["fi","la Finlande"],["dk","le Danemark"],["eu","l'Union européenne"],
