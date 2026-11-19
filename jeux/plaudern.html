@@ -14,7 +14,7 @@ body{background:var(--bg);color:var(--fg);font-family:"Fredoka",system-ui,sans-s
 button{font-family:inherit;touch-action:manipulation;cursor:pointer;color:var(--fg)}
 [hidden]{display:none!important}
 #inner{position:fixed;inset:0;max-width:600px;margin:0 auto;padding:10px 12px calc(12px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:10px}
-#chat{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding:4px 2px 8px;scroll-behavior:smooth}
+#chat{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding:4px 2px 8px;scroll-behavior:auto}
 .m{display:flex;align-items:flex-end;gap:8px;max-width:92%;animation:in .3s}
 .m.me{align-self:flex-end;flex-direction:row-reverse}
 @keyframes in{from{opacity:0;transform:translateY(10px)}}
@@ -22,12 +22,10 @@ button{font-family:inherit;touch-action:manipulation;cursor:pointer;color:var(--
 .me .av{background:var(--de);color:#fff;font-size:22px}
 .b{background:var(--bot);border-radius:20px 20px 20px 6px;padding:10px 14px;font-size:21px;line-height:1.35;font-weight:600}
 .me .b{background:var(--me);border-radius:20px 20px 6px 20px}
-.b .fr{display:block;margin-top:6px;font-size:17px;color:var(--mut);font-weight:600}
 .tools{display:flex;gap:8px;margin-top:8px}
 .tools button{width:52px;height:44px;border:2px solid var(--bd);border-radius:14px;background:var(--card);font-size:20px;display:flex;align-items:center;justify-content:center;padding:0}
 .tools .tde{background:linear-gradient(#1a1a1a 0 33.3%,#dd0000 33.3% 66.6%,#ffce00 66.6%)}
-.tools .tfr{background:linear-gradient(90deg,#0055a4 0 33.3%,#fff 33.3% 66.6%,#ef4135 66.6%)}
-.tools .tde span,.tools .tfr span{background:rgba(20,20,30,.55);border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:15px}
+.tools .tde span{background:rgba(20,20,30,.55);border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:15px}
 .dots{display:inline-flex;gap:5px;padding:6px 2px}.dots i{width:9px;height:9px;border-radius:50%;background:var(--mut);animation:dt 1s infinite}
 .dots i:nth-child(2){animation-delay:.15s}.dots i:nth-child(3){animation-delay:.3s}
 @keyframes dt{50%{opacity:.25;transform:translateY(-3px)}}
@@ -93,20 +91,21 @@ function tags(Q){var S=sentences(Q),need={};S.forEach(function(s){var c={};s.for
  var r=[];for(var w in need)for(var i=0;i<need[w];i++)r.push(w);Q.x.forEach(function(w){if(!need[w])r.push(w)});return shuffle(r)}
 var C,qi,cur,placed,pool,miss,busy,good;
 var chat=$("chat");
-function scroll(){chat.scrollTop=chat.scrollHeight}
+function scroll(){chat.scrollTop=chat.scrollHeight;requestAnimationFrame(function(){chat.scrollTop=chat.scrollHeight})}
+// la zone de réponse (étiquettes) change de taille à chaque question : on redescend en bas de la conversation
+if(window.ResizeObserver){var ro=new ResizeObserver(function(){chat.scrollTop=chat.scrollHeight});ro.observe(chat);ro.observe($("zone"))}
 function bubble(me,html){var d=document.createElement("div");d.className="m"+(me?" me":"");d.innerHTML='<div class="av">'+(me?esc(INI):"🤖")+'</div><div class="b">'+html+"</div>";chat.appendChild(d);scroll();return d}
 function botSay(Q,pre){var d=bubble(false,'<span class="dots"><i></i><i></i><i></i></span>');busy=true;
  setTimeout(function(){var txt=(pre?pre+" ":"")+Q.q;
-  d.querySelector(".b").innerHTML=esc(txt)+'<span class="fr" hidden>'+esc(Q.fr)+'</span><div class="tools"><button class="tde" aria-label="Wiederholen"><span>🔊</span></button><button class="tfr" aria-label="En français"><span>🔊</span></button></div>';
+  d.querySelector(".b").innerHTML=esc(txt)+'<div class="tools"><button class="tde" aria-label="Wiederholen"><span>🔊</span></button></div>';
   d.querySelector(".tde").onclick=function(){say(txt)};
-  d.querySelector(".tfr").onclick=function(){d.querySelector(".fr").hidden=false;scroll();say(Q.fr,"fr")};
   scroll();say(txt);busy=false;render()},900)}
 function render(){$("ans").className="";var S=sentences(cur),nx=null;
  if(miss>=2){S.forEach(function(s){if(nx===null&&placed.every(function(w,i){return s[i]===w})&&s.length>placed.length)nx=s[placed.length]})} // après 2 erreurs : le mot suivant clignote
  var hinted=false;
  $("ans").innerHTML=placed.map(function(w,i){return '<button class="t" data-a="'+i+'">'+esc(w)+"</button>"}).join("");
  $("pool").innerHTML=pool.map(function(w,i){var h=!hinted&&nx!==null&&w===nx;if(h)hinted=true;return '<button class="t'+(h?" hint":"")+'" data-p="'+i+'">'+esc(w)+"</button>"}).join("");
- $("ok").disabled=!placed.length||busy}
+ $("ok").disabled=!placed.length||busy;scroll()}
 $("pool").addEventListener("click",function(e){var b=e.target.closest("[data-p]");if(!b||busy)return;placed.push(pool.splice(+b.dataset.p,1)[0]);tone(520,0,.06);render()});
 $("ans").addEventListener("click",function(e){var b=e.target.closest("[data-a]");if(!b||busy)return;pool.push(placed.splice(+b.dataset.a,1)[0]);render()});
 function answer(ok){try{if(parent!==window)parent.postMessage({type:"answer",game:"plaudern",ok:ok,diff:1,k:cur.k,item:cur.q.split(NAME).join("…")},"*")}catch(e){}}
