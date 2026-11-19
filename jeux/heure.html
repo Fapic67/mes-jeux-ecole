@@ -72,7 +72,10 @@ var $=function(i){return document.getElementById(i)};
 function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
 function rnd(n){return Math.floor(Math.random()*n)}
 function voiceFor(l){try{var v=speechSynthesis.getVoices().filter(function(v){return v.lang&&v.lang.indexOf(l)===0});return v.filter(function(x){return x.localService})[0]||v[0]||null}catch(e){return null}}
-function say(t){try{if(!window.speechSynthesis)return;speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.lang="fr-FR";var v=voiceFor("fr");if(v)u.voice=v;u.rate=.9;speechSynthesis.speak(u)}catch(e){}}
+// voix d'homme (à la demande de l'utilisateur) : une voix masculine installée si son nom l'indique, sinon la voix habituelle rendue grave (pitch)
+var MALE=/thomas|paul|henri|nicolas|daniel|mathieu|antoine|claude|male|homme|frb|frd/i,MV=null;
+function maleVoice(){try{var v=speechSynthesis.getVoices().filter(function(x){return x.lang&&x.lang.indexOf("fr")===0&&MALE.test((x.name||"")+" "+(x.voiceURI||""))&&!/female|femme/i.test(x.name||"")});return v.filter(function(x){return x.localService})[0]||v[0]||null}catch(e){return null}}
+function say(t){try{if(!window.speechSynthesis)return;speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.lang="fr-FR";MV=MV||maleVoice();var v=MV||voiceFor("fr");if(v)u.voice=v;u.rate=.9;u.pitch=MV?.95:.6;speechSynthesis.speak(u)}catch(e){}}
 var ac=null;function tone(f,t,d){try{if(!ac){var C=window.AudioContext||window.webkitAudioContext;if(!C)return;ac=new C()}if(ac.state==="suspended")ac.resume();var o=ac.createOscillator(),g=ac.createGain(),s=ac.currentTime+t;o.type="triangle";o.frequency.value=f;g.gain.setValueAtTime(.18,s);g.gain.exponentialRampToValueAtTime(.001,s+d);o.connect(g);g.connect(ac.destination);o.start(s);o.stop(s+d)}catch(e){}}
 var PK="@"+(window.PROFILE||"p1");function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
 var LV=[null,{t:"Facile",d:"Les heures pile : 3 h, 7 h…",m:[0],x:1},{t:"Moyen",d:"Et demie : 3 h 30",m:[0,30],x:1.25},{t:"Difficile",d:"Et quart, moins le quart : 3 h 15, 2 h 45",m:[0,15,30,45],x:1.5}];
