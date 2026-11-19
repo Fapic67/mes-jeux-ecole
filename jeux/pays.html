@@ -88,7 +88,7 @@ if(LV.length<3)document.getElementById("top").hidden=true; // un seul niveau : p
 var map=$("map");
 function esc(s){return s.replace(/"/g,"&quot;")}
 function draw(){var L=LV[level];
- if(L.map==="eu"){map.setAttribute("viewBox","215 60 785 790"); // cadrage sur l'Europe (sans le Groenland ni le Sahara)
+ if(L.map==="eu"){map.setAttribute("viewBox","205 95 690 675"); // cadrage resserré (à la demande de l'utilisateur) : de l'Islande à la mer Noire, du cap Nord à la Crète
   map.innerHTML=EU_MAP.f.map(function(x){var k=FR[x.n];return '<path d="'+x.d+'"'+(k?' class="e" data-k="'+esc(k)+'"':' class="c"')+"/>"}).join("")}
  else{var W=WORLD_MAP,s='<defs><clipPath id="ce"><path d="'+W.clipEU+'"/></clipPath><clipPath id="ca"><path d="'+W.clipAS+'"/></clipPath></defs><path d="'+W.sphere+'" style="fill:var(--sea);stroke:none"/>';
   map.setAttribute("viewBox","25 25 950 470");
