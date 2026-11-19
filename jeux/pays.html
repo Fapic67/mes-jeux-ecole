@@ -22,7 +22,8 @@ button{font-family:inherit;touch-action:manipulation;cursor:pointer}
 #mapw{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;position:relative}
 #flag{position:absolute;top:10px;left:50%;transform:translateX(-50%);width:min(46%,200px);aspect-ratio:4/3;border-radius:10px;box-shadow:0 0 0 3px #fff,0 6px 18px rgba(0,0,0,.35);pointer-events:none;animation:fin .25s}
 @keyframes fin{from{opacity:0;transform:translateX(-50%) scale(.6)}}
-#map{width:100%;height:100%;max-height:100%;border-radius:18px;border:3px solid var(--bd);background:var(--sea)}
+#map{width:100%;height:100%;max-height:100%;border-radius:18px;border:3px solid var(--bd);background:var(--sea);touch-action:none}
+#unzoom{position:absolute;right:10px;bottom:10px;width:56px;height:56px;border:3px solid var(--bd);border-radius:16px;background:var(--card);color:var(--fg);font-size:26px;box-shadow:0 3px 0 var(--bd)}
 #map path{stroke:var(--line);stroke-width:1;vector-effect:non-scaling-stroke;stroke-linejoin:round}
 #map path.c{fill:var(--ctx)}
 #map path.e{fill:var(--land);cursor:pointer}
@@ -53,7 +54,7 @@ button{font-family:inherit;touch-action:manipulation;cursor:pointer}
 <div id="inner">
   <div id="top"><button id="lvlb"></button></div>
   <div id="ask"><button id="ear" aria-label="Réécouter">🔊</button><span id="name"></span></div>
-  <div id="mapw"><svg id="map" preserveAspectRatio="xMidYMid meet"></svg><img id="flag" alt="" hidden></div>
+  <div id="mapw"><svg id="map" preserveAspectRatio="xMidYMid meet"></svg><img id="flag" alt="" hidden><button id="unzoom" hidden aria-label="Voir toute la carte">🔍</button></div>
   <div id="msg"></div>
   <div id="cnt"></div>
   <div id="end" hidden><b>🎉 Bravo !</b><p id="score"></p><button id="again">Encore</button></div>
@@ -88,11 +89,32 @@ var level=Math.min(LV.length-1,Math.max(1,parseInt(ls(GAME+"_lvl"+PK))||1));
 if(LV.length<3)document.getElementById("top").hidden=true; // un seul niveau : pas de bouton Niveau
 var map=$("map");
 function esc(s){return s.replace(/"/g,"&quot;")}
+/* zoom : pincer avec deux doigts (ou molette), glisser un doigt pour se déplacer quand on a zoomé ; 🔍 = toute la carte (à la demande de l'utilisateur) */
+var VB0=[0,0,1000,500],VB=VB0.slice(),PT={},pinch=null,pan=null,moved=false;
+function setVB0(v){VB0=v.slice();VB=v.slice();applyVB()}
+function applyVB(){map.setAttribute("viewBox",VB.join(" "));$("unzoom").hidden=VB[2]>=VB0[2]-1}
+function geom(vb){var r=map.getBoundingClientRect(),s=Math.min(r.width/vb[2],r.height/vb[3]);return{r:r,s:s,ox:(r.width-vb[2]*s)/2,oy:(r.height-vb[3]*s)/2}}
+function toSvg(x,y,vb){var g=geom(vb);return[vb[0]+(x-g.r.left-g.ox)/g.s,vb[1]+(y-g.r.top-g.oy)/g.s]}
+function clampVB(v){var w=Math.max(VB0[2]/4,Math.min(VB0[2],v[2])),h=w*VB0[3]/VB0[2];
+ return[Math.max(VB0[0],Math.min(VB0[0]+VB0[2]-w,v[0])),Math.max(VB0[1],Math.min(VB0[1]+VB0[3]-h,v[1])),w,h]}
+function zoomAt(cx,cy,P,w,base){var h=w*VB0[3]/VB0[2],v=[0,0,w,h],g=geom(v);v[0]=P[0]-(cx-g.r.left-g.ox)/g.s;v[1]=P[1]-(cy-g.r.top-g.oy)/g.s;VB=clampVB(v);applyVB()}
+map.addEventListener("pointerdown",function(e){PT[e.pointerId]={x:e.clientX,y:e.clientY};var ids=Object.keys(PT);
+ if(ids.length===2){var a=PT[ids[0]],b=PT[ids[1]],cx=(a.x+b.x)/2,cy=(a.y+b.y)/2;pinch={d:Math.hypot(a.x-b.x,a.y-b.y)||1,w:VB[2],P:toSvg(cx,cy,VB)};pan=null;moved=true}
+ else if(ids.length===1){moved=false;pan={x:e.clientX,y:e.clientY,vb:VB.slice()}}});
+map.addEventListener("pointermove",function(e){if(!PT[e.pointerId])return;PT[e.pointerId]={x:e.clientX,y:e.clientY};var ids=Object.keys(PT);
+ if(pinch&&ids.length>=2){var a=PT[ids[0]],b=PT[ids[1]],d=Math.hypot(a.x-b.x,a.y-b.y)||1;zoomAt((a.x+b.x)/2,(a.y+b.y)/2,pinch.P,pinch.w*pinch.d/d)}
+ else if(pan&&VB[2]<VB0[2]-1){var dx=e.clientX-pan.x,dy=e.clientY-pan.y;if(Math.abs(dx)+Math.abs(dy)>8)moved=true;
+  if(moved){var s=geom(pan.vb).s;VB=clampVB([pan.vb[0]-dx/s,pan.vb[1]-dy/s,pan.vb[2],pan.vb[3]]);applyVB()}}});
+function up(e){var tap=e.type==="pointerup"&&!moved&&!pinch&&Object.keys(PT).length===1;delete PT[e.pointerId];if(tap)choose(e); // toucher sans glisser = réponse (pas d'événement click : il peut être avalé après un glissement)
+ if(Object.keys(PT).length<2)pinch=null;if(!Object.keys(PT).length)pan=null}
+map.addEventListener("pointerup",up);map.addEventListener("pointercancel",up);
+map.addEventListener("wheel",function(e){e.preventDefault();zoomAt(e.clientX,e.clientY,toSvg(e.clientX,e.clientY,VB),VB[2]*(e.deltaY>0?1.2:1/1.2))},{passive:false});
+$("unzoom").onclick=function(){VB=VB0.slice();applyVB()};
 function draw(){var L=LV[level];
- if(L.map==="eu"){map.setAttribute("viewBox","205 95 690 675"); // cadrage resserré (à la demande de l'utilisateur) : de l'Islande à la mer Noire, du cap Nord à la Crète
+ if(L.map==="eu"){setVB0([205,95,690,675]); // cadrage resserré (à la demande de l'utilisateur) : de l'Islande à la mer Noire, du cap Nord à la Crète
   map.innerHTML=EU_MAP.f.map(function(x){var k=FR[x.n];return '<path d="'+x.d+'"'+(k?' class="e" data-k="'+esc(k)+'"':' class="c"')+"/>"}).join("")}
  else{var W=WORLD_MAP,s='<defs><clipPath id="ce"><path d="'+W.clipEU+'"/></clipPath><clipPath id="ca"><path d="'+W.clipAS+'"/></clipPath></defs><path d="'+W.sphere+'" style="fill:var(--sea);stroke:none"/>';
-  map.setAttribute("viewBox","25 25 950 470");
+  setVB0([45,20,935,480]); // monde : léger recadrage (océans des bords)
   function cp(k,d,clip){return '<path class="e w" data-k="'+esc(CN[k])+'" d="'+d+'" style="fill:'+CC[k]+';stroke:'+CC[k]+'"'+(clip?' clip-path="url(#'+clip+')"':"")+"/>"}
   for(var k in W.c)s+=cp(k,W.c[k]);s+=cp("EU",W.ru,"ce")+cp("AS",W.ru,"ca");
   for(var k2 in W.l)s+='<text x="'+W.l[k2][0]+'" y="'+W.l[k2][1]+'" data-l="'+esc(CN[k2])+'" hidden>'+cap(CN[k2]).replace(/^L'/,"")+"</text>";
@@ -104,7 +126,7 @@ function start(){draw();deck=shuffle(LV[level].p);qi=0;good=0;$("lvlb").textCont
  $("end").hidden=true;$("ask").hidden=$("mapw").hidden=$("cnt").hidden=$("msg").hidden=false;show()}
 function show(){cur=deck[qi];miss=0;busy=false;$("msg").textContent="";$("flag").hidden=true;fitName(cap(cur));$("cnt").textContent=(qi+1)+" / "+deck.length;setTimeout(function(){say(cur)},250)}
 $("ear").onclick=function(){if(cur)say(cur)};
-map.addEventListener("click",function(e){var p=e.target.closest("path.e");if(!p||busy||!cur)return;var k=p.dataset.k;
+function choose(e){var p=e.target.closest&&e.target.closest("path.e");if(!p||busy||!cur)return;var k=p.dataset.k;
  if(k===cur){busy=true;paths(cur).forEach(function(q){q.classList.remove("hint");q.classList.add("ok")});var t=map.querySelector('text[data-l="'+cur+'"]');if(t)t.removeAttribute("hidden");
   tone(660,0,.12);tone(880,.1,.2);say("Bravo !");$("msg").textContent="✅ "+cap(cur);flag(cur);if(!miss)good++;
   try{if(parent!==window)parent.postMessage({type:"answer",game:GAME,ok:!miss,diff:1,k:LV[level].t,item:cur},"*")}catch(er){}
@@ -112,7 +134,7 @@ map.addEventListener("click",function(e){var p=e.target.closest("path.e");if(!p|
  else if(!p.classList.contains("ok")){miss++;var w=paths(k);w.forEach(function(q){q.classList.add("ko")});tone(220,0,.25);
   $("msg").textContent="Ça, c'est "+k;flag(k);say("Ça, c'est "+k);
   setTimeout(function(){w.forEach(function(q){q.classList.remove("ko")})},900);
-  if(miss>=2)paths(cur).forEach(function(q){q.classList.add("hint")})}});
+  if(miss>=2)paths(cur).forEach(function(q){q.classList.add("hint")})}}
 function end(){$("ask").hidden=$("mapw").hidden=$("cnt").hidden=$("msg").hidden=true;$("end").hidden=false;$("score").textContent=good+" / "+deck.length+" du premier coup";cur=null;
  [523,659,784,1047].forEach(function(f,k){tone(f,k*.1,.25)});
  try{if(parent!==window)parent.postMessage({type:"roundEnd"},"*")}catch(e){}}
@@ -121,7 +143,7 @@ $("lvlb").onclick=function(){$("lvls").innerHTML=LV.map(function(L,i){return L?'
 $("lvls").onclick=function(e){var b=e.target.closest("[data-l]");if(!b)return;level=+b.dataset.l;ls(GAME+"_lvl"+PK,level);$("sheet").hidden=true;start()};
 $("close").onclick=function(){$("sheet").hidden=true};
 window.hubBack=function(){if(!$("sheet").hidden){$("sheet").hidden=true;return true}return false};
-window.__P={cur:function(){return cur},click:function(k){var p=paths(k)[0];if(p)p.dispatchEvent(new MouseEvent("click",{bubbles:true}))}};
+window.__P={cur:function(){return cur},click:function(k){var p=paths(k)[0];if(p)choose({target:p})}};
 start();
 })();
 </script>
