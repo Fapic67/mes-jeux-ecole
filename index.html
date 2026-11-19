@@ -75,6 +75,13 @@ body.nomoney .home-mon{display:none!important}
 #play .bar{display:flex;align-items:center;gap:10px;padding:8px 10px;border-bottom:var(--bw) solid var(--line)}
 #play .bar b{flex:1;font-size:19px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #pstars{font-weight:700;font-size:21px;color:var(--star);padding:0 6px;white-space:nowrap}
+/* multiplicateur (à la demande de l'utilisateur) : plus de 🔥 ni de ⭐×… ; le coefficient s'écrit devant l'étoile du solde, qui brille et pulse pendant une série ×2 / ×3 */
+#pstreak,#pdiff{display:none!important}
+#pstars .mul{color:#f08a00;margin-right:5px;font-size:20px}
+#pstars .st{display:inline-block}
+#pstars.g2 .st{animation:stp 1s ease-in-out infinite;filter:drop-shadow(0 0 4px #ffd34d)}
+#pstars.g3 .st{animation:stp .6s ease-in-out infinite;filter:drop-shadow(0 0 7px #ffb400) drop-shadow(0 0 12px #ffd34d)}
+@keyframes stp{50%{transform:scale(1.35)}}
 /* série 🔥 et jauge ⭐ (barre des jeux) */
 #eco{display:flex;align-items:center;gap:6px;flex:none}
 #pstreak{display:flex;align-items:center;gap:2px;font-weight:700;font-size:19px;padding:2px 8px;border-radius:999px;background:var(--card);border:var(--bw) solid var(--line);white-space:nowrap;transition:transform .2s}
@@ -912,7 +919,7 @@ function rollAll(){var ch=false;PR.list.forEach(function(p){if(rollWeek(p))ch=tr
 function renderPurse(bump){var p=prof(),E=ensureEcon(p),d=today(p),w=weekSum(p,E.wk);
  document.body.classList.toggle("nomoney",true);["none","stars","shop"].forEach(function(m){document.body.classList.toggle("rw-"+m,p.rmode===m)});
  document.querySelectorAll(".nst").forEach(function(e){e.textContent=p.stars});
- $("pstars").textContent="⭐ "+p.stars;
+ starTxt();
  $("h-day").textContent=d.st;$("h-goal").textContent=p.goal;$("h-bar").style.width=Math.min(100,d.st/p.goal*100)+"%";
  var carry=Math.max(0,p.stars-w.st);
  $("hint").textContent=(d.st>=p.goal?"🎯 Objectif du jour atteint ! ":"")+"Cette semaine : ⭐ "+w.st;
@@ -921,11 +928,14 @@ function renderPurse(bump){var p=prof(),E=ensureEcon(p),d=today(p),w=weekSum(p,E
  renderEco();renderLocks();renderTime();renderShopbar();
  if(bump){["pstars","purse"].forEach(function(id){var e=$(id);e.classList.remove("bump");void e.offsetWidth;e.classList.add("bump")})}}
 var lastDiff=1,lastAct=0;
+function starTxt(){var p=prof(),E=ensureEcon(p),t=p.noFlame||!(GAMES[cur]&&ECON.P[GAMES[cur].eco]!=null)||GAMES[cur].luck||noStars()?1:tierOf(E.streak),
+ c=GAMES[cur]&&!noStars()&&ECON.P[GAMES[cur].eco]!=null?r2(lastDiff*t):1,e=$("pstars");
+ e.innerHTML=(c>1?'<span class="mul">×'+String(c).replace(".",",")+"</span>":"")+'<span class="st">⭐</span> '+p.stars;e.classList.toggle("g2",t===2);e.classList.toggle("g3",t===3)}
 function renderEco(){var p=prof(),E=ensureEcon(p),t=tierOf(E.streak),g=GAMES[cur]&&ECON.P[GAMES[cur].eco]!=null;
  $("eco").hidden=!g||noStars();$("pstars").hidden=!!(GAMES[cur]&&GAMES[cur].subj==="jeux");var s=$("pstreak");
  s.hidden=!!(GAMES[cur]&&GAMES[cur].luck)||!!p.noFlame;s.className=E.streak?(t===3?"t3":t===2?"t2":""):"off";
  s.innerHTML=(t===3?"🔥🔥🔥":t===2?"🔥🔥":"🔥")+" "+E.streak+(t>1?'<span class="x">×'+t+"</span>":"");
- $("pgauge").firstChild.style.width=Math.min(100,E.gauge/ECON.PTS*100)+"%";
+ starTxt();$("pgauge").firstChild.style.width=Math.min(100,E.gauge/ECON.PTS*100)+"%";
  $("pdiff").textContent=lastDiff>1?"⭐×"+String(r2(lastDiff)).replace(".",","):"";document.body.classList.toggle("ecoon",g)}
 function toast(txt,ms){var t=document.createElement("div");t.className="toast";t.textContent=txt;if(ms)t.style.animationDuration=ms+"ms";document.body.appendChild(t);setTimeout(function(){t.remove()},(ms||1400)+100)}
 // Matière « Jeux » : jamais d'étoiles, quel que soit le jeu
@@ -936,11 +946,9 @@ function onAnswer(m){if(noStars())return;var p=prof(),E=ensureEcon(p),P=ECON.P[m
  if(m.ok){E.streak++;d.ok++;d.best=Math.max(d.best,E.streak);E.best=Math.max(E.best||0,E.streak);
   var t=p.noFlame?1:tierOf(E.streak);E.gauge=r2(E.gauge+P*diff*t*q);var n=0;while(E.gauge>=ECON.PTS){E.gauge=r2(E.gauge-ECON.PTS);n++}
   if(p.noFlame){if(n)toast("+"+n+" ⭐")} // multiplicateur de série désactivé dans le profil : ni ×2/×3 ni annonces
-  else if(E.streak===5)toast("🔥🔥 Série de 5 ! Tes étoiles vont 2 fois plus vite !",2600);
-  else if(E.streak===10)toast("🔥🔥🔥 Série de 10 ! 3 fois plus vite !",2600);
-  else if(n)toast("+"+n+" ⭐");
-  if(n){p.stars+=n;d.st+=n}saveP();renderPurse(n>0);var s=$("pstreak");s.classList.remove("pop");void s.offsetWidth;s.classList.add("pop")}
- else{if(E.streak>=3&&!p.noFlame)toast("💨 Série cassée… recommence une série !",1800);E.streak=0;saveP();renderEco()}}
+  else if(n)toast("+"+n+" ⭐"); // plus d'annonces de série : c'est l'étoile du solde qui brille (à la demande de l'utilisateur)
+  if(n){p.stars+=n;d.st+=n}saveP();renderPurse(n>0);}
+ else{E.streak=0;saveP();renderEco()}}
 /* ---------- Résultats par exercice et par profil (clé stats@<profil>) ----------
    g[jeu].d[jour] = {ok, tot, sec, k:{catégorie:[ok,tot]}} ; g[jeu].it[question] = [ok, tot, dernier jour] */
 var STC={};
