@@ -1400,7 +1400,7 @@ $("padd").onclick=function(){var id="p"+Date.now().toString(36);PR.list.push({id
 function renderProfil(){var p=prof(EDIT);if(p.id!==EDIT)EDIT=p.id;
  $("p-admin").checked=!!p.admin;
  // administrateur : tous les jeux sont ouverts et sans limite → on masque les réglages inutiles
- ["p-prz","dl-on","pl-on","p-agec","pa-on"].forEach(function(id){$(id).closest(".card").hidden=!!p.admin});
+ ["p-prz","dl-on","pl-on","pa-on"].forEach(function(id){$(id).closest(".card").hidden=!!p.admin});
  var ix=PR.list.indexOf(p);$("p-av").setAttribute("style",avStyle(p,ix));$("p-av").className="av"+(p.photo?" ph":"");$("p-av").textContent=p.photo?"":pname(p).charAt(0).toUpperCase();$("p-phdel").hidden=!p.photo;
  if(document.activeElement!==$("p-name"))$("p-name").value=p.name;$("p-name").placeholder="Prénom de l'enfant";
  var act=p.id===PR.active;$("p-use").hidden=act;$("p-active").hidden=!act;$("p-del").hidden=PR.list.length<2;
