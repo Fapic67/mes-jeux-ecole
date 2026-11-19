@@ -16,7 +16,7 @@ button{font-family:inherit;touch-action:manipulation;cursor:pointer}
 #inner{position:fixed;inset:0;max-width:560px;margin:0 auto;padding:12px 14px calc(16px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:16px}
 #ask{display:flex;align-items:center;gap:12px;background:var(--card);border:3px solid var(--bd);border-radius:22px;padding:10px 12px}
 #ear{flex:none;width:64px;height:64px;border:0;border-radius:18px;background:var(--geo);color:#fff;font-size:30px;box-shadow:0 4px 0 #8a6210}
-#name{flex:1;font-size:min(8vw,32px);font-weight:700;white-space:nowrap;overflow:hidden}
+#name{flex:1;min-width:0;font-size:min(8vw,32px);font-weight:700;line-height:1.15;overflow-wrap:normal;word-break:keep-all} /* nom entier : retour à la ligne entre les mots, jamais dans un mot */
 #grid{flex:1;min-height:0;display:grid;grid-template-columns:1fr 1fr;gap:14px;align-content:center}
 #grid.g6{gap:10px}#grid.g6 .fl{aspect-ratio:4/3}
 #top{display:flex;justify-content:flex-end}
@@ -53,6 +53,7 @@ button{font-family:inherit;touch-action:manipulation;cursor:pointer}
 (function(){
 // Retrouve le drapeau (matière Géographie) : la voix nomme un pays d'Europe, l'enfant touche son drapeau (3 niveaux, bouton Niveau).
 // Partie de 10 pays ; un message « answer » par pays (juste du premier coup), roundEnd en fin de partie.
+function fitName(t){var e=document.getElementById("name");e.style.fontSize="";e.innerHTML=t.split(" ").map(function(w){return '<span style="white-space:nowrap">'+w.replace(/</g,"&lt;")+"</span>"}).join(" ");var fs=parseFloat(getComputedStyle(e).fontSize);while((e.scrollWidth>e.clientWidth+1||e.offsetHeight>fs*1.15*2+2)&&fs>14){fs-=1;e.style.fontSize=fs+"px"}}window.__fitName=fitName; // nom toujours entièrement lisible
 var $=function(i){return document.getElementById(i)};
 function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
 function voiceFor(l){try{var v=speechSynthesis.getVoices().filter(function(v){return v.lang&&v.lang.indexOf(l)===0});return v.filter(function(x){return x.localService})[0]||v[0]||null}catch(e){return null}}
@@ -72,7 +73,7 @@ function show(){cur=deck[qi];miss=false;busy=false;var L=LV[level];
  var ch=shuffle([cur].concat(shuffle(P.filter(function(x){return x!==cur})).slice(0,L.c-1)));
  $("grid").className=L.c>4?"g6":"";
  $("grid").innerHTML=ch.map(function(x){return '<button class="fl" data-n="'+C.indexOf(x)+'" aria-label="drapeau">'+img(x)+"</button>"}).join("");
- $("name").textContent=cur[1].charAt(0).toUpperCase()+cur[1].slice(1);$("cnt").textContent=(qi+1)+" / "+N;
+ fitName(cur[1].charAt(0).toUpperCase()+cur[1].slice(1));$("cnt").textContent=(qi+1)+" / "+N;
  setTimeout(function(){say(cur[1])},250)}
 $("ear").onclick=function(){if(cur)say(cur[1])};
 $("grid").addEventListener("click",function(e){var b=e.target.closest(".fl");if(!b||busy||b.classList.contains("ko"))return;var x=C[+b.dataset.n];

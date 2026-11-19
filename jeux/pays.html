@@ -18,7 +18,7 @@ button{font-family:inherit;touch-action:manipulation;cursor:pointer}
 #inner{position:fixed;inset:0;max-width:760px;margin:0 auto;padding:12px 10px calc(14px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px}
 #ask{display:flex;align-items:center;gap:12px;background:var(--card);border:3px solid var(--bd);border-radius:22px;padding:10px 12px}
 #ear{flex:none;width:64px;height:64px;border:0;border-radius:18px;background:var(--geo);color:#fff;font-size:30px;box-shadow:0 4px 0 #8a6210}
-#name{flex:1;font-size:min(8vw,32px);font-weight:700;white-space:nowrap;overflow:hidden}
+#name{flex:1;min-width:0;font-size:min(8vw,32px);font-weight:700;line-height:1.15;overflow-wrap:normal;word-break:keep-all} /* nom entier : retour à la ligne entre les mots, jamais dans un mot */
 #mapw{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;position:relative}
 #flag{position:absolute;top:10px;left:50%;transform:translateX(-50%);width:min(46%,200px);aspect-ratio:4/3;border-radius:10px;box-shadow:0 0 0 3px #fff,0 6px 18px rgba(0,0,0,.35);pointer-events:none;animation:fin .25s}
 @keyframes fin{from{opacity:0;transform:translateX(-50%) scale(.6)}}
@@ -65,6 +65,7 @@ button{font-family:inherit;touch-action:manipulation;cursor:pointer}
 // Trouve le pays : France, Allemagne, Espagne, Italie, Grande-Bretagne (drapeau du pays touché affiché) ; Moyen : carte du monde, les 7 continents. Chacun une fois par partie.
 // Bon pays = vert (reste vert) ; autre pays = rouge un instant et la voix dit son nom ; après 2 erreurs, le bon pays clignote en jaune.
 // Un message « answer » par pays (juste du premier coup), roundEnd en fin de partie.
+function fitName(t){var e=document.getElementById("name");e.style.fontSize="";e.innerHTML=t.split(" ").map(function(w){return '<span style="white-space:nowrap">'+w.replace(/</g,"&lt;")+"</span>"}).join(" ");var fs=parseFloat(getComputedStyle(e).fontSize);while((e.scrollWidth>e.clientWidth+1||e.offsetHeight>fs*1.15*2+2)&&fs>14){fs-=1;e.style.fontSize=fs+"px"}}window.__fitName=fitName; // nom toujours entièrement lisible
 var $=function(i){return document.getElementById(i)};
 function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
 function voiceFor(l){try{var v=speechSynthesis.getVoices().filter(function(v){return v.lang&&v.lang.indexOf(l)===0});return v.filter(function(x){return x.localService})[0]||v[0]||null}catch(e){return null}}
@@ -101,7 +102,7 @@ var deck,qi,good,cur,miss,busy;
 function cap(s){return s.charAt(0).toUpperCase()+s.slice(1)}
 function start(){draw();deck=shuffle(LV[level].p);qi=0;good=0;$("lvlb").textContent="Niveau : "+LV[level].t;
  $("end").hidden=true;$("ask").hidden=$("mapw").hidden=$("cnt").hidden=$("msg").hidden=false;show()}
-function show(){cur=deck[qi];miss=0;busy=false;$("msg").textContent="";$("flag").hidden=true;$("name").textContent=cap(cur);$("cnt").textContent=(qi+1)+" / "+deck.length;setTimeout(function(){say(cur)},250)}
+function show(){cur=deck[qi];miss=0;busy=false;$("msg").textContent="";$("flag").hidden=true;fitName(cap(cur));$("cnt").textContent=(qi+1)+" / "+deck.length;setTimeout(function(){say(cur)},250)}
 $("ear").onclick=function(){if(cur)say(cur)};
 map.addEventListener("click",function(e){var p=e.target.closest("path.e");if(!p||busy||!cur)return;var k=p.dataset.k;
  if(k===cur){busy=true;paths(cur).forEach(function(q){q.classList.remove("hint");q.classList.add("ok")});var t=map.querySelector('text[data-l="'+cur+'"]');if(t)t.removeAttribute("hidden");

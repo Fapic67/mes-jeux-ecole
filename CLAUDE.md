@@ -91,7 +91,7 @@ Paramètres → 📱 Application → 💾 Sauvegarde (rangée dans Application �
 Paramètres → carte « Application » : affiche la version en cache (`jeux-ecole-vXX`) et un bouton « Mettre à jour maintenant » qui vérifie la connexion (fetch `sw.js` no-store), supprime les caches, désinscrit le service worker puis recharge. Le localStorage (étoiles, réglages) est conservé.
 
 ## Design system tactile
-**Règle (à la demande de l'utilisateur) : un mot d'un seul tenant s'affiche toujours sur une seule ligne, jamais coupé** (`white-space:nowrap` + taille réduite jusqu'à ce qu'il tienne : `fitWord` de `deutsch.html`, `fitW` de Memory et de L'océan, Lerne neue Wörter).
+**Règle (à la demande de l'utilisateur) : un mot d'un seul tenant s'affiche toujours sur une seule ligne, jamais coupé** ; les noms de pays/continents de la Géographie (`fitName` de `drapeau.html` et `pays.html`) passent à la ligne entre les mots (chaque mot dans un `<span>` insécable, « Bosnie-Herzégovine » reste entier), 2 lignes au plus, taille réduite si besoin : toujours entièrement lisibles (à la demande de l'utilisateur) (`white-space:nowrap` + taille réduite jusqu'à ce qu'il tienne : `fitWord` de `deutsch.html`, `fitW` de Memory et de L'océan, Lerne neue Wörter).
 Cibles >= 56px, bordures 3px, textes secondaires >= 16px, menus centrés verticalement (`.mid`). En-tête des matières et des jeux : bouton retour à gauche (gros chevron SVG `.chev` centré dans `.icon-btn`) puis le titre (`.ttl`).
 
 ### Français (`francais.html`)
