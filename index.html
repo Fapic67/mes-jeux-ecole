@@ -1138,10 +1138,12 @@ function pathAdd(kind,n){var p=prof(),c=pathCur(p);if(!c||c.g!==cur||c.t!==kind)
  if(pr.c>=pathGoal(c)){pr.i++;pr.c=0;pr.q=0;pathProg(p);saveP();renderPathbar();pathStepDone(p)}}
 function pathStepDone(p){var nx=pathCur(p),P=p.path;$("pd-ic").textContent=nx?"✅":"🎉";$("pd-t").textContent=nx?"Étape réussie !":"Parcours terminé !";
  $("pd-h").textContent=nx?"Étape "+(P.prog.i+1)+" / "+P.steps.length+" : "+GAMES[nx.g].t:"Tu peux jouer à ce que tu veux.";
- $("pd-go").textContent=nx?"▶ Étape suivante":"🏠 Retour à l'accueil";$("pathdone").hidden=false;updPback();try{say&&0}catch(e){}}
+ $("pd-go").textContent=nx?"▶ Étape suivante":"🏠 Retour à l'accueil";$("pathdone").hidden=false;updPback();pathFreeze()}
+/* étape finie : le jeu s'arrête (plus de question suivante ni de voix derrière la fenêtre) */
+function pathFreeze(){if(!GAMES[cur])return;loadTok++;var f=$("frame");try{f.contentWindow&&f.contentWindow.speechSynthesis&&f.contentWindow.speechSynthesis.cancel()}catch(e){}try{window.speechSynthesis&&speechSynthesis.cancel()}catch(e){}if(f.hasAttribute("srcdoc"))setFrame(null)}
 $("pd-go").onclick=function(){$("pathdone").hidden=true;updPback();var nx=pathCur();
  if(!nx){if(GAMES[cur]){var d=depth();if(d>1)history.go(1-d);else{history.replaceState({d:1,r:""},"",url(""));show("")}}return} // parcours terminé : retour à l'accueil
- if(nx.g===cur)return;if(GAMES[cur]){back();setTimeout(function(){go(nx.g)},350)}else go(nx.g)};
+ if(nx.g===cur){var c=cur;cur=null;show(c);return}if(GAMES[cur]){back();setTimeout(function(){go(nx.g)},350)}else go(nx.g)};
 function renderPathbar(){var p=prof(),on=pathActive(p),b=$("pathbar");b.hidden=!on;if(!on)return;var P=p.path,c=pathCur(p);
  $("pb-t").textContent=c?"Parcours "+(P.prog.i+1)+" / "+P.steps.length+" · "+GAMES[c.g].t:"Parcours terminé ✅";$("pb-h").textContent=c?pathLeft(p):"";b.classList.toggle("can",!!c)}
 $("pathbar").onclick=function(){var c=pathCur();if(c)go(c.g)};
