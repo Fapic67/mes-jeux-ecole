@@ -167,8 +167,10 @@ var deck,qi,good,cur,miss,busy;
 function cap(s){return s.charAt(0).toUpperCase()+s.slice(1)}
 function start(){draw();deck=shuffle(LV[level].p);if(window.PATHN)deck=deck.slice(0,window.PATHN);qi=0;good=0;$("lvlb").textContent="Niveau : "+LV[level].t;
  $("end").hidden=true;$("ask").hidden=$("mapw").hidden=false;learn()}
-function show(){cur=deck[qi];miss=0;busy=false;$("msg").textContent="";$("flag").hidden=true;fitName(cap(cur));$("cnt").textContent=(qi+1)+" / "+deck.length;setTimeout(function(){say(cur)},250)}
-$("ear").onclick=function(){if(LEARN)say(voici(deck[li]));else if(cur)say(cur)};
+function show(){cur=deck[qi];miss=0;busy=false;$("msg").textContent="";$("flag").hidden=true;fitName(ask(cur));$("cnt").textContent=(qi+1)+" / "+deck.length;setTimeout(function(){say(ask(cur))},250)}
+// la question est posée sous forme de question (à la demande de l'utilisateur) : « Où se situe la France ? »
+function ask(k){return "Où se situe "+k+"\u00a0?"}
+$("ear").onclick=function(){if(LEARN)say(voici(deck[li]));else if(cur)say(ask(cur))};
 function choose(e){var p=e.target.closest&&e.target.closest("path.e");
  if(LEARN){if(p){var k0=p.dataset.k;if(k0===deck[li])say(voici(k0));else{say("Ça, c'est "+k0);flag(k0)}}return} // apprentissage : toucher un lieu dit son nom
  if(!p||busy||!cur)return;var k=p.dataset.k;

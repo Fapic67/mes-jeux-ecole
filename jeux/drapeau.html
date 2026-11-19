@@ -108,9 +108,11 @@ function show(){cur=deck[qi];miss=false;busy=false;var L=LV[level];
  var ch=shuffle([cur].concat(shuffle(S.filter(function(x){return x!==cur})).slice(0,L.c-1)));
  $("grid").className=L.c>4?"g6":"";
  $("grid").innerHTML=ch.map(function(x){return '<button class="fl" data-n="'+C.indexOf(x)+'" aria-label="drapeau">'+img(x)+"</button>"}).join("");
- fitName(cur[1].charAt(0).toUpperCase()+cur[1].slice(1));$("cnt").textContent=(qi+1)+" / "+N;
- setTimeout(function(){say(cur[1])},250)}
-$("ear").onclick=function(){if(LEARN)say(learnTxt(deck[li]));else if(cur)say(cur[1])};
+ fitName(ask(cur));$("cnt").textContent=(qi+1)+" / "+N;
+ setTimeout(function(){say(ask(cur))},250)}
+// question posée sous forme de question (à la demande de l'utilisateur) : « Quel est le drapeau de la France ? »
+function ask(x){return x[0]==="eu"?"Quel est le drapeau de l'Union européenne\u00a0?":"Quel est le drapeau "+deOf(x[1])+"\u00a0?"}
+$("ear").onclick=function(){if(LEARN)say(learnTxt(deck[li]));else if(cur)say(ask(cur))};
 $("grid").addEventListener("click",function(e){var b=e.target.closest(".fl");if(!b||busy||b.classList.contains("ko"))return;var x=C[+b.dataset.n];
  if(x===cur){busy=true;b.classList.add("ok");tone(660,0,.12);tone(880,.1,.2);say("Bravo !");if(!miss)good++;
   try{if(parent!==window)parent.postMessage({type:"answer",game:"drapeau",ok:!miss,diff:LV[level].x,k:LV[level].t,item:cur[1]},"*")}catch(er){}
