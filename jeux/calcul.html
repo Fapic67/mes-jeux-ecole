@@ -49,6 +49,7 @@ input[type=range]::-moz-range-thumb{width:30px;height:30px;border-radius:50%;bac
 @keyframes hop{from{transform:translateY(0) rotate(-6deg)}to{transform:translateY(-22px) rotate(6deg)}}
 .score{display:flex;gap:12px;align-items:center}#timer{color:var(--blue)}
 @media (prefers-reduced-motion:reduce){.k.go.ok{animation:none}}
+.fixtype .tyl{display:none!important}
 </style>
 </head>
 <body>
@@ -58,8 +59,8 @@ input[type=range]::-moz-range-thumb{width:30px;height:30px;border-radius:50%;bac
 
 <div class="sheet" id="sheet"><div class="panel">
 <h2>Réglages</h2>
-<label>Type d’opération</label>
-<div class="types" id="types"></div>
+<label class="tyl">Type d’opération</label>
+<div class="types tyl" id="types"></div>
 <label>Résultat maximum : <b id="mxv"></b></label>
 <input type="range" id="mx" min="5" max="100" step="1">
 <label>Voix allemande : <b id="vs"></b></label>
@@ -73,7 +74,9 @@ input[type=range]::-moz-range-thumb{width:30px;height:30px;border-radius:50%;bac
 var TYPES=[["add","Additions"],["sub","Soustractions"],["comp","Compléments"],["mix","Un peu de tout"]];
 var S={type:"mix",max:20,end:"none",stars:10,mins:2};
 try{var s=JSON.parse(localStorage.getItem("calcul")||"null");if(s){S.type=s.type||"mix";S.max=Math.min(100,Math.max(5,+s.max||20));S.end=s.end||"none";S.stars=Math.min(50,Math.max(1,+s.stars||10));S.mins=Math.min(15,Math.max(1,+s.mins||2));}}catch(e){}
-function save(){try{localStorage.setItem("calcul",JSON.stringify(S));}catch(e){}}
+function save(){try{var o=JSON.parse(localStorage.getItem("calcul")||"{}")||{};for(var k in S)if(!(FIX&&k==="type"))o[k]=S[k];localStorage.setItem("calcul",JSON.stringify(o));}catch(e){}} // le type imposé n'écrase pas le réglage du Calcul malin
+// Additions / Soustractions / Compléments : trois exercices de l'accueil (START 1/2/3) ; le type est imposé, le réglage du type est caché
+var FIX=["","add","sub","comp"][window.START||0]||"";if(FIX){S.type=FIX;document.documentElement.classList.add("fixtype")}
 var score=0,cur=null,ans="",locked=false,tLeft=0,tick=null,timeUp=false,nextRun=0,lastCh=-1;
 var $=function(i){return document.getElementById(i)};
 var rnd=function(a,b){return a+Math.floor(Math.random()*(b-a+1))};

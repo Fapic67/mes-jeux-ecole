@@ -376,7 +376,9 @@ body.rw-shop #purse{display:none!important}
 <section class="view" id="v-maths">
   <div class="top"><button class="btn icon-btn" data-back="1" aria-label="Retour"><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 4.5 8.5 12l7 7.5"/></svg></button><h2 class="ttl">🧮 Mathématiques</h2><span class="purse" style="flex:none"><span class="st">⭐ <span class="nst">0</span></span></span></div>
   <div class="mid">
-    <button class="game" data-play="calcul"><span class="ic">➕</span><span>Calcul malin<small>Additions, soustractions, compléments · voix en allemand</small></span></button>
+    <button class="game" data-play="addition"><span class="ic">➕</span><span>Additions<small>Calcul malin · voix en allemand</small></span></button>
+    <button class="game" data-play="soustraction"><span class="ic">➖</span><span>Soustractions<small>Calcul malin · voix en allemand</small></span></button>
+    <button class="game" data-play="complement"><span class="ic">🔟</span><span>Compléments<small>3 + ? = 10 · voix en allemand</small></span></button>
     <button class="game" data-play="telephone"><span class="ic">📞</span><span>Le téléphone magique<small>Écoute les nombres et compose le numéro</small></span></button>
     <button class="game" data-play="heure"><span class="ic">🕒</span><span>Quelle heure est-il ?<small>Lis l'horloge et règle les aiguilles</small></span></button>
   </div>
@@ -756,7 +758,11 @@ var GAMES={
  quique:{t:"Qui ou que ?",app:"francais",start:3,subj:"francais",eco:"quique"},
  phrase:{t:"Complète la phrase",app:"francais",start:4,subj:"francais",eco:"phrase"},
  conj:{t:"Conjugue être et avoir",app:"francais",start:5,subj:"francais",eco:"conj"},
- calcul:{t:"Calcul malin",app:"calcul",subj:"maths",eco:"calcul"},
+ // Calcul malin scindé en 3 exercices (à la demande de l'utilisateur) ; « calcul » reste pour l'historique (old : plus dans les menus)
+ addition:{t:"Additions",app:"calcul",start:1,subj:"maths",eco:"calcul"},
+ soustraction:{t:"Soustractions",app:"calcul",start:2,subj:"maths",eco:"calcul"},
+ complement:{t:"Compléments",app:"calcul",start:3,subj:"maths",eco:"calcul"},
+ calcul:{t:"Calcul malin",app:"calcul",subj:"maths",eco:"calcul",old:1},
  telephone:{t:"Le téléphone magique",app:"telephone",subj:"maths",eco:"telephone"},
  article:{t:"Der · Die · Das",app:"deutsch",start:1,subj:"allemand",eco:"dde"},
  code:{t:"Le code secret",app:"code",subj:"logique",eco:"code"},
@@ -941,8 +947,8 @@ function recordStat(m){if(!GAMES[cur])return;var p=prof(),G=stG(p.id,cur),D=stDa
   var ks=Object.keys(G.it);if(ks.length>400){ks.sort(function(a,b){return G.it[a][2]<G.it[b][2]?-1:1});ks.slice(0,ks.length-400).forEach(function(x){delete G.it[x]})}}
  stSave(p.id)}
 var RS={pid:null,per:7};
-var RDESC={quique:"phrases justes du premier coup",phrase:"mots bien écrits du premier coup",calcul:"opérations justes du premier coup",telephone:"nombres composés justes du premier coup",article:"articles justes du premier coup",mot:"mots trouvés du premier coup",code:"codes trouvés en 5 essais ou moins",robot:"programmes réussis (chaque essai raté compte)",boucles:"programmes réussis (chaque essai raté compte)",reparateur:"programmes réparés (chaque essai raté compte)",chenille:"perles trouvées du premier coup",conj:"verbes bien écrits du premier coup",schreib:"mots bien écrits du premier coup (avec l'article)",drapeau:"drapeaux trouvés du premier coup",heure:"heures lues ou réglées du premier coup",pays:"pays trouvés sur la carte du premier coup",continent:"continents trouvés sur la carte du premier coup",lerne:"mots reconnus du premier coup (image → mot)",nombre:"nombres bien dits du premier coup (un nombre mal compris par le micro ne compte pas)",memory:"paires trouvées sans erreur de mémoire (une erreur = la carte jumelle avait déjà été vue)",courses:"listes retenues en entier",note:"notes reconnues du premier coup"};
-function rKind(g,k){if(g==="calcul")return{add:"Additions",sub:"Soustractions",comp:"Compléments"}[k]||k;if(g==="telephone")return k+" à "+(+k+9);if(g==="mot")return"Leçon "+String(k).slice(1);return k}
+var RDESC={quique:"phrases justes du premier coup",phrase:"mots bien écrits du premier coup",calcul:"opérations justes du premier coup",addition:"additions justes du premier coup",soustraction:"soustractions justes du premier coup",complement:"compléments justes du premier coup",telephone:"nombres composés justes du premier coup",article:"articles justes du premier coup",mot:"mots trouvés du premier coup",code:"codes trouvés en 5 essais ou moins",robot:"programmes réussis (chaque essai raté compte)",boucles:"programmes réussis (chaque essai raté compte)",reparateur:"programmes réparés (chaque essai raté compte)",chenille:"perles trouvées du premier coup",conj:"verbes bien écrits du premier coup",schreib:"mots bien écrits du premier coup (avec l'article)",drapeau:"drapeaux trouvés du premier coup",heure:"heures lues ou réglées du premier coup",pays:"pays trouvés sur la carte du premier coup",continent:"continents trouvés sur la carte du premier coup",lerne:"mots reconnus du premier coup (image → mot)",nombre:"nombres bien dits du premier coup (un nombre mal compris par le micro ne compte pas)",memory:"paires trouvées sans erreur de mémoire (une erreur = la carte jumelle avait déjà été vue)",courses:"listes retenues en entier",note:"notes reconnues du premier coup"};
+function rKind(g,k){if(g==="calcul"||g==="addition"||g==="soustraction"||g==="complement")return{add:"Additions",sub:"Soustractions",comp:"Compléments"}[k]||k;if(g==="telephone")return k+" à "+(+k+9);if(g==="mot")return"Leçon "+String(k).slice(1);return k}
 function rCls(o,t){if(!t)return"";var x=o/t;return x>=.9?"g":x>=.75?"g":x>=.6?"y":"r"}
 function rVerdict(o,t){if(t<10)return'<span class="rs-v n">Peu de réponses</span>';var x=o/t;
  return x>=.9?'<span class="rs-v g">🌟 Très bien</span>':x>=.75?'<span class="rs-v g">👍 Bien</span>':x>=.6?'<span class="rs-v y">🙂 À travailler</span>':'<span class="rs-v r">💪 Difficile</span>'}
@@ -1084,7 +1090,7 @@ function isPlay(k,p){p=p||prof();ensureEcon(p);return !!(!p.admin&&p.play.on&&p.
 var PUNIT={min:"min",ok:"réussites",games:"parties"};
 // Une « partie » de parcours a à peu près la même durée partout (3 à 5 min) : [nombre, ce qu'on compte, libellé]
 // "q" = questions (chaque réponse, juste ou non), "round" = fins de manche envoyées par le jeu (roundEnd)
-var PART={calcul:[20,"q","opérations"],telephone:[10,"q","nombres"],article:[20,"q","mots"],mot:[20,"q","mots"],schreib:[10,"q","mots"],lerne:[12,"q","mots"],
+var PART={calcul:[20,"q","opérations"],addition:[20,"q","additions"],soustraction:[20,"q","soustractions"],complement:[20,"q","compléments"],telephone:[10,"q","nombres"],article:[20,"q","mots"],mot:[20,"q","mots"],schreib:[10,"q","mots"],lerne:[12,"q","mots"],
  quique:[15,"q","phrases"],phrase:[15,"q","phrases"],conj:[12,"q","verbes"],note:[20,"q","notes"],drapeau:[10,"q","drapeaux"],heure:[10,"q","heures"],pays:[5,"q","pays"],continent:[7,"q","continents"],chenille:[15,"q","perles"],courses:[3,"q","listes"],
  code:[1,"round","code"],robot:[3,"round","niveaux"],boucles:[3,"round","niveaux"],reparateur:[3,"round","niveaux"],memory:[1,"round","partie"],
  morpion:[3,"round","manches"],bulles:[1,"round","partie"],glissant:[3,"round","niveaux"],allumettes:[2,"round","manches"],pizzeria:[3,"round","commandes"],
@@ -1092,7 +1098,7 @@ var PART={calcul:[20,"q","opérations"],telephone:[10,"q","nombres"],article:[20
 function partOf(g){return PART[g]||[1,"round","partie"]}
 function partTxt(g){var P=partOf(g);return P[0]>1?P[0]+" "+P[2]:P[2]==="partie"?"":"1 "+P[2]}
 function unitTxt(st,n){if(st.t!=="games")return PUNIT[st.t];var t=partTxt(st.g);return(n>1?"parties":"partie")+(t?" de "+t:"")}
-function ensurePath(p){if(!p.path)p.path={on:false,steps:[],prog:{}};return p.path}
+function ensurePath(p){if(!p.path)p.path={on:false,steps:[],prog:{}};p.path.steps.forEach(function(s){if(s.g==="calcul")s.g="addition"});return p.path} // Calcul malin scindé : ancienne étape → Additions
 function pathProg(p){var P=ensurePath(p);if(!P.prog||P.prog.d!==dkey())P.prog={d:dkey(),i:0,c:0,q:0};
  while(P.prog.i<P.steps.length&&(!GAMES[P.steps[P.prog.i].g]||isLockedPrize(P.steps[P.prog.i].g,p))){P.prog.i++;P.prog.c=0}return P.prog}
 function pathActive(p){p=p||prof();var P=ensurePath(p);return !p.admin&&P.on&&P.steps.length>0}
@@ -1401,7 +1407,7 @@ function blTime(sec){var m=Math.round(sec/60);return m<60?m+" min":Math.floor(m/
 function renderBilan(p){var S=st(p.id),per=BL.per,to=dkey(),from=dayOff(per-1);
  $("bl-per").value=String(per);
  // 1. temps par jeu
- var rows=Object.keys(GAMES).filter(function(g){return !isLockedPrize(g,p)}).map(function(g){var G=S.g[g];return{g:g,sec:G?rSum(G,from,to).sec:0}}).sort(function(a,b){return b.sec-a.sec});
+ var rows=Object.keys(GAMES).filter(function(g){return !isLockedPrize(g,p)}).map(function(g){var G=S.g[g];return{g:g,sec:G?rSum(G,from,to).sec:0}}).filter(function(r){return !GAMES[r.g].old||r.sec>0}).sort(function(a,b){return b.sec-a.sec});
  var tot=rows.reduce(function(a,r){return a+r.sec},0),mx=Math.max(60,rows[0]?rows[0].sec:0);
  var h='<div class="bl-h">⏱️ Temps<span>'+blTime(tot)+"</span></div>";
  h+='<div class="bl-bars">'+rows.map(function(r){var c=(SUBJC[GAMES[r.g].subj]||SUBJ[6])[2],ht=Math.round(r.sec/mx*110);
@@ -1452,11 +1458,11 @@ function renderRmode(p){renderPrize(p);ensureShop(p);$("p-rmode").innerHTML=RMOD
 $("p-rmode").addEventListener("click",function(e){var b=e.target.closest("[data-rm]");if(!b)return;upd(function(p){p.rmode=b.dataset.rm;p.reward=p.rmode==="shop"})});
 $("p-gpend").addEventListener("click",function(e){var b=e.target.closest("[data-give]");if(!b)return;upd(function(p){ensureShop(p);p.shopPend=p.shopPend.filter(function(x){return x.id!==b.dataset.give});(p.shopGiven||(p.shopGiven=[])).push(b.dataset.give);p.shopGiven=p.shopGiven.slice(-300)});toast("✅ Donné",1500)});
 function renderPathAdm(p){var P=ensurePath(p),pr=pathProg(p);$("pa-on").checked=P.on;$("pa-opts").hidden=!P.on;
- var opts=Object.keys(GAMES).map(function(k){return[k,GAMES[k].t]}).sort(function(a,b){return a[1].localeCompare(b[1],"fr")});
+ var opts=Object.keys(GAMES).filter(function(k){return !GAMES[k].old}).map(function(k){return[k,GAMES[k].t]}).sort(function(a,b){return a[1].localeCompare(b[1],"fr")});
  $("pa-list").innerHTML=P.steps.map(function(st,i){return '<div class="pa-row'+(i<pr.i?" done":"")+'" data-i="'+i+'"><select class="field" data-f="g">'+opts.map(function(o){return '<option value="'+o[0]+'"'+(o[0]===st.g?" selected":"")+">"+(GICON[o[0]]||"")+" "+esc(o[1])+"</option>"}).join("")+'</select><input class="field num" data-f="n" type="number" inputmode="numeric" min="1" max="999" value="'+st.n+'"><select class="field" data-f="t">'+Object.keys(PUNIT).map(function(u){return '<option value="'+u+'"'+(u===st.t?" selected":"")+">"+unitTxt({t:u,g:st.g},2)+"</option>"}).join("")+'</select><button class="btn" data-a="up"'+(i?"":" disabled")+'>↑</button><button class="btn" data-a="del">✕</button></div>'}).join("");
  $("pa-txt").textContent=P.steps.length?"Aujourd'hui : "+Math.min(pr.i,P.steps.length)+" / "+P.steps.length+(pr.i>=P.steps.length?" ✅":""):"";$("pa-rs").hidden=!P.steps.length}
 $("pa-on").onchange=function(){var v=this.checked;upd(function(p){ensurePath(p).on=v})};
-$("pa-add").onclick=function(){upd(function(p){var P=ensurePath(p),l=P.steps[P.steps.length-1];P.steps.push({g:l?l.g:"calcul",t:l?l.t:"min",n:l?l.n:5})})};
+$("pa-add").onclick=function(){upd(function(p){var P=ensurePath(p),l=P.steps[P.steps.length-1];P.steps.push({g:l?l.g:"addition",t:l?l.t:"min",n:l?l.n:5})})};
 $("pa-rs").onclick=function(){upd(function(p){ensurePath(p).prog={d:dkey(),i:0,c:0,q:0}});toast("🧭 Parcours du jour remis à 0",1500)};
 $("pa-list").addEventListener("change",function(e){var r=e.target.closest("[data-i]"),f=e.target.dataset.f;if(!r||!f)return;var i=+r.dataset.i,v=e.target.value;
  upd(function(p){var st=ensurePath(p).steps[i];if(f==="n"){v=Math.max(1,Math.min(999,Math.round(+v)||1))}st[f]=v})});
@@ -1476,7 +1482,7 @@ $("dl-min").onkeydown=function(e){if(e.key==="Enter")this.blur()};
 function renderPlay(p){ensureEcon(p);var P=p.play;$("pl-on").checked=P.on;$("pl-opts").hidden=!P.on;
  $("pl-ratio").innerHTML=RATIOS.map(function(r,i){return '<button data-r="'+i+'" class="'+(Math.abs(r[0]-P.ratio)<.01?"on":"")+'">'+r[1]+"</button>"}).join("");
  var k=Math.round(4*P.ratio/(1-P.ratio)*10)/10;$("pl-txt").textContent="4 min d'apprentissage = "+String(k).replace(".",",")+" min de jeu. Les jeux limités sont grisés quand le temps est écoulé ; une partie commencée se termine toujours.";
- $("pl-games").innerHTML=Object.keys(GAMES).map(function(g){return '<label class="switch"><input type="checkbox" data-g="'+g+'"'+(P.games.indexOf(g)>=0?" checked":"")+'><span class="grow">'+esc(GAMES[g].t)+"</span></label>"}).join("")}
+ $("pl-games").innerHTML=Object.keys(GAMES).filter(function(g){return !GAMES[g].old}).map(function(g){return '<label class="switch"><input type="checkbox" data-g="'+g+'"'+(P.games.indexOf(g)>=0?" checked":"")+'><span class="grow">'+esc(GAMES[g].t)+"</span></label>"}).join("")}
 $("pl-on").onchange=function(){var v=this.checked;upd(function(p){ensureEcon(p);p.play.on=v})};
 $("pl-ratio").addEventListener("click",function(e){var b=e.target.closest("[data-r]");if(!b)return;upd(function(p){ensureEcon(p);p.play.ratio=RATIOS[+b.dataset.r][0]})});
 $("pl-games").addEventListener("change",function(e){var g=e.target.dataset.g,v=e.target.checked;if(!g)return;upd(function(p){ensureEcon(p);var a=p.play.games.filter(function(x){return x!==g});if(v)a.push(g);p.play.games=a})});
