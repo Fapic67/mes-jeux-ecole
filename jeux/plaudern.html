@@ -115,8 +115,8 @@ function answer(ok){try{if(parent!==window)parent.postMessage({type:"answer",gam
 $("ok").onclick=function(){if(busy||!placed.length)return;
  var ok=sentences(cur).some(function(s){return s.length===placed.length&&s.every(function(w,i){return w===placed[i]})});
  if(ok){busy=true;$("ok").className="ok";var s=placed.join(" ");s=/[.!?]$/.test(s)?s:s+".";bubble(true,esc(s));tone(660,0,.12);tone(880,.1,.2);if(!miss){good++;answer(true)}
-  placed=[];pool=[];render();setTimeout(function(){say(s)},150);
-  setTimeout(function(){qi++;if(qi<C.length)next(REACT[Math.floor(Math.random()*REACT.length)]);else end()},2200)}
+  placed=[];pool=[];render(); // la réponse de l'enfant n'est pas lue (à la demande de l'utilisateur)
+  setTimeout(function(){qi++;if(qi<C.length)next(REACT[Math.floor(Math.random()*REACT.length)]);else end()},1300)}
  else{if(!miss)answer(false);miss++;tone(220,0,.25);$("ans").className="ko";$("ok").className="ko";
   setTimeout(function(){$("ok").className="";pool=pool.concat(placed);placed=[];render()},600)}};
 function next(pre){$("ok").className="";cur=C[qi];placed=[];pool=tags(cur);miss=0;render();$("pool").innerHTML="";botSay(cur,qi>=3&&qi<C.length-1?pre:"")}
