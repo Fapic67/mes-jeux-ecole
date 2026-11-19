@@ -31,6 +31,7 @@ button{font-family:inherit;touch-action:manipulation;cursor:pointer}
 #map path.ko{fill:#f28b8b}
 #map path.hint{fill:#ffd36b}
 #map path.w{stroke-width:.6}
+#map path.land{fill:var(--land);stroke:var(--line);stroke-width:.6}
 #map path.w.ok{filter:brightness(1.12) saturate(1.3)}
 #map path.w.hint{fill:#ffd36b!important}
 #map path.w.ko{fill:#f28b8b!important}
@@ -81,8 +82,11 @@ function flag(k){var c=FLAG[k],f=$("flag");if(!c){f.hidden=true;return}f.hidden=
 var CN={EU:"l'Europe",AS:"l'Asie",AF:"l'Afrique",NA:"l'Amérique du Nord",SA:"l'Amérique du Sud",OC:"l'Océanie",AN:"l'Antarctique"};
 var CC={EU:"#8fb4ee",AS:"#f4cd6a",AF:"#ec9a74",NA:"#93d293",SA:"#c4a0e0",OC:"#6fd0d0",AN:"#d8e0e4"};
 // Deux exercices dans ce fichier (à la demande de l'utilisateur) : « Trouve le pays » (START 1, carte de l'Europe) et « Trouve le continent » (START 2, carte du monde).
-var CONT=window.START==2,GAME=CONT?"continent":"pays";
-var LV=CONT?[null,{t:"Continents",d:"Le monde : les 7 continents",map:"world",p:["l'Europe","l'Asie","l'Afrique","l'Amérique du Nord","l'Amérique du Sud","l'Océanie","l'Antarctique"]}]
+var CONT=window.START==2,OCE=window.START==3,GAME=OCE?"oceans":CONT?"continent":"pays";
+// « Trouve l'océan » (START 3, à la demande de l'utilisateur) : les 5 océans sur la carte du monde
+var ON={ATL:"l'océan Atlantique",PAC:"l'océan Pacifique",IND:"l'océan Indien",ARC:"l'océan Arctique",SOU:"l'océan Austral"};
+var OC={ATL:"#5aa9e6",PAC:"#3d8bd4",IND:"#7cc4f0",ARC:"#a9dcf5",SOU:"#2f6fb5"};
+var LV=OCE?[null,{t:"Océans",d:"Le monde : les 5 océans",map:"oceans",p:["l'océan Atlantique","l'océan Pacifique","l'océan Indien","l'océan Arctique","l'océan Austral"]}]:CONT?[null,{t:"Continents",d:"Le monde : les 7 continents",map:"world",p:["l'Europe","l'Asie","l'Afrique","l'Amérique du Nord","l'Amérique du Sud","l'Océanie","l'Antarctique"]}]
  :[null,{t:"Facile",d:"L'Europe : France, Allemagne, Espagne, Italie, Grande-Bretagne",map:"eu",p:["la France","l'Allemagne","l'Espagne","l'Italie","la Grande-Bretagne"]}];
 var PK="@"+(window.PROFILE||"p1");function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
 var level=Math.min(LV.length-1,Math.max(1,parseInt(ls(GAME+"_lvl"+PK))||1));
@@ -110,9 +114,14 @@ function up(e){var tap=e.type==="pointerup"&&!moved&&!pinch&&Object.keys(PT).len
 map.addEventListener("pointerup",up);map.addEventListener("pointercancel",up);
 map.addEventListener("wheel",function(e){e.preventDefault();zoomAt(e.clientX,e.clientY,toSvg(e.clientX,e.clientY,VB),VB[2]*(e.deltaY>0?1.2:1/1.2))},{passive:false});
 $("unzoom").onclick=function(){VB=VB0.slice();applyVB()};
-function draw(){var L=LV[level];
+function draw(){var L=LV[level];map.style.background="";
  if(L.map==="eu"){setVB0([205,95,690,675]); // cadrage resserré (à la demande de l'utilisateur) : de l'Islande à la mer Noire, du cap Nord à la Crète
   map.innerHTML=EU_MAP.f.map(function(x){var k=FR[x.n];return '<path d="'+x.d+'"'+(k?' class="e" data-k="'+esc(k)+'"':' class="c"')+"/>"}).join("")}
+ else if(L.map==="oceans"){var W=WORLD_MAP,s='<path d="'+W.sphere+'" style="fill:#c9d6df;stroke:none"/>';map.style.background="var(--card)";/* fond neutre : seuls les océans sont bleus */setVB0([45,20,935,480]);
+  for(var o in W.oc)s+='<path class="e w" data-k="'+esc(ON[o])+'" d="'+W.oc[o]+'" style="fill:'+OC[o]+';stroke:'+OC[o]+'"/>';
+  s+='<path class="land" d="'+W.land+'"/>'; // terres par-dessus (toucher la terre ne compte pas)
+  for(var o2 in W.ol)s+='<text x="'+W.ol[o2][0]+'" y="'+W.ol[o2][1]+'" data-l="'+esc(ON[o2])+'" hidden>'+ON[o2].replace(/^l'océan /,"")+"</text>";
+  map.innerHTML=s}
  else{var W=WORLD_MAP,s='<defs><clipPath id="ce"><path d="'+W.clipEU+'"/></clipPath><clipPath id="ca"><path d="'+W.clipAS+'"/></clipPath></defs><path d="'+W.sphere+'" style="fill:var(--sea);stroke:none"/>';
   setVB0([45,20,935,480]); // monde : léger recadrage (océans des bords)
   function cp(k,d,clip){return '<path class="e w" data-k="'+esc(CN[k])+'" d="'+d+'" style="fill:'+CC[k]+';stroke:'+CC[k]+'"'+(clip?' clip-path="url(#'+clip+')"':"")+"/>"}

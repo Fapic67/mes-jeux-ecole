@@ -359,7 +359,7 @@ body.rw-shop #purse{display:none!important}
     <button class="tile de" data-go="allemand"><span class="ic">🇩🇪</span><span>Allemand<small>Der · Die · Das, mots en images, écrire</small></span></button>
     <button class="tile lo" data-go="logique"><span class="ic">🧩</span><span>Logique<small>Code secret, petit robot</small></span></button>
     <button class="tile me" data-go="memoire"><span class="ic">🧠</span><span>Mémoire<small>Memory, liste des courses</small></span></button>
-    <button class="tile geo" data-go="geo"><span class="ic">🌍</span><span>Géographie<small>Drapeaux, pays, continents</small></span></button>
+    <button class="tile geo" data-go="geo"><span class="ic">🌍</span><span>Géographie<small>Drapeaux, pays, continents, océans</small></span></button>
     <button class="tile mu" data-go="musique"><span class="ic">🎵</span><span>Musique<small>Trouve la note</small></span></button>
     <button class="tile jx" data-go="jeux"><span class="ic">🎲</span><span>Jeux<small>Morpion, jeux de la boutique 🛍️</small></span></button>
   </div>
@@ -420,6 +420,7 @@ body.rw-shop #purse{display:none!important}
     <button class="game" data-play="drapeau"><span class="ic">🇪🇺</span><span>Retrouve le drapeau<small>Écoute le pays et touche son drapeau</small></span></button>
     <button class="game" data-play="pays"><span class="ic">🗺️</span><span>Trouve le pays<small>Écoute le pays et touche-le sur la carte</small></span></button>
     <button class="game" data-play="continent"><span class="ic">🌎</span><span>Trouve le continent<small>Écoute le continent et touche-le sur la carte</small></span></button>
+    <button class="game" data-play="oceans"><span class="ic">🌊</span><span>Trouve l'océan<small>Écoute l'océan et touche-le sur la carte</small></span></button>
   </div>
 </section>
 
@@ -776,6 +777,7 @@ var GAMES={
  drapeau:{t:"Retrouve le drapeau",app:"drapeau",subj:"geo",eco:"drapeau"},
  pays:{t:"Trouve le pays",app:"pays",start:1,subj:"geo",eco:"pays"},
  continent:{t:"Trouve le continent",app:"pays",start:2,subj:"geo",eco:"continent"},
+ oceans:{t:"Trouve l'océan",app:"pays",start:3,subj:"geo",eco:"oceans"},
  memory:{t:"Memory",app:"memory",subj:"memoire",eco:"memory",luck:1}, // luck : jeu en partie de hasard → pas de série 🔥, étoiles à la fin de la partie
  courses:{t:"Die Einkaufsliste",app:"courses",subj:"memoire",eco:"courses"},
  morpion:{t:"Morpion",app:"morpion",subj:"jeux"},
@@ -883,7 +885,7 @@ function money(v,p){p=p||prof();v=r2(v);return v.toLocaleString("fr-FR",v%1?{min
    Les jeux envoient {type:"answer", game, ok, diff, q} à chaque réponse.
    Points = P(jeu) × difficulté × palier de série (×1, ×2 dès 5, ×3 dès 10) × qualité ; 10 points = 1 ⭐.
    Barème : objectif (min/jour) × 7 jours ≈ autant d'étoiles = maximum €/semaine ; le surplus est reporté. */
-var ECON={P:{calcul:.7,telephone:.9,dde:.5,fdw:.5,quique:1.1,phrase:1.1,note:.5,code:7,robot:5,boucles:6,reparateur:4,chenille:.8,memory:1,courses:2.5,conj:.8,sdw:1.1,drapeau:.5,pays:.6,continent:.6,heure:.8},PTS:10};
+var ECON={P:{calcul:.7,telephone:.9,dde:.5,fdw:.5,quique:1.1,phrase:1.1,note:.5,code:7,robot:5,boucles:6,reparateur:4,chenille:.8,memory:1,courses:2.5,conj:.8,sdw:1.1,drapeau:.5,pays:.6,continent:.6,oceans:.6,heure:.8},PTS:10};
 function tierOf(st){return st>=10?3:st>=5?2:1}
 function pad(n){return(n<10?"0":"")+n}
 function dkey(d){d=d||new Date();return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())}
@@ -948,7 +950,7 @@ function recordStat(m){if(!GAMES[cur])return;var p=prof(),G=stG(p.id,cur),D=stDa
   var ks=Object.keys(G.it);if(ks.length>400){ks.sort(function(a,b){return G.it[a][2]<G.it[b][2]?-1:1});ks.slice(0,ks.length-400).forEach(function(x){delete G.it[x]})}}
  stSave(p.id)}
 var RS={pid:null,per:7};
-var RDESC={quique:"phrases justes du premier coup",phrase:"mots bien écrits du premier coup",calcul:"opérations justes du premier coup",addition:"additions justes du premier coup",soustraction:"soustractions justes du premier coup",complement:"compléments justes du premier coup",telephone:"nombres composés justes du premier coup",article:"articles justes du premier coup",mot:"mots trouvés du premier coup",code:"codes trouvés en 5 essais ou moins",robot:"programmes réussis (chaque essai raté compte)",boucles:"programmes réussis (chaque essai raté compte)",reparateur:"programmes réparés (chaque essai raté compte)",chenille:"perles trouvées du premier coup",conj:"verbes bien écrits du premier coup",schreib:"mots bien écrits du premier coup (avec l'article)",drapeau:"drapeaux trouvés du premier coup",heure:"heures lues ou réglées du premier coup",pays:"pays trouvés sur la carte du premier coup",continent:"continents trouvés sur la carte du premier coup",lerne:"mots reconnus du premier coup (image → mot)",nombre:"nombres bien dits du premier coup (un nombre mal compris par le micro ne compte pas)",memory:"paires trouvées sans erreur de mémoire (une erreur = la carte jumelle avait déjà été vue)",courses:"listes retenues en entier",note:"notes reconnues du premier coup"};
+var RDESC={quique:"phrases justes du premier coup",phrase:"mots bien écrits du premier coup",calcul:"opérations justes du premier coup",addition:"additions justes du premier coup",soustraction:"soustractions justes du premier coup",complement:"compléments justes du premier coup",telephone:"nombres composés justes du premier coup",article:"articles justes du premier coup",mot:"mots trouvés du premier coup",code:"codes trouvés en 5 essais ou moins",robot:"programmes réussis (chaque essai raté compte)",boucles:"programmes réussis (chaque essai raté compte)",reparateur:"programmes réparés (chaque essai raté compte)",chenille:"perles trouvées du premier coup",conj:"verbes bien écrits du premier coup",schreib:"mots bien écrits du premier coup (avec l'article)",drapeau:"drapeaux trouvés du premier coup",heure:"heures lues ou réglées du premier coup",pays:"pays trouvés sur la carte du premier coup",continent:"continents trouvés sur la carte du premier coup",oceans:"océans trouvés sur la carte du premier coup",lerne:"mots reconnus du premier coup (image → mot)",nombre:"nombres bien dits du premier coup (un nombre mal compris par le micro ne compte pas)",memory:"paires trouvées sans erreur de mémoire (une erreur = la carte jumelle avait déjà été vue)",courses:"listes retenues en entier",note:"notes reconnues du premier coup"};
 function rKind(g,k){if(g==="calcul"||g==="addition"||g==="soustraction"||g==="complement")return{add:"Additions",sub:"Soustractions",comp:"Compléments"}[k]||k;if(g==="telephone")return k+" à "+(+k+9);if(g==="mot")return"Leçon "+String(k).slice(1);return k}
 function rCls(o,t){if(!t)return"";var x=o/t;return x>=.9?"g":x>=.75?"g":x>=.6?"y":"r"}
 function rVerdict(o,t){if(t<10)return'<span class="rs-v n">Peu de réponses</span>';var x=o/t;
@@ -1092,7 +1094,7 @@ var PUNIT={min:"min",ok:"réussites",games:"parties"};
 // Une « partie » de parcours a à peu près la même durée partout (3 à 5 min) : [nombre, ce qu'on compte, libellé]
 // "q" = questions (chaque réponse, juste ou non), "round" = fins de manche envoyées par le jeu (roundEnd)
 var PART={calcul:[20,"q","opérations"],addition:[20,"q","additions"],soustraction:[20,"q","soustractions"],complement:[20,"q","compléments"],telephone:[10,"q","nombres"],article:[20,"q","mots"],mot:[20,"q","mots"],schreib:[10,"q","mots"],lerne:[12,"q","mots"],
- quique:[15,"q","phrases"],phrase:[15,"q","phrases"],conj:[12,"q","verbes"],note:[20,"q","notes"],drapeau:[10,"q","drapeaux"],heure:[10,"q","heures"],pays:[5,"q","pays"],continent:[7,"q","continents"],chenille:[15,"q","perles"],courses:[3,"q","listes"],
+ quique:[15,"q","phrases"],phrase:[15,"q","phrases"],conj:[12,"q","verbes"],note:[20,"q","notes"],drapeau:[10,"q","drapeaux"],heure:[10,"q","heures"],pays:[5,"q","pays"],continent:[7,"q","continents"],oceans:[5,"q","océans"],chenille:[15,"q","perles"],courses:[3,"q","listes"],
  code:[1,"round","code"],robot:[3,"round","niveaux"],boucles:[3,"round","niveaux"],reparateur:[3,"round","niveaux"],memory:[1,"round","partie"],
  morpion:[3,"round","manches"],bulles:[1,"round","partie"],glissant:[3,"round","niveaux"],allumettes:[2,"round","manches"],pizzeria:[3,"round","commandes"],
  tuyaux:[2,"round","niveaux"],perroquet:[2,"round","parties"],quatre:[1,"round","partie"],ocean:[1,"round","partie"]};
