@@ -50,6 +50,7 @@ h1{margin:0;font-size:34px;font-weight:700;line-height:1.15}
 .btn.okb{background:var(--ok);border-color:var(--ok);color:#fff}
 .btn.danger{color:var(--ko);border-color:var(--ko)}
 .btn:disabled{opacity:.4}
+.ic.opc{font-family:"Fredoka",system-ui,sans-serif;font-weight:700;font-size:64px;line-height:1;display:flex;align-items:center;justify-content:center;width:56px;flex:none} /* + rouge, − bleu (Additions, Soustractions) */
 .icon-btn{width:var(--tap);padding:0;font-size:26px}
 /* flèche retour : gros chevron centré dans le bouton */
 .icon-btn .chev{width:30px;height:30px;display:block;fill:none;stroke:currentColor;stroke-width:3.6;stroke-linecap:round;stroke-linejoin:round}
@@ -376,8 +377,8 @@ body.rw-shop #purse{display:none!important}
 <section class="view" id="v-maths">
   <div class="top"><button class="btn icon-btn" data-back="1" aria-label="Retour"><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 4.5 8.5 12l7 7.5"/></svg></button><h2 class="ttl">🧮 Mathématiques</h2><span class="purse" style="flex:none"><span class="st">⭐ <span class="nst">0</span></span></span></div>
   <div class="mid">
-    <button class="game" data-play="addition"><span class="ic">➕</span><span>Additions<small>Calcul malin · voix en allemand</small></span></button>
-    <button class="game" data-play="soustraction"><span class="ic">➖</span><span>Soustractions<small>Calcul malin · voix en allemand</small></span></button>
+    <button class="game" data-play="addition"><span class="ic opc" style="color:#e5484d">+</span><span>Additions<small>Calcul malin · voix en allemand</small></span></button>
+    <button class="game" data-play="soustraction"><span class="ic opc" style="color:#2f6fe0">−</span><span>Soustractions<small>Calcul malin · voix en allemand</small></span></button>
     <button class="game" data-play="complement"><span class="ic">🔟</span><span>Compléments<small>3 + ? = 10 · voix en allemand</small></span></button>
     <button class="game" data-play="telephone"><span class="ic">📞</span><span>Le téléphone magique<small>Écoute les nombres et compose le numéro</small></span></button>
     <button class="game" data-play="heure"><span class="ic">🕒</span><span>Quelle heure est-il ?<small>Lis l'horloge et règle les aiguilles</small></span></button>
