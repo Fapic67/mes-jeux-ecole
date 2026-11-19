@@ -50,6 +50,8 @@ h1{margin:0;font-size:34px;font-weight:700;line-height:1.15}
 .btn.okb{background:var(--ok);border-color:var(--ok);color:#fff}
 .btn.danger{color:var(--ko);border-color:var(--ko)}
 .btn:disabled{opacity:.4}
+.ic.icb{position:relative;display:inline-block;line-height:1} /* Anna avec une bulle (icône de Plaudern) */
+.ic.icb i{position:absolute;font-style:normal;font-size:22px;right:-6px;top:-10px}
 .ic.opc{font-family:"Fredoka",system-ui,sans-serif;font-weight:700;font-size:64px;line-height:1;display:flex;align-items:center;justify-content:center;width:56px;flex:none} /* + rouge, − bleu (Additions, Soustractions) */
 .icon-btn{width:var(--tap);padding:0;font-size:26px}
 /* flèche retour : gros chevron centré dans le bouton */
@@ -391,7 +393,7 @@ body.rw-shop #purse{display:none!important}
     <button class="game" data-play="lerne"><span class="ic">🆕</span><span>Lerne neue Wörter<small>Regarde, écoute et retiens</small></span></button>
     <button class="game" data-play="mot"><span class="ic">🖼️</span><span>Finde das Wort<small>Une image, trois mots</small></span></button>
     <button class="game" data-play="article"><span class="ic">🔤</span><span>Der · Die · Das<small>Trouve le bon article</small></span></button>
-    <button class="game" data-play="plaudern"><span class="ic">💬</span><span>Plaudern mit Anna<small>Réponds à Anna</small></span></button>
+    <button class="game" data-play="plaudern"><span class="ic icb">👩🏼<i>💬</i></span><span>Plaudern mit Anna<small>Réponds à Anna</small></span></button>
     <button class="game" data-play="schreib"><span class="ic">✍️</span><span>Schreib das Wort<small>Regarde l'image et écris le mot</small></span></button>
   </div>
 </section>
