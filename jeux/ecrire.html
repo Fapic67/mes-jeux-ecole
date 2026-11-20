@@ -56,6 +56,8 @@ function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(M
 function pick(a){return a[Math.floor(Math.random()*a.length)]}
 function voiceFor(l){try{var v=speechSynthesis.getVoices().filter(function(v){return v.lang&&v.lang.indexOf(l)===0});return v.filter(function(x){return x.localService})[0]||v[0]||null}catch(e){return null}}
 function say(t){try{if(!window.speechSynthesis)return;speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.lang="fr-FR";var v=voiceFor("fr");if(v)u.voice=v;u.rate=.85;speechSynthesis.speak(u)}catch(e){}}
+// attendre la fin de la phrase en cours (et au moins ms) avant d'enchaîner : la question suivante ne coupe plus la voix (signalé par l'utilisateur)
+function afterSay(fn,ms){var t0=Date.now(),quiet=0;(function w(){var s=window.speechSynthesis,busy=s&&(s.speaking||s.pending),now=Date.now();if(busy)quiet=0;else if(!quiet)quiet=now;if((now-t0>=ms&&quiet&&now-quiet>=250)||now-t0>15000)fn();else setTimeout(w,120)})()}
 var ac=null;function tone(f,t,d){try{if(!ac){var C=window.AudioContext||window.webkitAudioContext;if(!C)return;ac=new C()}if(ac.state==="suspended")ac.resume();var o=ac.createOscillator(),g=ac.createGain(),s=ac.currentTime+t;o.type="triangle";o.frequency.value=f;g.gain.setValueAtTime(.16,s);g.gain.exponentialRampToValueAtTime(.001,s+d);o.connect(g);g.connect(ac.destination);o.start(s);o.stop(s+d)}catch(e){}}
 function esc(t){return String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;")}
 function nb(t){return esc(t).split(" ").map(function(w){return"<span>"+w+"</span>"}).join(" ")}
@@ -114,7 +116,7 @@ function answer(ok){try{if(parent!==window)parent.postMessage({type:"answer",gam
 function ok(){if(busy||!val)return;var g=$("gap");
  if(plain(val)===plain(cur.a)){busy=true;KB.enable(false);if(!miss){good++;answer(true)}g.className="gap ok";g.textContent=cur.a;tone(660,0,.12);tone(880,.1,.2);
   $("hint").textContent=val===cur.a?"Bravo !":"Bravo ! Attention aux accents : "+cur.a;say(FP?"Bravo ! "+fpText(cur):"Bravo ! "+cur.a);
-  setTimeout(function(){qi++;if(qi<deck.length)show();else end()},2000);return}
+  afterSay(function(){qi++;if(qi<deck.length)show();else end()},2000);return}
  if(!miss)answer(false);miss++;g.className="gap ko";tone(220,0,.25);
  var h="Essaie encore !";
  if(FP&&plain(val)===plain(cur.base))h=cur.k.indexOf("pluriel")>=0||cur.q1==="des"?"N'oublie pas la marque du pluriel !":"N'oublie pas la marque du féminin !";

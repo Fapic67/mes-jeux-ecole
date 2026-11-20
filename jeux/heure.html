@@ -76,6 +76,8 @@ function voiceFor(l){try{var v=speechSynthesis.getVoices().filter(function(v){re
 var MALE=/thomas|paul|henri|nicolas|daniel|mathieu|antoine|claude|male|homme|frb|frd/i,MV=null;
 function maleVoice(){try{var v=speechSynthesis.getVoices().filter(function(x){return x.lang&&x.lang.indexOf("fr")===0&&MALE.test((x.name||"")+" "+(x.voiceURI||""))&&!/female|femme/i.test(x.name||"")});return v.filter(function(x){return x.localService})[0]||v[0]||null}catch(e){return null}}
 function say(t){try{if(!window.speechSynthesis)return;speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.lang="fr-FR";MV=MV||maleVoice();var v=MV||voiceFor("fr");if(v)u.voice=v;u.rate=.9;u.pitch=MV?.95:.6;speechSynthesis.speak(u)}catch(e){}}
+// attendre la fin de la phrase en cours (et au moins ms) avant d'enchaîner : la question suivante ne coupe plus la voix (signalé par l'utilisateur)
+function afterSay(fn,ms){var t0=Date.now(),quiet=0;(function w(){var s=window.speechSynthesis,busy=s&&(s.speaking||s.pending),now=Date.now();if(busy)quiet=0;else if(!quiet)quiet=now;if((now-t0>=ms&&quiet&&now-quiet>=250)||now-t0>15000)fn();else setTimeout(w,120)})()}
 var ac=null;function tone(f,t,d){try{if(!ac){var C=window.AudioContext||window.webkitAudioContext;if(!C)return;ac=new C()}if(ac.state==="suspended")ac.resume();var o=ac.createOscillator(),g=ac.createGain(),s=ac.currentTime+t;o.type="triangle";o.frequency.value=f;g.gain.setValueAtTime(.18,s);g.gain.exponentialRampToValueAtTime(.001,s+d);o.connect(g);g.connect(ac.destination);o.start(s);o.stop(s+d)}catch(e){}}
 var PK="@"+(window.PROFILE||"p1");function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
 var LV=[null,{t:"Facile",d:"Les heures pile : 3 h, 7 h…",m:[0],x:1},{t:"Moyen",d:"Et demie : 3 h 30",m:[0,30],x:1.25},{t:"Difficile",d:"Et quart, moins le quart : 3 h 15, 2 h 45",m:[0,15,30,45],x:1.5}];
@@ -106,15 +108,15 @@ function show(){var Q=qs[qi];cur=Q.t;mode=Q.mode;miss=0;busy=false;$("msg").text
   if(cur.m===0&&level>1)near={h:cur.h,m:30};
   [near].concat(shuffle([0,1,2,3,4,5].map(function(){return rt()}))).forEach(function(t){if(c.length<3&&!c.some(function(x){return same(x,t)}))c.push(t)});
   $("opts").innerHTML=shuffle(c).map(function(t){return '<button data-h="'+t.h+'" data-m="'+t.m+'">'+written(t)+"</button>"}).join("");
-  setTimeout(function(){say("Quelle heure est-il ?")},250)}
+  setTimeout(function(){if(!busy&&!miss)say("Quelle heure est-il ?")},250)}
  else{T={h:12,m:0};hands(T);clock.classList.add("set");$("opts").hidden=true;$("check").hidden=false;
   $("qt").innerHTML="Mets l'horloge à "+speak(cur)+' <span style="white-space:nowrap">('+written(cur)+")</span>";
   $("msg").textContent=level===1?"Tourne la petite aiguille rouge":"Tourne les aiguilles avec ton doigt";
-  setTimeout(function(){say("Mets l'horloge à "+speak(cur))},250)}}
+  setTimeout(function(){if(!busy&&!miss)say("Mets l'horloge à "+speak(cur))},250)}}
 $("ear").onclick=function(){if(!cur)return;say(mode==="read"?"Quelle heure est-il ?":"Mets l'horloge à "+speak(cur))};
 function answer(ok){try{if(parent!==window)parent.postMessage({type:"answer",game:"heure",ok:ok,diff:LV[level].x,k:mode==="read"?"Lire l'heure":"Régler l'horloge",item:written(cur)},"*")}catch(e){}}
 function win(){busy=true;if(!miss)good++;answer(!miss);clock.classList.add("ok");tone(660,0,.12);tone(880,.1,.2);say("Bravo ! Il est "+speak(cur));$("msg").textContent="✅ Il est "+speak(cur);
- setTimeout(function(){qi++;if(qi<N)show();else end()},2200)}
+ afterSay(function(){qi++;if(qi<N)show();else end()},2200)}
 $("opts").addEventListener("click",function(e){var b=e.target.closest("button");if(!b||busy||b.classList.contains("ko"))return;
  var t={h:+b.dataset.h,m:+b.dataset.m};if(same(t,cur)){b.classList.add("ok");win()}else{miss++;b.classList.add("ko");tone(220,0,.25)}});
 /* réglage des aiguilles au doigt : on attrape l'aiguille la plus proche du doigt (en Facile, seulement la petite) */
@@ -134,7 +136,7 @@ $("check").onclick=function(){if(busy||mode!=="set")return;
  if(same(T,cur))win();
  else{miss++;clock.classList.remove("ko");void clock.offsetWidth;clock.classList.add("ko");tone(220,0,.25);
   if(miss>=2){busy=true;T={h:cur.h,m:cur.m};hands(T);$("msg").textContent="Regarde : il est "+speak(cur);say("Regarde, il est "+speak(cur));answer(false);
-   setTimeout(function(){qi++;if(qi<N)show();else end()},3000)}
+   afterSay(function(){qi++;if(qi<N)show();else end()},3000)}
   else{$("msg").textContent="Pas tout à fait, essaie encore !";say("Pas tout à fait. "+speak(cur))}}};
 function end(){["q","clockw","opts","check","msg","cnt"].forEach(function(i){$(i).hidden=true});$("end").hidden=false;$("score").textContent=good+" / "+N+" du premier coup";cur=null;
  [523,659,784,1047].forEach(function(f,k){tone(f,k*.1,.25)});

@@ -64,6 +64,8 @@ var $=function(i){return document.getElementById(i)};
 function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
 function voiceFor(l){try{var v=speechSynthesis.getVoices().filter(function(v){return v.lang&&v.lang.indexOf(l)===0});return v.filter(function(x){return x.localService})[0]||v[0]||null}catch(e){return null}}
 function say(t){try{if(!window.speechSynthesis)return;speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.lang=DE?"de-DE":"fr-FR";var v=voiceFor(DE?"de":"fr");if(v)u.voice=v;u.rate=.9;speechSynthesis.speak(u)}catch(e){}}
+// attendre la fin de la phrase en cours (et au moins ms) avant d'enchaîner : la question suivante ne coupe plus la voix (signalé par l'utilisateur)
+function afterSay(fn,ms){var t0=Date.now(),quiet=0;(function w(){var s=window.speechSynthesis,busy=s&&(s.speaking||s.pending),now=Date.now();if(busy)quiet=0;else if(!quiet)quiet=now;if((now-t0>=ms&&quiet&&now-quiet>=250)||now-t0>15000)fn();else setTimeout(w,120)})()}
 var ac=null;function tone(f,t,d){try{if(!ac){var C=window.AudioContext||window.webkitAudioContext;if(!C)return;ac=new C()}if(ac.state==="suspended")ac.resume();var o=ac.createOscillator(),g=ac.createGain(),s=ac.currentTime+t;o.type="triangle";o.frequency.value=f;g.gain.setValueAtTime(.16,s);g.gain.exponentialRampToValueAtTime(.001,s+d);o.connect(g);g.connect(ac.destination);o.start(s);o.stop(s+d)}catch(e){}}
 function plain(s){return s.toLowerCase().replace(/œ/g,"oe").normalize("NFD").replace(/[̀-ͯ]/g,"").trim()}
 function nb(t){return t.split(" ").map(function(w){return"<span>"+w+"</span>"}).join(" ")}
@@ -121,12 +123,12 @@ function show(){var L=LV[level];cur=deck[qi];miss=0;busy=false;val="";
  // en écriture (clavier affiché, moins de place) : on zoome sur la partie du corps montrée par la flèche
  var y=P[cur][3][1];$("body").setAttribute("viewBox",!L.w?"40 60 430 910":y<300?"110 30 290 300":y<650?"20 280 470 380":"110 560 300 420");$("msg").textContent="";
  $("name").innerHTML=nb(ask());$("cnt").textContent=(qi+1)+" / "+deck.length;if(L.w){paint();KB.enable(true)}
- setTimeout(function(){say(ask())},250)}
+ setTimeout(function(){if(!busy&&!miss)say(ask())},250)}
 function paint(){var g=$("gap");g.className="gap";g.innerHTML=val?val.replace(/</g,""):"&nbsp;"}
 $("ear").onclick=function(){if(cur)say(ask())};
 function answer(ok){try{if(parent!==window)parent.postMessage({type:"answer",game:"corps",ok:ok,diff:LV[level].x,k:LV[level].w?"Écrire le nom":"Montrer",item:P[cur][0]+(DE?" · "+PD[cur][0]:"")},"*")}catch(e){}}
 function win(){busy=true;tone(660,0,.12);tone(880,.1,.2);if(!miss){good++;answer(true)}var nm=NM(cur).n,t=nm.charAt(0).toUpperCase()+nm.slice(1);
- $("msg").textContent="✅ "+t;say(T("Bravo ! ","Super! ")+nm);setTimeout(function(){qi++;if(qi<deck.length)show();else end()},1800)}
+ $("msg").textContent="✅ "+t;say(T("Bravo ! ","Super! ")+nm);afterSay(function(){qi++;if(qi<deck.length)show();else end()},1800)}
 $("body").addEventListener("click",function(e){var z=e.target.closest(".z");if(!z||busy||!cur||LV[level].w)return;var k=z.dataset.k;
  if(k===cur){z.classList.add("ok");win()}
  else{if(!miss)answer(false);miss++;z.classList.add("ko");tone(220,0,.25);var t=T("Ça, c'est ","Das ist ")+NM(k).n+".";$("msg").textContent=t;say(t);

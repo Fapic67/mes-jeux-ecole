@@ -63,6 +63,8 @@ function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorag
 function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
 function voiceFor(l){try{var v=speechSynthesis.getVoices().filter(function(v){return v.lang&&v.lang.indexOf(l)===0});return v.filter(function(x){return x.localService})[0]||v[0]||null}catch(e){return null}} // voix locale d'abord (une voix réseau démarre lentement)
 function say(t,l){l=l||"de";try{if(!window.speechSynthesis)return;speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.lang=l==="de"?"de-DE":"fr-FR";var v=voiceFor(l);if(v)u.voice=v;u.rate=.85;speechSynthesis.speak(u)}catch(e){}}
+// attendre la fin de la phrase en cours (et au moins ms) avant d'enchaîner : la question suivante ne coupe plus la voix (signalé par l'utilisateur)
+function afterSay(fn,ms){var t0=Date.now(),quiet=0;(function w(){var s=window.speechSynthesis,busy=s&&(s.speaking||s.pending),now=Date.now();if(busy)quiet=0;else if(!quiet)quiet=now;if((now-t0>=ms&&quiet&&now-quiet>=250)||now-t0>15000)fn();else setTimeout(w,120)})()}
 var W={};DE_NEW.forEach(function(x){W[x.w]=x});
 // ordre : mots déjà mélangés gardés, mots nouveaux ajoutés au hasard à la fin
 var ord=[];try{ord=JSON.parse(ls("lerne_ord"+PK))||[]}catch(e){}
@@ -97,7 +99,7 @@ function showQ(){var B=blk(),x=W[quiz[qk]],oth=B.filter(function(w){return w!==x
 $("pills").addEventListener("click",function(e){var b=e.target.closest("button");if(!b||busy||b.classList.contains("ko"))return;var x=W[quiz[qk]];
  if(b.dataset.w===x.w){busy=true;b.classList.add("ok");say(full(x));
   try{if(parent!==window)parent.postMessage({type:"answer",game:"lerne",ok:!miss,diff:1,k:DE_THEME[x.w]||"Autres",item:full(x)},"*")}catch(er){}
-  setTimeout(function(){qk++;if(qk<quiz.length){showQ();return}
+  afterSay(function(){qk++;if(qk<quiz.length){showQ();return}
    i+=blk().length;if(i>=ord.length)i=0;j=0;ls("lerne_i"+PK,i); // série terminée : la suivante
    try{if(parent!==window)parent.postMessage({type:"roundEnd"},"*")}catch(er){}
    show()},1300)}

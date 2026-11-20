@@ -67,6 +67,8 @@ var $=function(i){return document.getElementById(i)};
 function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
 function voiceFor(l){try{var v=speechSynthesis.getVoices().filter(function(v){return v.lang&&v.lang.indexOf(l)===0});return v.filter(function(x){return x.localService})[0]||v[0]||null}catch(e){return null}}
 function say(t){try{if(!window.speechSynthesis)return;speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.lang="fr-FR";var v=voiceFor("fr");if(v)u.voice=v;u.rate=.9;speechSynthesis.speak(u)}catch(e){}}
+// attendre la fin de la phrase en cours (et au moins ms) avant d'enchaîner : la question suivante ne coupe plus la voix (signalé par l'utilisateur)
+function afterSay(fn,ms){var t0=Date.now(),quiet=0;(function w(){var s=window.speechSynthesis,busy=s&&(s.speaking||s.pending),now=Date.now();if(busy)quiet=0;else if(!quiet)quiet=now;if((now-t0>=ms&&quiet&&now-quiet>=250)||now-t0>15000)fn();else setTimeout(w,120)})()}
 var ac=null;function tone(f,t,d){try{if(!ac){var C=window.AudioContext||window.webkitAudioContext;if(!C)return;ac=new C()}if(ac.state==="suspended")ac.resume();var o=ac.createOscillator(),g=ac.createGain(),s=ac.currentTime+t;o.type="triangle";o.frequency.value=f;g.gain.setValueAtTime(.16,s);g.gain.exponentialRampToValueAtTime(.001,s+d);o.connect(g);g.connect(ac.destination);o.start(s);o.stop(s+d)}catch(e){}}
 // objets (images détourées des mots d'allemand) : [image, nom avec article]
 var OBJ=[["Teddybaer","le nounours"],["Auto","la voiture"],["Buch","le livre"],["Banane","la banane"],["Katze","le chat"],["Hund","le chien"],["Ente","le canard"],["Stern","l'étoile"],["Tasse","la tasse"],["Schuh","la chaussure"],["Hut","le chapeau"],["Fisch","le poisson"],["Erdbeere","la fraise"]];
@@ -87,11 +89,11 @@ function show(){var L=LV[level];Q=deck[qi];miss=0;busy=false;$("msg").textConten
  var objs=shuffle(OBJ);place={};L.p.forEach(function(p,i){place[p]=objs[i]});
  $("scene").innerHTML=BOX+L.p.map(function(p){var P=POS[p],o=place[p];return '<button class="ob" data-p="'+p+'" style="left:'+P.x+'%;top:'+P.y+'%;width:'+P.s+'%;height:'+P.s+'%;z-index:'+P.z+'" aria-label="'+o[1]+'"><img src="jeux/img/de/'+o[0]+'.webp" alt="" draggable="false"></button>'}).join("");
  $("words").innerHTML=Q.type===1?L.p.map(function(p){return '<button data-w="'+p+'">'+POS[p].t+"</button>"}).join(""):"";
- $("name").innerHTML=nb(qtext());$("cnt").textContent=(qi+1)+" / "+deck.length;setTimeout(function(){say(qtext())},250)}
+ $("name").innerHTML=nb(qtext());$("cnt").textContent=(qi+1)+" / "+deck.length;setTimeout(function(){if(!busy&&!miss)say(qtext())},250)}
 $("ear").onclick=function(){if(Q)say(qtext())};
 function answer(ok){try{if(parent!==window)parent.postMessage({type:"answer",game:"position",ok:ok,diff:LV[level].x,k:cap(POS[Q.p].t),item:cap(POS[Q.p].de)},"*")}catch(e){}}
 function good1(el){busy=true;el.classList.add("ok");tone(660,0,.12);tone(880,.1,.2);if(!miss){good++;answer(true)}
- var t=cap(place[Q.p][1])+" est "+POS[Q.p].de+".";$("msg").textContent="✅ "+t;say("Bravo ! "+t);setTimeout(function(){qi++;if(qi<deck.length)show();else end()},2400)}
+ var t=cap(place[Q.p][1])+" est "+POS[Q.p].de+".";$("msg").textContent="✅ "+t;say("Bravo ! "+t);afterSay(function(){qi++;if(qi<deck.length)show();else end()},2400)}
 // après une erreur sur gauche / droite, on montre de quel côté est la gauche
 function bad(el,t){if(!miss)answer(false);miss++;el.classList.add("ko");tone(220,0,.25);$("msg").textContent=t;say(t);
  if(!$("scene").querySelector(".hand")&&/gauche|droite/.test(POS[Q.p].t+t))$("scene").insertAdjacentHTML("beforeend",'<span class="hand" style="left:3%">👈 gauche</span><span class="hand" style="right:3%">droite 👉</span>');

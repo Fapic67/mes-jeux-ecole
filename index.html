@@ -1182,7 +1182,14 @@ function pathStepDone(p){var nx=pathCur(p),P=p.path;$("pd-ic").textContent=nx?"�
  $("pd-h").textContent=nx?"Étape "+(P.prog.i+1)+" / "+P.steps.length+" : "+GAMES[nx.g].t:"Tu peux jouer à ce que tu veux.";
  $("pd-go").textContent=nx?"▶ Étape suivante":"🏠 Retour à l'accueil";$("pathdone").hidden=false;updPback();freezeGame()}
 /* étape finie : le jeu s'arrête (plus de question suivante ni de voix derrière la fenêtre) */
-function freezeGame(){if(!GAMES[cur])return;loadTok++;var f=$("frame");try{f.contentWindow&&f.contentWindow.speechSynthesis&&f.contentWindow.speechSynthesis.cancel()}catch(e){}try{window.speechSynthesis&&speechSynthesis.cancel()}catch(e){}if(f.hasAttribute("srcdoc"))setFrame(null)}
+// le jeu disparaît tout de suite (plus de question suivante), mais la phrase en cours (« Bravo ! … ») se termine avant l'arrêt (6 s au plus)
+function freezeGame(){if(!GAMES[cur])return;var tok=++loadTok,f=$("frame"),t0=Date.now(),ss=null,orig=null,own=false;f.style.visibility="hidden";
+ // le jeu ne peut plus rien dire de nouveau (la question suivante, par exemple) ; la synthèse d'Android est partagée avec l'accueil : on la rétablit ensuite
+ try{ss=f.contentWindow&&f.contentWindow.speechSynthesis;if(ss){orig=ss.speak;own=Object.prototype.hasOwnProperty.call(ss,"speak");ss.speak=function(){}}}catch(e){}
+ function done(){try{if(ss){if(own)ss.speak=orig;else delete ss.speak}}catch(e){}}
+ (function w(){if(tok!==loadTok||$("frame")!==f){done();return}
+  if(ss&&(ss.speaking||ss.pending)&&Date.now()-t0<6000){setTimeout(w,100);return}
+  try{ss&&ss.cancel()}catch(e){}try{window.speechSynthesis&&speechSynthesis.cancel()}catch(e){}done();if(f.hasAttribute("srcdoc"))setFrame(null)})()}
 $("pd-go").onclick=function(){$("pathdone").hidden=true;updPback();var nx=pathCur();
  if(!nx){if(GAMES[cur]){var d=depth();if(d>1)history.go(1-d);else{history.replaceState({d:1,r:""},"",url(""));show("")}}return} // parcours terminé : retour à l'accueil
  if(nx.g===cur){var c=cur;cur=null;show(c);return}if(GAMES[cur]){back();setTimeout(function(){go(nx.g)},350)}else go(nx.g)};

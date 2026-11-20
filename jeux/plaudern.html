@@ -67,6 +67,8 @@ var $=function(i){return document.getElementById(i)};
 function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
 function voiceFor(l){try{var v=speechSynthesis.getVoices().filter(function(v){return v.lang&&v.lang.indexOf(l)===0});return v.filter(function(x){return x.localService})[0]||v[0]||null}catch(e){return null}}
 function say(t,l){l=l||"de";try{if(!window.speechSynthesis)return;speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.lang=l==="de"?"de-DE":"fr-FR";var v=voiceFor(l);if(v)u.voice=v;u.rate=.85;u.pitch=1.1;speechSynthesis.speak(u)}catch(e){}}
+// attendre la fin de la phrase en cours (et au moins ms) avant d'enchaîner : la question suivante ne coupe plus la voix (signalé par l'utilisateur)
+function afterSay(fn,ms){var t0=Date.now(),quiet=0;(function w(){var s=window.speechSynthesis,busy=s&&(s.speaking||s.pending),now=Date.now();if(busy)quiet=0;else if(!quiet)quiet=now;if((now-t0>=ms&&quiet&&now-quiet>=250)||now-t0>15000)fn();else setTimeout(w,120)})()}
 var ac=null;function tone(f,t,d){try{if(!ac){var C=window.AudioContext||window.webkitAudioContext;if(!C)return;ac=new C()}if(ac.state==="suspended")ac.resume();var o=ac.createOscillator(),g=ac.createGain(),s=ac.currentTime+t;o.type="triangle";o.frequency.value=f;g.gain.setValueAtTime(.16,s);g.gain.exponentialRampToValueAtTime(.001,s+d);o.connect(g);g.connect(ac.destination);o.start(s);o.stop(s+d)}catch(e){}}
 function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;")}
 var NAME=(window.PRENOM||"").trim()||"Lena",INI=NAME.charAt(0).toUpperCase();
@@ -119,7 +121,7 @@ $("ok").onclick=function(){if(busy||!placed.length)return;
  var ok=sentences(cur).some(function(s){return s.length===placed.length&&s.every(function(w,i){return w===placed[i]})});
  if(ok){busy=true;$("ok").className="ok";var s=placed.join(" ");s=/[.!?]$/.test(s)?s:s+".";bubble(true,esc(s));tone(660,0,.12);tone(880,.1,.2);if(!miss){good++;answer(true)}
   placed=[];pool=[];render(); // la réponse de l'enfant n'est pas lue (à la demande de l'utilisateur)
-  setTimeout(function(){qi++;if(qi<C.length)next(REACT[Math.floor(Math.random()*REACT.length)]);else end()},1300)}
+  afterSay(function(){qi++;if(qi<C.length)next(REACT[Math.floor(Math.random()*REACT.length)]);else end()},1300)}
  else{if(!miss)answer(false);miss++;tone(220,0,.25);$("ans").className="ko";$("ok").className="ko";
   setTimeout(function(){$("ok").className="";pool=pool.concat(placed);placed=[];render()},600)}};
 function next(pre){$("ok").className="";cur=C[qi];placed=[];pool=tags(cur);miss=0;render();$("pool").innerHTML="";botSay(cur,qi>=3&&qi<C.length-1?pre:"")}

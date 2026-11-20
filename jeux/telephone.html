@@ -61,6 +61,8 @@ function dtmf(k){var i=K.indexOf(k);tone([R[Math.floor(i/3)],C[i%3]],0,.12,.12)}
 var voice=null;function pick(){try{var v=speechSynthesis.getVoices();voice=v.filter(function(x){return /^fr/i.test(x.lang)})[0]||null}catch(e){}}
 try{pick();speechSynthesis.onvoiceschanged=pick}catch(e){}
 function say(t,cb,rate){try{var s=window.speechSynthesis;if(!s||!window.SpeechSynthesisUtterance){cb&&cb();return}if(s.speaking||s.pending)s.cancel();pick();var u=new SpeechSynthesisUtterance(t);u.lang="fr-FR";if(voice)u.voice=voice;u.rate=rate||.8;var done=false;var fin=function(){if(!done){done=true;cb&&cb()}};u.onend=fin;u.onerror=fin;window._u=u;s.speak(u);if(s.paused)s.resume();setTimeout(fin,Math.max(3000,t.length*350))}catch(e){cb&&cb()}}
+// attendre la fin de la phrase en cours (et au moins ms) avant d'enchaîner : la question suivante ne coupe plus la voix (signalé par l'utilisateur)
+function afterSay(fn,ms){var t0=Date.now(),quiet=0;(function w(){var s=window.speechSynthesis,busy=s&&(s.speaking||s.pending),now=Date.now();if(busy)quiet=0;else if(!quiet)quiet=now;if((now-t0>=ms&&quiet&&now-quiet>=250)||now-t0>15000)fn();else setTimeout(w,120)})()}
 var WIN=["Bravo !","Super !","Tu as gagné !","Génial !","Bien joué !","Excellent !","Formidable !","Tu es une championne !","Tu as réussi !"];
 var PAL=["#ffd166","#ff8fab","#7bdff2","#a0e8af","#cdb4ff","#ffb870","#8fb8ff"];var wins=parseInt(ls("tel_wins"))||0;
 function colorKeys(){var multi=wins>0&&wins%10===0,c=PAL[wins%PAL.length];document.querySelectorAll("#pad [data-k]").forEach(function(b){var k=b.dataset.k;if(!/\d/.test(k))return;b.style.background=multi?"hsl("+(K.indexOf(k)*33)+",85%,70%)":c})}
@@ -82,10 +84,10 @@ function repeat(){if(cur)say(spk(cur),null,.9)}
 function press(k){
  if(busy)return;dtmf(k);if(!playing)return;
  if(entry.length<15)entry+=k;render();
- if(entry===target){numDone();nextFn=null;clearTimeout(timer);say("Appuie sur téléphoner");msg("Appuie sur 📞 !");return}
+ if(entry===target){numDone();nextFn=null;clearTimeout(timer);afterSay(function(){if(playing&&entry===target&&!busy)say("Appuie sur téléphoner")},0);msg("Appuie sur 📞 !");return}
  if(nextFn&&entry.length>=need){
-  if(entry.slice(base)===cur){numDone();var f=nextFn;nextFn=null;busy=true;timer=setTimeout(function(){busy=false;f()},delay*1000)}
-  else{if(!numErr){numErr=true;answer(false)}busy=true;tone([220],0,.25,.2);tone([150],.3,.45,.2);setTimeout(function(){entry=entry.slice(0,base);render();say("Recommence",function(){setTimeout(function(){say(spk(cur),null,.9);busy=false},300)})},1000)}}}
+  if(entry.slice(base)===cur){numDone();var f=nextFn;nextFn=null;busy=true;timer=afterSay(function(){busy=false;f()},delay*1000)}
+  else{if(!numErr){numErr=true;answer(false)}busy=true;tone([220],0,.25,.2);tone([150],.3,.45,.2);afterSay(function(){entry=entry.slice(0,base);render();say("Recommence",function(){setTimeout(function(){say(spk(cur),null,.9);busy=false},300)})},1000)}}}
 function del(){if(busy||!playing)return;if(waitMode&&entry.length<=base)return;entry=entry.slice(0,-1);render()}
 function ring(){for(var i=0;i<2;i++)tone([440,480],i*2.2,1.2,.1)}
 function busyTone(){for(var i=0;i<4;i++)tone([480,620],i,.5,.1)}

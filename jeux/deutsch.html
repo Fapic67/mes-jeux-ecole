@@ -70,6 +70,8 @@ var bk=document.createElement("button");bk.className="back";bk.textContent="← 
 function pickVoice(){var v=(window.speechSynthesis&&speechSynthesis.getVoices())||[];voice=v.find(function(x){return x.lang&&x.lang.indexOf("de")===0})||null}
 if(window.speechSynthesis){pickVoice();speechSynthesis.onvoiceschanged=pickVoice}
 function say(t){try{if(!window.speechSynthesis){msg.textContent="Synthèse vocale indisponible : ouvre le lien dans le navigateur du téléphone";return}pickVoice();speechSynthesis.cancel();setTimeout(function(){var u=new SpeechSynthesisUtterance(t);u.lang="de-DE";if(voice)u.voice=voice;u.rate=.9;u.onstart=function(){msg.textContent=""};u.onerror=function(e){if(e.error==="interrupted"||e.error==="canceled")return;msg.textContent="Erreur voix : "+e.error};speechSynthesis.resume();speechSynthesis.speak(u)},60)}catch(e){msg.textContent="Erreur voix : "+e}}
+// attendre la fin de la phrase en cours (et au moins ms) avant d'enchaîner : la question suivante ne coupe plus la voix (signalé par l'utilisateur)
+function afterSay(fn,ms){var t0=Date.now(),quiet=0;(function w(){var s=window.speechSynthesis,busy=s&&(s.speaking||s.pending),now=Date.now();if(busy)quiet=0;else if(!quiet)quiet=now;if((now-t0>=ms&&quiet&&now-quiet>=250)||now-t0>15000)fn();else setTimeout(w,120)})()}
 // Étoiles : bonne réponse du premier coup = série ; un peu plus de difficulté si beaucoup de leçons sont cochées
 function star(ok,w){var g=mode===3?"sdw":mode===2?"fdw":"dde",d=deOn(window.PROFILE).length>60?1.25:1;try{if(parent!==window)parent.postMessage({type:"answer",game:g,ok:ok!==false,diff:d,k:w?(mode>=2?"L"+w.n:w.a):null,item:w?(w.a?w.a+" ":"")+w.w:null},"*")}catch(e){}}
 function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
@@ -89,7 +91,7 @@ function showWord(){
   document.getElementById("ear").onclick=function(){say(w.w)};
   fitWord();say(w.w);
   app.querySelectorAll(".pill").forEach(function(p){p.onclick=function(){
-    if(p.dataset.a===w.a){if(!missed){good++;star(true,w)}app.querySelectorAll(".pill").forEach(function(x){x.disabled=true});p.classList.add("ok");say(w.a+" "+w.w);setTimeout(function(){i++;i<deck.length?showWord():end()},1500)}
+    if(p.dataset.a===w.a){if(!missed){good++;star(true,w)}app.querySelectorAll(".pill").forEach(function(x){x.disabled=true});p.classList.add("ok");say(w.a+" "+w.w);afterSay(function(){i++;i<deck.length?showWord():end()},1500)}
     else{if(!missed)star(false,w);missed=true;p.classList.add("no","shake");p.disabled=true}}});
 }
 // Exercice 2 : trouve le mot
@@ -103,7 +105,7 @@ function show2(){
   var ch=shuffle([w].concat(others));
   app.innerHTML=bar()+'<div class="pic">'+w.e+'</div><div class="pills col">'+ch.map(function(c){return '<button class="pill" data-w="'+c.w+'">'+(c.a?c.a+' ':'')+c.w+'</button>'}).join("")+'</div>';
   app.querySelectorAll(".pill").forEach(function(p){p.onclick=function(){
-    if(p.dataset.w===w.w){if(!missed){good++;star(true,w)}app.querySelectorAll(".pill").forEach(function(x){x.disabled=true});p.classList.add("ok");say((w.a?w.a+" ":"")+w.w);setTimeout(function(){i++;i<deck.length?show2():end()},1500)}
+    if(p.dataset.w===w.w){if(!missed){good++;star(true,w)}app.querySelectorAll(".pill").forEach(function(x){x.disabled=true});p.classList.add("ok");say((w.a?w.a+" ":"")+w.w);afterSay(function(){i++;i<deck.length?show2():end()},1500)}
     else{if(!missed)star(false,w);missed=true;p.classList.add("no","shake");p.disabled=true}}});
 }
 // Exercice 3 : écrire le mot (avec l'article pour les noms) au clavier
@@ -135,7 +137,7 @@ function show3(){
     onDel:function(){if(lock)return;val=val.slice(0,-1);if(val.slice(-1)===" ")val=val.slice(0,-1);paint()},
     onOk:function(){if(lock||!val.trim())return;var v=norm(val),t=norm(full);
       if(v===t){lock=true;KB.enable(false);if(!missed){good++;star(true,w)}val=full.toLowerCase();paint("ok");hint.textContent="Super!";document.getElementById("copy").textContent="";
-        say(full);setTimeout(function(){i++;i<deck.length?show3():end()},1800);return}
+        say(full);afterSay(function(){i++;i<deck.length?show3():end()},1800);return}
       if(!missed)star(false,w);missed=true;tries++;lock=true;paint("ko shake");
       var p=v.split(" "),noun=norm(w.w);
       hint.textContent=w.a&&p.length===1&&p[0]===noun?"Le mot est juste : n'oublie pas l'article !":w.a&&p.length>1&&p.slice(1).join(" ")===noun?"Le mot est juste, mais pas l'article !":w.a&&p[0]===w.a?"Bon article ! Vérifie le mot.":"Essaie encore !";

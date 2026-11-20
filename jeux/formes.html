@@ -60,6 +60,8 @@ function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(M
 function R(a,b){return a+Math.random()*(b-a)}
 function voiceFor(l){try{var v=speechSynthesis.getVoices().filter(function(v){return v.lang&&v.lang.indexOf(l)===0});return v.filter(function(x){return x.localService})[0]||v[0]||null}catch(e){return null}}
 function say(t){try{if(!window.speechSynthesis)return;speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.lang="fr-FR";var v=voiceFor("fr");if(v)u.voice=v;u.rate=.9;speechSynthesis.speak(u)}catch(e){}}
+// attendre la fin de la phrase en cours (et au moins ms) avant d'enchaîner : la question suivante ne coupe plus la voix (signalé par l'utilisateur)
+function afterSay(fn,ms){var t0=Date.now(),quiet=0;(function w(){var s=window.speechSynthesis,busy=s&&(s.speaking||s.pending),now=Date.now();if(busy)quiet=0;else if(!quiet)quiet=now;if((now-t0>=ms&&quiet&&now-quiet>=250)||now-t0>15000)fn();else setTimeout(w,120)})()}
 var ac=null;function tone(f,t,d){try{if(!ac){var C=window.AudioContext||window.webkitAudioContext;if(!C)return;ac=new C()}if(ac.state==="suspended")ac.resume();var o=ac.createOscillator(),g=ac.createGain(),s=ac.currentTime+t;o.type="triangle";o.frequency.value=f;g.gain.setValueAtTime(.16,s);g.gain.exponentialRampToValueAtTime(.001,s+d);o.connect(g);g.connect(ac.destination);o.start(s);o.stop(s+d)}catch(e){}}
 var COL=["#ef6b6b","#4a90e2","#f5b82e","#4cbf7a","#a97be0","#f08a3c","#3fb8c4","#e86fb0"];
 var NAME={carre:"le carré",rect:"le rectangle",tri:"le triangle",cercle:"le cercle",cube:"le cube",losange:"un losange",ovale:"un ovale",ouvert:"un triangle pas fermé"};
@@ -96,12 +98,12 @@ function show(){var L=LV[level];cur=deck[qi];miss=0;busy=false;$("msg").textCont
  var ks=shuffle([cur].concat(others.slice(0,L.n-1))),cols=shuffle(COL);
  $("grid").className=L.n>4?"g6":"";
  $("grid").innerHTML=ks.map(function(k,i){return '<button class="sh" data-k="'+k+'" aria-label="forme"><svg viewBox="0 0 100 100">'+draw(k,cols[i%cols.length],L.turn)+"</svg></button>"}).join("");
- $("name").textContent=ask(cur);$("cnt").textContent=(qi+1)+" / "+deck.length;setTimeout(function(){say(ask(cur))},250)}
+ $("name").textContent=ask(cur);$("cnt").textContent=(qi+1)+" / "+deck.length;setTimeout(function(){if(!busy&&!miss)say(ask(cur))},250)}
 $("ear").onclick=function(){if(cur)say(ask(cur))};
 function answer(ok){try{if(parent!==window)parent.postMessage({type:"answer",game:"formes",ok:ok,diff:LV[level].x,k:NAME[cur].replace(/^le /,"Le "),item:LV[level].t+" · "+NAME[cur]},"*")}catch(e){}}
 $("grid").addEventListener("click",function(e){var b=e.target.closest(".sh");if(!b||busy||!cur||b.classList.contains("ko"))return;var k=b.dataset.k;
  if(k===cur){busy=true;b.classList.add("ok");tone(660,0,.12);tone(880,.1,.2);if(!miss){good++;answer(true)}$("msg").textContent="✅ "+WHY[cur];say("Bravo ! "+WHY[cur]);
-  setTimeout(function(){qi++;if(qi<deck.length)show();else end()},2600)}
+  afterSay(function(){qi++;if(qi<deck.length)show();else end()},2600)}
  else{if(!miss)answer(false);miss++;b.classList.add("ko");tone(220,0,.25);var t=WRONG[k]||"Ça, c'est "+UN[k]+".";$("msg").textContent=t;say(t)}});
 function end(){$("ask").hidden=$("grid").hidden=$("cnt").hidden=$("msg").hidden=true;$("end").hidden=false;$("score").textContent=good+" / "+deck.length+" du premier coup";cur=null;
  [523,659,784,1047].forEach(function(f,k){tone(f,k*.1,.25)});
