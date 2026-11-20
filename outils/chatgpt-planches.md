@@ -185,3 +185,30 @@ L72. Un enfant qui tend gentiment une assiette de biscuits à un ami.
 L73. Un enfant qui fait oui de la tête en souriant, à côté d'un grand rond vert.
 L74. Un enfant qui fait non de la tête en levant l'index, à côté d'une grande croix rouge.
 ```
+
+## Planche Océan (O1-O15, grille 5 × 3) : sagen + les 13 animaux de « L'océan des animaux » + dos de carte
+
+Remplace les images provisoires (Fluent 3D) de `jeux/img/ocean/` ; O1 = sagen (`images.py … sagen`) ; O15 = dos de carte (facultatif).
+
+```
+Génère UNE image PNG au format paysage avec un vrai fond transparent (canal alpha) : 15 illustrations détourées, sans aucun fond, ni blanc, ni couleur, ni damier dessiné. Dispose-les en grille régulière de 5 colonnes et 3 lignes, toutes les cases de la même taille, dans l'ordre de la liste (de gauche à droite, puis ligne suivante). Exactement 15 sujets, pas de doublon, pas de cadre ni de bordure autour des cases, et un espace vide entre les sujets pour qu'ils ne se touchent jamais. Elles servent à une appli d'apprentissage de l'allemand pour une enfant de 6 ans.
+
+Style identique pour toutes : illustration douce aux crayons de couleur, couleurs douces, contours fins, un seul sujet bien centré dans chaque case, découpé proprement sur son contour comme un autocollant, sans ombre portée au sol, aucun texte, aucune lettre, aucun chiffre écrit. Les animaux sont mignons, souriants, entiers, vus de profil ou de trois quarts.
+
+Sujets :
+O1. Un enfant souriant qui parle à un ami, avec une bulle de parole qui contient un petit cœur.
+O2. Une méduse.
+O3. Une baleine.
+O4. Un dauphin.
+O5. Une mouette blanche et grise.
+O6. Un phoque.
+O7. Un poisson-clown orange et blanc.
+O8. Une tortue de mer.
+O9. Un crabe rouge.
+O10. Une pieuvre.
+O11. Une étoile de mer orange.
+O12. Un manchot.
+O13. Une branche de corail rose.
+O14. Un requin gentil.
+O15. Le dos d'une carte de jeu rectangulaire aux coins arrondis : dégradé bleu océan avec des vagues et des petites bulles, un coquillage au centre.
+```
