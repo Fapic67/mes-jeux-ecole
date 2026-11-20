@@ -464,3 +464,15 @@ W122. Un ours en peluche tout doux.
 W123. Un porte-monnaie ouvert avec seulement une petite pièce dedans.
 W124. Un enfant qui fait un vœu devant une étoile filante.
 ```
+
+## Le corps (exercice « Les parties du corps ») : un enfant entier, de face
+
+À intégrer à la place du dessin SVG de `jeux/corps.html` (les zones à toucher `Z` et les points des flèches seront recalés sur l'image).
+
+```
+Génère UNE image PNG au format portrait (1:2) avec un vrai fond transparent (canal alpha), sans aucun fond, ni blanc, ni couleur, ni damier dessiné, sans cadre. Elle sert à une appli d'apprentissage pour une enfant de 6 ans : on y touche les parties du corps.
+
+Style identique aux autres images de l'appli : illustration douce aux crayons de couleur, couleurs douces, contours fins, découpée proprement sur son contour comme un autocollant, sans ombre portée au sol, aucun texte, aucune lettre, aucune étiquette, aucun trait de légende.
+
+Sujet : un enfant souriant de 6 ans, debout, vu bien de face, parfaitement symétrique, qui occupe toute la hauteur de l'image. Il porte un tee-shirt à manches courtes uni et un short uni, il est pieds nus. Les bras sont légèrement écartés du corps, coudes visibles, les mains ouvertes paumes vers l'avant avec les cinq doigts bien séparés. Les jambes sont un peu écartées, les genoux et les pieds bien visibles. Le visage est grand et bien lisible : deux yeux, un nez, une bouche souriante, les deux oreilles bien dégagées (cheveux courts qui ne les cachent pas), le cou visible.
+```
