@@ -25,8 +25,8 @@ body.withkb #inner{bottom:var(--kbh,250px)}
 #bw{flex:1;min-height:0;display:flex;justify-content:center}
 #body{height:100%;max-width:100%}
 #body .z{fill:transparent;cursor:pointer}
-#body .z.ok{fill:rgba(34,168,97,.35);stroke:#22a861;stroke-width:3}
-#body .z.ko{fill:rgba(229,72,77,.35);stroke:#e5484d;stroke-width:3}
+#body .z.ok{fill:rgba(34,168,97,.35);stroke:#22a861;stroke-width:6}
+#body .z.ko{fill:rgba(229,72,77,.35);stroke:#e5484d;stroke-width:6}
 #gapw{font-size:28px;font-weight:700;text-align:center;min-height:40px}
 .gap{display:inline-block;min-width:4em;border-bottom:4px solid var(--syl);color:var(--syl);padding:0 .2em}
 .gap.ok{color:var(--ok);border-color:var(--ok)}.gap.ko{color:var(--ko);border-color:var(--ko)}
@@ -48,7 +48,7 @@ body.withkb #inner{bottom:var(--kbh,250px)}
 <div id="inner">
   <div id="top"><button id="lang" aria-label="Langue"></button><button id="lvlb"></button></div>
   <div id="ask"><button id="ear" aria-label="Réécouter">🔊</button><span id="name"></span></div>
-  <div id="bw"><svg id="body" viewBox="0 0 200 400"></svg></div>
+  <div id="bw"><svg id="body" viewBox="40 60 430 910"></svg></div>
   <div id="gapw" hidden><span class="gap" id="gap">&nbsp;</span></div>
   <div id="msg"></div>
   <div id="cnt"></div>
@@ -57,7 +57,7 @@ body.withkb #inner{bottom:var(--kbh,250px)}
 <div class="sheet" id="sheet" hidden><div class="panel"><h2>Niveau</h2><div id="lvls" style="display:flex;flex-direction:column;gap:10px"></div><button id="close">Fermer</button></div></div>
 <script>
 (function(){
-// Les parties du corps (Français, vocabulaire du corps, à la demande de l'utilisateur) : un enfant dessiné de face.
+// Les parties du corps (Biologie, à la demande de l'utilisateur) : un enfant dessiné de face (image crayon).
 // Facile / Moyen : « Où est le genou ? » → on touche la partie du corps (zones invisibles, plus grandes que le dessin pour les petites parties).
 // Difficile : une flèche montre une partie, on écrit son nom avec le clavier maison.
 var $=function(i){return document.getElementById(i)};
@@ -68,10 +68,10 @@ var ac=null;function tone(f,t,d){try{if(!ac){var C=window.AudioContext||window.w
 function plain(s){return s.toLowerCase().replace(/œ/g,"oe").normalize("NFD").replace(/[̀-ͯ]/g,"").trim()}
 function nb(t){return t.split(" ").map(function(w){return"<span>"+w+"</span>"}).join(" ")}
 // partie : [nom avec article, réponses écrites acceptées, pluriel ?, point visé par la flèche]
-var P={tete:["la tête",["tête"],0,[100,40]],cheveux:["les cheveux",["cheveux"],1,[100,30]],yeux:["les yeux",["yeux","œil","oeil"],1,[86,68]],nez:["le nez",["nez"],0,[100,82]],
- bouche:["la bouche",["bouche"],0,[100,97]],oreille:["l'oreille",["oreille","oreilles"],0,[58,74]],cou:["le cou",["cou"],0,[100,118]],epaule:["l'épaule",["épaule","épaules"],0,[70,134]],
- bras:["le bras",["bras"],0,[150,160]],coude:["le coude",["coude","coudes"],0,[149,192]],main:["la main",["main","mains"],0,[150,262]],doigt:["le doigt",["doigt","doigts"],0,[146,281]],
- ventre:["le ventre",["ventre"],0,[100,195]],jambe:["la jambe",["jambe","jambes"],0,[117,292]],genou:["le genou",["genou","genoux"],0,[117,318]],pied:["le pied",["pied","pieds"],0,[124,382]]};
+var P={tete:["la tête",["tête"],0,[255,135]],cheveux:["les cheveux",["cheveux"],1,[255,95]],yeux:["les yeux",["yeux","œil","oeil"],1,[223,191]],nez:["le nez",["nez"],0,[255,215]],
+ bouche:["la bouche",["bouche"],0,[255,242]],oreille:["l'oreille",["oreille","oreilles"],0,[176,212]],cou:["le cou",["cou"],0,[255,280]],epaule:["l'épaule",["épaule","épaules"],0,[165,330]],
+ bras:["le bras",["bras"],0,[385,500]],coude:["le coude",["coude","coudes"],0,[382,450]],main:["la main",["main","mains"],0,[418,565]],doigt:["le doigt",["doigt","doigts"],0,[425,600]],
+ ventre:["le ventre",["ventre"],0,[255,470]],jambe:["la jambe",["jambe","jambes"],0,[300,800]],genou:["le genou",["genou","genoux"],0,[300,722]],pied:["le pied",["pied","pieds"],0,[330,930]]};
 // en allemand (bouton 🇫🇷 / 🇩🇪, à la demande de l'utilisateur) : [nom avec article, réponses écrites acceptées (avec ou sans article), pluriel ?]
 var PD={tete:["der Kopf",["Kopf"],0],cheveux:["die Haare",["Haare","Haar"],1],yeux:["die Augen",["Augen","Auge"],1],nez:["die Nase",["Nase"],0],bouche:["der Mund",["Mund"],0],
  oreille:["das Ohr",["Ohr","Ohren"],0],cou:["der Hals",["Hals"],0],epaule:["die Schulter",["Schulter","Schultern"],0],bras:["der Arm",["Arm","Arme"],0],coude:["der Ellbogen",["Ellbogen","Ellenbogen"],0],
@@ -83,33 +83,24 @@ var LV=[null,{t:"Facile",d:"Touche : la tête, le nez, la main, le pied…",p:["
  {t:"Moyen",d:"En plus : le cou, l'épaule, le coude, le genou, le doigt",p:["tete","cheveux","yeux","nez","bouche","oreille","bras","main","ventre","jambe","pied","cou","epaule","coude","genou","doigt"],w:0,x:1.25},
  {t:"Difficile",d:"Une flèche montre une partie : écris son nom",p:["tete","cheveux","yeux","nez","bouche","oreille","cou","epaule","bras","coude","main","ventre","jambe","genou","pied"],w:1,x:1.5}];
 // dessin de l'enfant (de face) puis zones à toucher, des plus grandes aux plus petites (les petites passent devant)
-var SK="#f3c49b",SKD="#d99c6c";
-var ART='<g stroke="#5a3a22" stroke-width="2" stroke-linejoin="round">'+
- '<rect x="40" y="128" width="22" height="125" rx="11" fill="'+SK+'"/><rect x="138" y="128" width="22" height="125" rx="11" fill="'+SK+'"/>'+ // bras
- '<rect x="40" y="128" width="22" height="50" rx="11" fill="#4a90e2"/><rect x="138" y="128" width="22" height="50" rx="11" fill="#4a90e2"/>'+ // manches
- '<rect x="71" y="250" width="25" height="122" rx="10" fill="'+SK+'"/><rect x="104" y="250" width="25" height="122" rx="10" fill="'+SK+'"/>'+ // jambes
- '<ellipse cx="80" cy="381" rx="21" ry="11" fill="#e5484d"/><ellipse cx="120" cy="381" rx="21" ry="11" fill="#e5484d"/>'+ // chaussures
- '<rect x="90" y="104" width="20" height="26" fill="'+SK+'"/>'+ // cou
- '<path d="M62 132 Q100 118 138 132 L138 232 L62 232 Z" fill="#4a90e2"/>'+ // tee-shirt
- '<path d="M64 230 H136 V270 H104 V262 H96 V270 H64 Z" fill="#f5b82e"/>'+ // short
- '<circle cx="51" cy="262" r="13" fill="'+SK+'"/><circle cx="149" cy="262" r="13" fill="'+SK+'"/>'+ // mains
- '<path d="M42 268 v12 M47 270 v14 M52 271 v14 M57 270 v12 M143 270 v12 M148 271 v14 M153 270 v14 M158 268 v12" stroke="'+SKD+'" stroke-width="4" stroke-linecap="round"/>'+ // doigts
- '<ellipse cx="58" cy="74" rx="9" ry="13" fill="'+SK+'"/><ellipse cx="142" cy="74" rx="9" ry="13" fill="'+SK+'"/>'+ // oreilles
- '<circle cx="100" cy="72" r="42" fill="'+SK+'"/>'+ // tête
- '<path d="M58 66 Q60 24 100 26 Q142 24 142 66 Q132 46 112 44 Q100 54 84 44 Q66 48 58 66 Z" fill="#8a5a2b"/>'+ // cheveux
- '<circle cx="86" cy="70" r="5" fill="#2b2440" stroke="none"/><circle cx="114" cy="70" r="5" fill="#2b2440" stroke="none"/>'+ // yeux
- '<path d="M100 76 Q96 86 101 88" fill="none"/>'+ // nez
- '<path d="M88 96 Q100 106 112 96" fill="#e86f6f"/>'+ // bouche
- '<path d="M117 300 q8 10 0 20 M83 300 q-8 10 0 20" fill="none" stroke="'+SKD+'" stroke-width="2"/>'+ // genoux
- '<path d="M51 186 q6 6 0 12 M149 186 q-6 6 0 12" fill="none" stroke="'+SKD+'" stroke-width="2"/></g>'; // coudes
-var Z=[["tete",'<circle cx="100" cy="74" r="44"/>'],["bras",'<rect x="34" y="126" width="34" height="125"/><rect x="132" y="126" width="34" height="125"/>'],
- ["jambe",'<rect x="66" y="262" width="68" height="108"/>'],["ventre",'<rect x="62" y="150" width="76" height="80"/>'],
- ["pied",'<ellipse cx="80" cy="381" rx="24" ry="15"/><ellipse cx="120" cy="381" rx="24" ry="15"/>'],["main",'<circle cx="51" cy="260" r="15"/><circle cx="149" cy="260" r="15"/>'],
- ["cheveux",'<path d="M56 66 Q58 20 100 22 Q144 20 144 66 Q132 44 112 42 Q100 52 84 42 Q66 46 56 66 Z"/>'],["oreille",'<ellipse cx="55" cy="74" rx="13" ry="17"/><ellipse cx="145" cy="74" rx="13" ry="17"/>'],
- ["cou",'<rect x="86" y="108" width="28" height="22"/>'],["epaule",'<circle cx="68" cy="136" r="15"/><circle cx="132" cy="136" r="15"/>'],
- ["coude",'<circle cx="51" cy="192" r="14"/><circle cx="149" cy="192" r="14"/>'],["genou",'<circle cx="83" cy="312" r="15"/><circle cx="117" cy="312" r="15"/>'],
- ["doigt",'<rect x="38" y="268" width="24" height="20"/><rect x="138" y="268" width="24" height="20"/>'],
- ["yeux",'<circle cx="86" cy="70" r="11"/><circle cx="114" cy="70" r="11"/>'],["nez",'<ellipse cx="100" cy="83" rx="9" ry="10"/>'],["bouche",'<ellipse cx="100" cy="99" rx="17" ry="9"/>']];
+// dessin de l'enfant : image crayon (Gemini, détourée, 506 × 1024) ; zones à toucher recalées sur l'image, des plus grandes aux plus petites
+var ART='<image href="jeux/img/corps.webp" x="0" y="0" width="506" height="1024"/>';
+var Z=[["tete",'<ellipse cx="255" cy="185" rx="92" ry="100"/>'],
+ ["bras",'<polygon points="140,330 175,330 140,560 100,550"/><polygon points="335,330 370,330 410,550 370,560"/>'],
+ ["jambe",'<rect x="172" y="640" width="80" height="240"/><rect x="258" y="640" width="80" height="240"/>'],
+ ["ventre",'<rect x="185" y="410" width="140" height="130"/>'],
+ ["pied",'<ellipse cx="180" cy="925" rx="48" ry="30"/><ellipse cx="328" cy="925" rx="48" ry="30"/>'],
+ ["main",'<circle cx="95" cy="570" r="38"/><circle cx="415" cy="570" r="38"/>'],
+ ["cheveux",'<polygon points="168,190 170,110 210,78 300,78 340,110 342,190 320,150 255,115 190,150"/>'],
+ ["oreille",'<ellipse cx="176" cy="210" rx="18" ry="28"/><ellipse cx="336" cy="210" rx="18" ry="28"/>'],
+ ["cou",'<rect x="225" y="262" width="60" height="32"/>'],
+ ["epaule",'<circle cx="168" cy="322" r="26"/><circle cx="342" cy="322" r="26"/>'],
+ ["coude",'<circle cx="128" cy="450" r="22"/><circle cx="382" cy="450" r="22"/>'],
+ ["genou",'<circle cx="210" cy="722" r="26"/><circle cx="300" cy="722" r="26"/>'],
+ ["doigt",'<rect x="55" y="580" width="60" height="40"/><rect x="395" y="580" width="60" height="40"/>'],
+ ["yeux",'<circle cx="223" cy="191" r="16"/><circle cx="287" cy="191" r="16"/>'],
+ ["nez",'<ellipse cx="255" cy="215" rx="13" ry="13"/>'],
+ ["bouche",'<ellipse cx="255" cy="240" rx="28" ry="14"/>']];
 var PK="@"+(window.PROFILE||"p1");function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
 var level=Math.min(3,Math.max(1,parseInt(ls("corps_lvl"+PK))||1));
 var N=window.PATHN||10,deck,qi,good,cur,miss,busy,val="",KB=null;
@@ -123,12 +114,12 @@ function start(){var L=LV[level],d=[];while(d.length<N)d=d.concat(shuffle(L.p));
  if(L.w&&!KB){KB=Clavier({acc:DE?"äöüß":"éèêàç",space:DE,onKey:function(k){if(busy||val.length>=12)return;val+=k;paint()},onDel:function(){if(busy)return;val=val.slice(0,-1);paint()},onOk:check});KB.de=DE;document.body.classList.add("withkb");kbh();requestAnimationFrame(kbh)}
  if(!L.w&&KB){KB.destroy();KB=null;document.body.classList.remove("withkb")}
  if(KB)KB.show();show()}
-function arrow(t){var x=t[0],y=t[1],fx=x<100?x-34:x+34,fy=y-26;
- return '<g stroke="#9b6bff" stroke-width="5" stroke-linecap="round" fill="none"><path d="M'+fx+" "+fy+" L"+x+" "+y+'"/></g><circle cx="'+x+'" cy="'+y+'" r="6" fill="#9b6bff"/><circle cx="'+fx+'" cy="'+fy+'" r="4" fill="#9b6bff"/>'}
+function arrow(t){var x=t[0],y=t[1],fx=x<253?x-90:x+90,fy=y-60;
+ return '<g stroke="#9b6bff" stroke-width="10" stroke-linecap="round" fill="none"><path d="M'+fx+" "+fy+" L"+x+" "+y+'"/></g><circle cx="'+x+'" cy="'+y+'" r="13" fill="#9b6bff" stroke="#fff" stroke-width="4"/><circle cx="'+fx+'" cy="'+fy+'" r="9" fill="#9b6bff"/>'}
 function show(){var L=LV[level];cur=deck[qi];miss=0;busy=false;val="";
  $("body").innerHTML=ART+zones(L)+(L.w?arrow(P[cur][3]):"");
  // en écriture (clavier affiché, moins de place) : on zoome sur la partie du corps montrée par la flèche
- var y=P[cur][3][1];$("body").setAttribute("viewBox",!L.w?"0 0 200 400":y<125?"10 0 180 160":y<300?"0 105 200 200":"10 240 180 160");$("msg").textContent="";
+ var y=P[cur][3][1];$("body").setAttribute("viewBox",!L.w?"40 60 430 910":y<300?"110 30 290 300":y<650?"20 280 470 380":"110 560 300 420");$("msg").textContent="";
  $("name").innerHTML=nb(ask());$("cnt").textContent=(qi+1)+" / "+deck.length;if(L.w){paint();KB.enable(true)}
  setTimeout(function(){say(ask())},250)}
 function paint(){var g=$("gap");g.className="gap";g.innerHTML=val?val.replace(/</g,""):"&nbsp;"}
