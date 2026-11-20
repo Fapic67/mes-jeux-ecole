@@ -23,7 +23,9 @@ body.withkb #inner{bottom:var(--kbh,250px)}
 #name{flex:1;font-size:min(7vw,28px);font-weight:700;line-height:1.2}
 #name span{white-space:nowrap}
 #bw{flex:1;min-height:0;display:flex;justify-content:center}
-#body{height:100%;max-width:100%}
+#body{width:100%;height:100%;touch-action:none}
+#bw{position:relative}
+#unzoom{position:absolute;right:6px;bottom:6px;width:52px;height:52px;border:3px solid var(--bd);border-radius:16px;background:var(--card);font-size:24px;box-shadow:0 3px 0 var(--bd)}
 #body .z{fill:transparent;cursor:pointer}
 #body .z.ok{fill:rgba(34,168,97,.35);stroke:#22a861;stroke-width:6}
 #body .z.ko{fill:rgba(229,72,77,.35);stroke:#e5484d;stroke-width:6}
@@ -48,7 +50,7 @@ body.withkb #inner{bottom:var(--kbh,250px)}
 <div id="inner">
   <div id="top"><button id="lang" aria-label="Langue"></button><button id="lvlb"></button></div>
   <div id="ask"><button id="ear" aria-label="Réécouter">🔊</button><span id="name"></span></div>
-  <div id="bw"><svg id="body" viewBox="40 60 430 910"></svg></div>
+  <div id="bw"><svg id="body" viewBox="40 60 430 910"></svg><button id="unzoom" hidden aria-label="Voir tout">🔍</button></div>
   <div id="gapw" hidden><span class="gap" id="gap">&nbsp;</span></div>
   <div id="msg"></div>
   <div id="cnt"></div>
@@ -70,10 +72,10 @@ var ac=null;function tone(f,t,d){try{if(!ac){var C=window.AudioContext||window.w
 function plain(s){return s.toLowerCase().replace(/œ/g,"oe").normalize("NFD").replace(/[̀-ͯ]/g,"").trim()}
 function nb(t){return t.split(" ").map(function(w){return"<span>"+w+"</span>"}).join(" ")}
 // partie : [nom avec article, réponses écrites acceptées, pluriel ?, point visé par la flèche]
-var P={tete:["la tête",["tête"],0,[255,135]],cheveux:["les cheveux",["cheveux"],1,[255,95]],yeux:["les yeux",["yeux","œil","oeil"],1,[223,191]],nez:["le nez",["nez"],0,[255,215]],
+var P={tete:["la tête",["tête"],0,[255,130]],cheveux:["les cheveux",["cheveux"],1,[255,95]],yeux:["les yeux",["yeux","œil","oeil"],1,[222,190]],nez:["le nez",["nez"],0,[255,213]],
  bouche:["la bouche",["bouche"],0,[255,242]],oreille:["l'oreille",["oreille","oreilles"],0,[176,212]],cou:["le cou",["cou"],0,[255,280]],epaule:["l'épaule",["épaule","épaules"],0,[165,330]],
- bras:["le bras",["bras"],0,[385,500]],coude:["le coude",["coude","coudes"],0,[382,450]],main:["la main",["main","mains"],0,[418,565]],doigt:["le doigt",["doigt","doigts"],0,[425,600]],
- ventre:["le ventre",["ventre"],0,[255,470]],jambe:["la jambe",["jambe","jambes"],0,[300,800]],genou:["le genou",["genou","genoux"],0,[300,722]],pied:["le pied",["pied","pieds"],0,[330,930]]};
+ bras:["le bras",["bras"],0,[150,470]],coude:["le coude",["coude","coudes"],0,[398,435]],main:["la main",["main","mains"],0,[92,565]],doigt:["le doigt",["doigt","doigts"],0,[85,600]],
+ ventre:["le ventre",["ventre"],0,[230,480]],jambe:["la jambe",["jambe","jambes"],0,[210,800]],genou:["le genou",["genou","genoux"],0,[298,722]],pied:["le pied",["pied","pieds"],0,[338,915]]};
 // en allemand (bouton 🇫🇷 / 🇩🇪, à la demande de l'utilisateur) : [nom avec article, réponses écrites acceptées (avec ou sans article), pluriel ?]
 var PD={tete:["der Kopf",["Kopf"],0],cheveux:["die Haare",["Haare","Haar"],1],yeux:["die Augen",["Augen","Auge"],1],nez:["die Nase",["Nase"],0],bouche:["der Mund",["Mund"],0],
  oreille:["das Ohr",["Ohr","Ohren"],0],cou:["der Hals",["Hals"],0],epaule:["die Schulter",["Schulter","Schultern"],0],bras:["der Arm",["Arm","Arme"],0],coude:["der Ellbogen",["Ellbogen","Ellenbogen"],0],
@@ -87,21 +89,21 @@ var LV=[null,{t:"Facile",d:"Touche : la tête, le nez, la main, le pied…",p:["
 // dessin de l'enfant (de face) puis zones à toucher, des plus grandes aux plus petites (les petites passent devant)
 // dessin de l'enfant : image crayon (Gemini, détourée, 506 × 1024) ; zones à toucher recalées sur l'image, des plus grandes aux plus petites
 var ART='<image href="jeux/img/corps.webp" x="0" y="0" width="506" height="1024"/>';
-var Z=[["tete",'<ellipse cx="255" cy="185" rx="92" ry="100"/>'],
- ["bras",'<polygon points="140,330 175,330 140,560 100,550"/><polygon points="335,330 370,330 410,550 370,560"/>'],
- ["jambe",'<rect x="172" y="640" width="80" height="240"/><rect x="258" y="640" width="80" height="240"/>'],
- ["ventre",'<rect x="185" y="410" width="140" height="130"/>'],
- ["pied",'<ellipse cx="180" cy="925" rx="48" ry="30"/><ellipse cx="328" cy="925" rx="48" ry="30"/>'],
- ["main",'<circle cx="95" cy="570" r="38"/><circle cx="415" cy="570" r="38"/>'],
- ["cheveux",'<polygon points="168,190 170,110 210,78 300,78 340,110 342,190 320,150 255,115 190,150"/>'],
- ["oreille",'<ellipse cx="176" cy="210" rx="18" ry="28"/><ellipse cx="336" cy="210" rx="18" ry="28"/>'],
+var Z=[["tete",'<ellipse cx="255" cy="175" rx="90" ry="100"/>'],
+ ["bras",'<polygon points="138,335 172,335 135,560 98,548"/><polygon points="338,335 372,335 412,425 396,460 330,488 318,462 378,428"/>'],
+ ["jambe",'<rect x="172" y="640" width="76" height="245"/><polygon points="256,640 340,640 346,760 360,872 318,880 300,765"/>'],
+ ["ventre",'<rect x="185" y="420" width="135" height="125"/>'],
+ ["pied",'<ellipse cx="172" cy="930" rx="48" ry="30"/><ellipse cx="338" cy="915" rx="40" ry="32"/>'],
+ ["main",'<circle cx="92" cy="572" r="36"/><circle cx="308" cy="500" r="34"/>'],
+ ["cheveux",'<polygon points="168,190 170,110 210,76 300,76 340,110 342,190 322,150 255,112 188,150"/>'],
+ ["oreille",'<ellipse cx="176" cy="210" rx="18" ry="28"/><ellipse cx="336" cy="208" rx="18" ry="28"/>'],
  ["cou",'<rect x="225" y="262" width="60" height="32"/>'],
- ["epaule",'<circle cx="168" cy="322" r="26"/><circle cx="342" cy="322" r="26"/>'],
- ["coude",'<circle cx="128" cy="450" r="22"/><circle cx="382" cy="450" r="22"/>'],
- ["genou",'<circle cx="210" cy="722" r="26"/><circle cx="300" cy="722" r="26"/>'],
- ["doigt",'<rect x="55" y="580" width="60" height="40"/><rect x="395" y="580" width="60" height="40"/>'],
- ["yeux",'<circle cx="223" cy="191" r="16"/><circle cx="287" cy="191" r="16"/>'],
- ["nez",'<ellipse cx="255" cy="215" rx="13" ry="13"/>'],
+ ["epaule",'<circle cx="165" cy="330" r="26"/><circle cx="345" cy="330" r="26"/>'],
+ ["coude",'<circle cx="126" cy="450" r="22"/><circle cx="398" cy="435" r="24"/>'],
+ ["genou",'<circle cx="205" cy="718" r="26"/><circle cx="298" cy="722" r="26"/>'],
+ ["doigt",'<rect x="55" y="580" width="60" height="42"/><rect x="272" y="478" width="40" height="42"/>'],
+ ["yeux",'<circle cx="222" cy="190" r="16"/><circle cx="286" cy="190" r="16"/>'],
+ ["nez",'<ellipse cx="255" cy="213" rx="13" ry="13"/>'],
  ["bouche",'<ellipse cx="255" cy="240" rx="28" ry="14"/>']];
 var PK="@"+(window.PROFILE||"p1");function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
 var level=Math.min(3,Math.max(1,parseInt(ls("corps_lvl"+PK))||1));
@@ -121,7 +123,7 @@ function arrow(t){var x=t[0],y=t[1],fx=x<253?x-90:x+90,fy=y-60;
 function show(){var L=LV[level];cur=deck[qi];miss=0;busy=false;val="";
  $("body").innerHTML=ART+zones(L)+(L.w?arrow(P[cur][3]):"");
  // en écriture (clavier affiché, moins de place) : on zoome sur la partie du corps montrée par la flèche
- var y=P[cur][3][1];$("body").setAttribute("viewBox",!L.w?"40 60 430 910":y<300?"110 30 290 300":y<650?"20 280 470 380":"110 560 300 420");$("msg").textContent="";
+ var y=P[cur][3][1];setVB0((!L.w?"40 60 430 910":y<300?"110 30 290 300":y<650?"20 280 470 380":"110 560 300 420").split(" ").map(Number));$("msg").textContent="";
  $("name").innerHTML=nb(ask());$("cnt").textContent=(qi+1)+" / "+deck.length;if(L.w){paint();KB.enable(true)}
  setTimeout(function(){if(!busy&&!miss)say(ask())},250)}
 function paint(){var g=$("gap");g.className="gap";g.innerHTML=val?val.replace(/</g,""):"&nbsp;"}
@@ -129,11 +131,36 @@ $("ear").onclick=function(){if(cur)say(ask())};
 function answer(ok){try{if(parent!==window)parent.postMessage({type:"answer",game:"corps",ok:ok,diff:LV[level].x,k:LV[level].w?"Écrire le nom":"Montrer",item:P[cur][0]+(DE?" · "+PD[cur][0]:"")},"*")}catch(e){}}
 function win(){busy=true;tone(660,0,.12);tone(880,.1,.2);if(!miss){good++;answer(true)}var nm=NM(cur).n,t=nm.charAt(0).toUpperCase()+nm.slice(1);
  $("msg").textContent="✅ "+t;say(T("Bravo ! ","Super! ")+nm);afterSay(function(){qi++;if(qi<deck.length)show();else end()},1800)}
-$("body").addEventListener("click",function(e){var z=e.target.closest(".z");if(!z||busy||!cur||LV[level].w)return;var k=z.dataset.k;
+/* zoom (à la demande de l'utilisateur) : pincer à deux doigts (ou molette), glisser un doigt pour se déplacer une fois zoomé, 🔍 = vue de départ ;
+   un toucher sans glisser répond au relâchement du doigt (pas l'événement click, qui peut être avalé après un glissement) — comme les cartes de Géographie */
+var svgB=$("body"),VB0=[40,60,430,910],VB=VB0.slice(),PT={},pinch=null,pan=null,moved=false;
+// la vue de départ est élargie aux proportions de la zone d'affichage : zoomé, l'image occupe toute la largeur
+function setVB0(v){var r=svgB.getBoundingClientRect(),a=r.width&&r.height?r.width/r.height:v[2]/v[3];
+ if(v[2]/v[3]<a){var w=v[3]*a;v=[v[0]-(w-v[2])/2,v[1],w,v[3]]}else{var h=v[2]/a;v=[v[0],v[1]-(h-v[3])/2,v[2],h]}
+ VB0=v.slice();VB=v.slice();applyVB()}
+function applyVB(){svgB.setAttribute("viewBox",VB.join(" "));$("unzoom").hidden=VB[2]>=VB0[2]-1}
+function geom(vb){var r=svgB.getBoundingClientRect(),s=Math.min(r.width/vb[2],r.height/vb[3]);return{r:r,s:s,ox:(r.width-vb[2]*s)/2,oy:(r.height-vb[3]*s)/2}}
+function toSvg(x,y,vb){var g=geom(vb);return[vb[0]+(x-g.r.left-g.ox)/g.s,vb[1]+(y-g.r.top-g.oy)/g.s]}
+function clampVB(v){var w=Math.max(VB0[2]/4,Math.min(VB0[2],v[2])),h=w*VB0[3]/VB0[2];return[Math.max(VB0[0],Math.min(VB0[0]+VB0[2]-w,v[0])),Math.max(VB0[1],Math.min(VB0[1]+VB0[3]-h,v[1])),w,h]}
+function zoomAt(cx,cy,P0,w){var h=w*VB0[3]/VB0[2],v=[0,0,w,h],g=geom(v);v[0]=P0[0]-(cx-g.r.left-g.ox)/g.s;v[1]=P0[1]-(cy-g.r.top-g.oy)/g.s;VB=clampVB(v);applyVB()}
+svgB.addEventListener("pointerdown",function(e){PT[e.pointerId]={x:e.clientX,y:e.clientY};var ids=Object.keys(PT);
+ if(ids.length===2){var a=PT[ids[0]],b=PT[ids[1]];pinch={d:Math.hypot(a.x-b.x,a.y-b.y)||1,w:VB[2],P:toSvg((a.x+b.x)/2,(a.y+b.y)/2,VB)};pan=null;moved=true}
+ else if(ids.length===1){moved=false;pan={x:e.clientX,y:e.clientY,vb:VB.slice()}}});
+svgB.addEventListener("pointermove",function(e){if(!PT[e.pointerId])return;PT[e.pointerId]={x:e.clientX,y:e.clientY};var ids=Object.keys(PT);
+ if(pinch&&ids.length>=2){var a=PT[ids[0]],b=PT[ids[1]],d=Math.hypot(a.x-b.x,a.y-b.y)||1;zoomAt((a.x+b.x)/2,(a.y+b.y)/2,pinch.P,pinch.w*pinch.d/d)}
+ else if(pan&&VB[2]<VB0[2]-1){var dx=e.clientX-pan.x,dy=e.clientY-pan.y;if(Math.abs(dx)+Math.abs(dy)>8)moved=true;
+  if(moved){var s=geom(pan.vb).s;VB=clampVB([pan.vb[0]-dx/s,pan.vb[1]-dy/s,pan.vb[2],pan.vb[3]]);applyVB()}}});
+function up(e){var tap=e.type==="pointerup"&&!moved&&!pinch&&Object.keys(PT).length===1;delete PT[e.pointerId];
+ if(tap){var el=document.elementFromPoint(e.clientX,e.clientY);if(el)choose({target:el})}
+ if(Object.keys(PT).length<2)pinch=null;if(!Object.keys(PT).length)pan=null}
+svgB.addEventListener("pointerup",up);svgB.addEventListener("pointercancel",up);
+svgB.addEventListener("wheel",function(e){e.preventDefault();zoomAt(e.clientX,e.clientY,toSvg(e.clientX,e.clientY,VB),VB[2]*(e.deltaY>0?1.2:1/1.2))},{passive:false});
+$("unzoom").onclick=function(){VB=VB0.slice();applyVB()};
+function choose(e){var z=e.target.closest&&e.target.closest(".z");if(!z||busy||!cur||LV[level].w)return;var k=z.dataset.k;
  if(k===cur){z.classList.add("ok");win()}
  else{if(!miss)answer(false);miss++;z.classList.add("ko");tone(220,0,.25);var t=T("Ça, c'est ","Das ist ")+NM(k).n+".";$("msg").textContent=t;say(t);
   setTimeout(function(){z.classList.remove("ko")},900);
-  if(miss>=2){var c=$("body").querySelector('.z[data-k="'+cur+'"]');if(c)c.classList.add("ok")}}});
+  if(miss>=2){var c=$("body").querySelector('.z[data-k="'+cur+'"]');if(c)c.classList.add("ok")}}}
 function check(){if(busy||!val||!LV[level].w)return;var g=$("gap");
  var v=plain(val).replace(/^(der|die|das) /,"");if(NM(cur).a.some(function(a){return plain(a)===v})){g.className="gap ok";g.textContent=DE?NM(cur).n:NM(cur).a[0];KB.enable(false);win();return}
  if(!miss)answer(false);miss++;g.className="gap ko";tone(220,0,.25);busy=true;
