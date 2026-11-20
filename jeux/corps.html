@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Les parties du corps</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f3fbf6;--fg:#1d2b24;--mut:#5b6e64;--card:#fff;--bd:#d5e8dc;--fr:#22a861;--ok:#22a861;--ko:#e5484d;--syl:#9b6bff;box-sizing:border-box}
+@media (prefers-color-scheme:dark){:root{--bg:#121b16;--fg:#eef6f1;--mut:#a3b8ad;--card:#1d2a23;--bd:#30453a}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--fg);font-family:"Fredoka",system-ui,sans-serif;user-select:none}
+button{font-family:inherit;touch-action:manipulation;cursor:pointer;color:var(--fg)}
+[hidden]{display:none!important}
+#inner{position:fixed;left:0;right:0;top:0;bottom:0;max-width:560px;margin:0 auto;padding:12px 14px calc(14px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:10px}
+body.withkb #inner{bottom:var(--kbh,250px)}
+#top{display:flex;justify-content:flex-end}
+#lvlb{min-height:52px;padding:0 16px;border:3px solid var(--bd);background:var(--card);border-radius:16px;font-size:18px;font-weight:700}
+#ask{display:flex;align-items:center;gap:12px;background:var(--card);border:3px solid var(--bd);border-radius:22px;padding:8px 12px}
+#ear{flex:none;width:60px;height:60px;border:0;border-radius:18px;background:var(--fr);color:#fff;font-size:28px;box-shadow:0 4px 0 #17804a}
+#name{flex:1;font-size:min(7vw,28px);font-weight:700;line-height:1.2}
+#name span{white-space:nowrap}
+#bw{flex:1;min-height:0;display:flex;justify-content:center}
+#body{height:100%;max-width:100%}
+#body .z{fill:transparent;cursor:pointer}
+#body .z.ok{fill:rgba(34,168,97,.35);stroke:#22a861;stroke-width:3}
+#body .z.ko{fill:rgba(229,72,77,.35);stroke:#e5484d;stroke-width:3}
+#gapw{font-size:28px;font-weight:700;text-align:center;min-height:40px}
+.gap{display:inline-block;min-width:4em;border-bottom:4px solid var(--syl);color:var(--syl);padding:0 .2em}
+.gap.ok{color:var(--ok);border-color:var(--ok)}.gap.ko{color:var(--ko);border-color:var(--ko)}
+#msg{min-height:28px;text-align:center;font-size:20px;font-weight:700}
+#cnt{text-align:center;color:var(--mut);font-size:18px;font-weight:600}
+#end{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;text-align:center}
+#end b{font-size:34px}#end p{font-size:22px;margin:0}
+#again{min-width:220px;height:72px;border:0;border-radius:22px;background:var(--fr);color:#fff;font-size:24px;font-weight:700;box-shadow:0 5px 0 #17804a}
+.sheet{position:fixed;inset:0;background:rgba(10,30,20,.55);display:flex;align-items:flex-end;justify-content:center;z-index:30}
+.panel{background:var(--bg);width:100%;max-width:560px;border-radius:26px 26px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:10px}
+.panel h2{margin:0 0 4px;font-size:26px}
+.opt{min-height:64px;border:3px solid var(--bd);background:var(--card);border-radius:18px;font-size:21px;font-weight:700;text-align:left;padding:8px 14px}
+.opt small{display:block;font-size:16px;color:var(--mut);font-weight:600}.opt.on{border-color:var(--fr);box-shadow:0 0 0 3px var(--fr)}
+#close{height:60px;border:0;border-radius:18px;background:var(--fr);color:#fff;font-size:21px;font-weight:700}
+</style>
+<script src="jeux/clavier.js"></script>
+</head>
+<body>
+<div id="inner">
+  <div id="top"><button id="lvlb"></button></div>
+  <div id="ask"><button id="ear" aria-label="Réécouter">🔊</button><span id="name"></span></div>
+  <div id="bw"><svg id="body" viewBox="0 0 200 400"></svg></div>
+  <div id="gapw" hidden><span class="gap" id="gap">&nbsp;</span></div>
+  <div id="msg"></div>
+  <div id="cnt"></div>
+  <div id="end" hidden><b>🎉 Bravo !</b><p id="score"></p><button id="again">Encore</button></div>
+</div>
+<div class="sheet" id="sheet" hidden><div class="panel"><h2>Niveau</h2><div id="lvls" style="display:flex;flex-direction:column;gap:10px"></div><button id="close">Fermer</button></div></div>
+<script>
+(function(){
+// Les parties du corps (Français, vocabulaire du corps, à la demande de l'utilisateur) : un enfant dessiné de face.
+// Facile / Moyen : « Où est le genou ? » → on touche la partie du corps (zones invisibles, plus grandes que le dessin pour les petites parties).
+// Difficile : une flèche montre une partie, on écrit son nom avec le clavier maison.
+var $=function(i){return document.getElementById(i)};
+function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
+function voiceFor(l){try{var v=speechSynthesis.getVoices().filter(function(v){return v.lang&&v.lang.indexOf(l)===0});return v.filter(function(x){return x.localService})[0]||v[0]||null}catch(e){return null}}
+function say(t){try{if(!window.speechSynthesis)return;speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.lang="fr-FR";var v=voiceFor("fr");if(v)u.voice=v;u.rate=.9;speechSynthesis.speak(u)}catch(e){}}
+var ac=null;function tone(f,t,d){try{if(!ac){var C=window.AudioContext||window.webkitAudioContext;if(!C)return;ac=new C()}if(ac.state==="suspended")ac.resume();var o=ac.createOscillator(),g=ac.createGain(),s=ac.currentTime+t;o.type="triangle";o.frequency.value=f;g.gain.setValueAtTime(.16,s);g.gain.exponentialRampToValueAtTime(.001,s+d);o.connect(g);g.connect(ac.destination);o.start(s);o.stop(s+d)}catch(e){}}
+function plain(s){return s.toLowerCase().replace(/œ/g,"oe").normalize("NFD").replace(/[̀-ͯ]/g,"").trim()}
+function nb(t){return t.split(" ").map(function(w){return"<span>"+w+"</span>"}).join(" ")}
+// partie : [nom avec article, réponses écrites acceptées, pluriel ?, point visé par la flèche]
+var P={tete:["la tête",["tête"],0,[100,40]],cheveux:["les cheveux",["cheveux"],1,[100,30]],yeux:["les yeux",["yeux","œil","oeil"],1,[86,68]],nez:["le nez",["nez"],0,[100,82]],
+ bouche:["la bouche",["bouche"],0,[100,97]],oreille:["l'oreille",["oreille","oreilles"],0,[58,74]],cou:["le cou",["cou"],0,[100,118]],epaule:["l'épaule",["épaule","épaules"],0,[70,134]],
+ bras:["le bras",["bras"],0,[150,160]],coude:["le coude",["coude","coudes"],0,[149,192]],main:["la main",["main","mains"],0,[150,262]],doigt:["le doigt",["doigt","doigts"],0,[146,281]],
+ ventre:["le ventre",["ventre"],0,[100,195]],jambe:["la jambe",["jambe","jambes"],0,[117,292]],genou:["le genou",["genou","genoux"],0,[117,318]],pied:["le pied",["pied","pieds"],0,[124,382]]};
+var LV=[null,{t:"Facile",d:"Touche : la tête, le nez, la main, le pied…",p:["tete","cheveux","yeux","nez","bouche","oreille","bras","main","ventre","jambe","pied"],w:0,x:1},
+ {t:"Moyen",d:"En plus : le cou, l'épaule, le coude, le genou, le doigt",p:["tete","cheveux","yeux","nez","bouche","oreille","bras","main","ventre","jambe","pied","cou","epaule","coude","genou","doigt"],w:0,x:1.25},
+ {t:"Difficile",d:"Une flèche montre une partie : écris son nom",p:["tete","cheveux","yeux","nez","bouche","oreille","cou","epaule","bras","coude","main","ventre","jambe","genou","pied"],w:1,x:1.5}];
+// dessin de l'enfant (de face) puis zones à toucher, des plus grandes aux plus petites (les petites passent devant)
+var SK="#f3c49b",SKD="#d99c6c";
+var ART='<g stroke="#5a3a22" stroke-width="2" stroke-linejoin="round">'+
+ '<rect x="40" y="128" width="22" height="125" rx="11" fill="'+SK+'"/><rect x="138" y="128" width="22" height="125" rx="11" fill="'+SK+'"/>'+ // bras
+ '<rect x="40" y="128" width="22" height="50" rx="11" fill="#4a90e2"/><rect x="138" y="128" width="22" height="50" rx="11" fill="#4a90e2"/>'+ // manches
+ '<rect x="71" y="250" width="25" height="122" rx="10" fill="'+SK+'"/><rect x="104" y="250" width="25" height="122" rx="10" fill="'+SK+'"/>'+ // jambes
+ '<ellipse cx="80" cy="381" rx="21" ry="11" fill="#e5484d"/><ellipse cx="120" cy="381" rx="21" ry="11" fill="#e5484d"/>'+ // chaussures
+ '<rect x="90" y="104" width="20" height="26" fill="'+SK+'"/>'+ // cou
+ '<path d="M62 132 Q100 118 138 132 L138 232 L62 232 Z" fill="#4a90e2"/>'+ // tee-shirt
+ '<path d="M64 230 H136 V270 H104 V262 H96 V270 H64 Z" fill="#f5b82e"/>'+ // short
+ '<circle cx="51" cy="262" r="13" fill="'+SK+'"/><circle cx="149" cy="262" r="13" fill="'+SK+'"/>'+ // mains
+ '<path d="M42 268 v12 M47 270 v14 M52 271 v14 M57 270 v12 M143 270 v12 M148 271 v14 M153 270 v14 M158 268 v12" stroke="'+SKD+'" stroke-width="4" stroke-linecap="round"/>'+ // doigts
+ '<ellipse cx="58" cy="74" rx="9" ry="13" fill="'+SK+'"/><ellipse cx="142" cy="74" rx="9" ry="13" fill="'+SK+'"/>'+ // oreilles
+ '<circle cx="100" cy="72" r="42" fill="'+SK+'"/>'+ // tête
+ '<path d="M58 66 Q60 24 100 26 Q142 24 142 66 Q132 46 112 44 Q100 54 84 44 Q66 48 58 66 Z" fill="#8a5a2b"/>'+ // cheveux
+ '<circle cx="86" cy="70" r="5" fill="#2b2440" stroke="none"/><circle cx="114" cy="70" r="5" fill="#2b2440" stroke="none"/>'+ // yeux
+ '<path d="M100 76 Q96 86 101 88" fill="none"/>'+ // nez
+ '<path d="M88 96 Q100 106 112 96" fill="#e86f6f"/>'+ // bouche
+ '<path d="M117 300 q8 10 0 20 M83 300 q-8 10 0 20" fill="none" stroke="'+SKD+'" stroke-width="2"/>'+ // genoux
+ '<path d="M51 186 q6 6 0 12 M149 186 q-6 6 0 12" fill="none" stroke="'+SKD+'" stroke-width="2"/></g>'; // coudes
+var Z=[["tete",'<circle cx="100" cy="74" r="44"/>'],["bras",'<rect x="34" y="126" width="34" height="125"/><rect x="132" y="126" width="34" height="125"/>'],
+ ["jambe",'<rect x="66" y="262" width="68" height="108"/>'],["ventre",'<rect x="62" y="150" width="76" height="80"/>'],
+ ["pied",'<ellipse cx="80" cy="381" rx="24" ry="15"/><ellipse cx="120" cy="381" rx="24" ry="15"/>'],["main",'<circle cx="51" cy="260" r="15"/><circle cx="149" cy="260" r="15"/>'],
+ ["cheveux",'<path d="M56 66 Q58 20 100 22 Q144 20 144 66 Q132 44 112 42 Q100 52 84 42 Q66 46 56 66 Z"/>'],["oreille",'<ellipse cx="55" cy="74" rx="13" ry="17"/><ellipse cx="145" cy="74" rx="13" ry="17"/>'],
+ ["cou",'<rect x="86" y="108" width="28" height="22"/>'],["epaule",'<circle cx="68" cy="136" r="15"/><circle cx="132" cy="136" r="15"/>'],
+ ["coude",'<circle cx="51" cy="192" r="14"/><circle cx="149" cy="192" r="14"/>'],["genou",'<circle cx="83" cy="312" r="15"/><circle cx="117" cy="312" r="15"/>'],
+ ["doigt",'<rect x="38" y="268" width="24" height="20"/><rect x="138" y="268" width="24" height="20"/>'],
+ ["yeux",'<circle cx="86" cy="70" r="11"/><circle cx="114" cy="70" r="11"/>'],["nez",'<ellipse cx="100" cy="83" rx="9" ry="10"/>'],["bouche",'<ellipse cx="100" cy="99" rx="17" ry="9"/>']];
+var PK="@"+(window.PROFILE||"p1");function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
+var level=Math.min(3,Math.max(1,parseInt(ls("corps_lvl"+PK))||1));
+var N=window.PATHN||10,deck,qi,good,cur,miss,busy,val="",KB=null;
+function kbh(){var k=document.querySelector(".kb");if(k)document.body.style.setProperty("--kbh",k.offsetHeight+"px")}
+window.addEventListener("resize",kbh);
+function zones(L){return Z.filter(function(z){return L.w||L.p.indexOf(z[0])>=0||true}).map(function(z){return '<g class="z" data-k="'+z[0]+'">'+z[1]+"</g>"}).join("")}
+function ask(){var p=P[cur];return LV[level].w?"Comment s'appelle cette partie du corps ?":(p[2]?"Où sont ":"Où est ")+p[0]+" ?"}
+function start(){var L=LV[level],d=[];while(d.length<N)d=d.concat(shuffle(L.p));deck=d.slice(0,N);qi=0;good=0;$("lvlb").textContent="Niveau : "+L.t;
+ $("end").hidden=true;$("ask").hidden=$("bw").hidden=$("cnt").hidden=$("msg").hidden=false;$("gapw").hidden=!L.w;
+ if(L.w&&!KB){KB=Clavier({onKey:function(k){if(busy||val.length>=12)return;val+=k;paint()},onDel:function(){if(busy)return;val=val.slice(0,-1);paint()},onOk:check});document.body.classList.add("withkb");kbh();requestAnimationFrame(kbh)}
+ if(!L.w&&KB){KB.destroy();KB=null;document.body.classList.remove("withkb")}
+ if(KB)KB.show();show()}
+function arrow(t){var x=t[0],y=t[1],fx=x<100?x-34:x+34,fy=y-26;
+ return '<g stroke="#9b6bff" stroke-width="5" stroke-linecap="round" fill="none"><path d="M'+fx+" "+fy+" L"+x+" "+y+'"/></g><circle cx="'+x+'" cy="'+y+'" r="6" fill="#9b6bff"/><circle cx="'+fx+'" cy="'+fy+'" r="4" fill="#9b6bff"/>'}
+function show(){var L=LV[level];cur=deck[qi];miss=0;busy=false;val="";
+ $("body").innerHTML=ART+zones(L)+(L.w?arrow(P[cur][3]):"");
+ // en écriture (clavier affiché, moins de place) : on zoome sur la partie du corps montrée par la flèche
+ var y=P[cur][3][1];$("body").setAttribute("viewBox",!L.w?"0 0 200 400":y<125?"10 0 180 160":y<300?"0 105 200 200":"10 240 180 160");$("msg").textContent="";
+ $("name").innerHTML=nb(ask());$("cnt").textContent=(qi+1)+" / "+deck.length;if(L.w){paint();KB.enable(true)}
+ setTimeout(function(){say(ask())},250)}
+function paint(){var g=$("gap");g.className="gap";g.innerHTML=val?val.replace(/</g,""):"&nbsp;"}
+$("ear").onclick=function(){if(cur)say(ask())};
+function answer(ok){try{if(parent!==window)parent.postMessage({type:"answer",game:"corps",ok:ok,diff:LV[level].x,k:LV[level].w?"Écrire le nom":"Montrer",item:P[cur][0]},"*")}catch(e){}}
+function win(){busy=true;tone(660,0,.12);tone(880,.1,.2);if(!miss){good++;answer(true)}var t=P[cur][0].charAt(0).toUpperCase()+P[cur][0].slice(1);
+ $("msg").textContent="✅ "+t;say("Bravo ! "+P[cur][0]);setTimeout(function(){qi++;if(qi<deck.length)show();else end()},1800)}
+$("body").addEventListener("click",function(e){var z=e.target.closest(".z");if(!z||busy||!cur||LV[level].w)return;var k=z.dataset.k;
+ if(k===cur){z.classList.add("ok");win()}
+ else{if(!miss)answer(false);miss++;z.classList.add("ko");tone(220,0,.25);var t="Ça, c'est "+P[k][0]+".";$("msg").textContent=t;say(t);
+  setTimeout(function(){z.classList.remove("ko")},900);
+  if(miss>=2){var c=$("body").querySelector('.z[data-k="'+cur+'"]');if(c)c.classList.add("ok")}}});
+function check(){if(busy||!val||!LV[level].w)return;var g=$("gap");
+ if(P[cur][1].some(function(a){return plain(a)===plain(val)})){g.className="gap ok";g.textContent=P[cur][1][0];KB.enable(false);win();return}
+ if(!miss)answer(false);miss++;g.className="gap ko";tone(220,0,.25);busy=true;
+ var t=miss>=2?"Recopie : "+P[cur][1][0]:"Essaie encore !";$("msg").textContent=t;if(miss>=2)say(P[cur][0]);
+ setTimeout(function(){val="";paint();busy=false},700)}
+function end(){$("ask").hidden=$("bw").hidden=$("cnt").hidden=$("msg").hidden=$("gapw").hidden=true;if(KB)KB.hide();document.body.classList.remove("withkb");
+ $("end").hidden=false;$("score").textContent=good+" / "+deck.length+" du premier coup";cur=null;
+ [523,659,784,1047].forEach(function(f,k){tone(f,k*.1,.25)});
+ try{if(parent!==window)parent.postMessage({type:"roundEnd"},"*")}catch(e){}}
+$("again").onclick=function(){if(KB)document.body.classList.add("withkb");start()};
+$("lvlb").onclick=function(){$("lvls").innerHTML=[1,2,3].map(function(i){return '<button class="opt'+(i===level?" on":"")+'" data-l="'+i+'">'+LV[i].t+"<small>"+LV[i].d+"</small></button>"}).join("");$("sheet").hidden=false;if(KB)KB.hide()};
+$("lvls").onclick=function(e){var b=e.target.closest("[data-l]");if(!b)return;level=+b.dataset.l;ls("corps_lvl"+PK,level);$("sheet").hidden=true;start()};
+$("close").onclick=function(){$("sheet").hidden=true;if(KB&&cur)KB.show()};
+window.hubBack=function(){if(!$("sheet").hidden){$("close").onclick();return true}return false};
+window.__C={cur:function(){return cur},center:function(){return P[cur][3]}};
+start();
+})();
+</script>
+</body>
+</html>

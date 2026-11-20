@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Les formes</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f2f5f9;--fg:#22304a;--mut:#5c6a80;--card:#fff;--bd:#d6dee9;--gm:#56708a;--ok:#22a861;--ko:#e5484d;box-sizing:border-box}
+@media (prefers-color-scheme:dark){:root{--bg:#161c26;--fg:#eef2f8;--mut:#a8b4c6;--card:#222b39;--bd:#36435a}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--fg);font-family:"Fredoka",system-ui,sans-serif;user-select:none}
+button{font-family:inherit;touch-action:manipulation;cursor:pointer;color:var(--fg)}
+[hidden]{display:none!important}
+#inner{position:fixed;inset:0;max-width:560px;margin:0 auto;padding:12px 14px calc(16px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:14px}
+#top{display:flex;justify-content:flex-end}
+#lvlb{min-height:52px;padding:0 16px;border:3px solid var(--bd);background:var(--card);border-radius:16px;font-size:18px;font-weight:700}
+#ask{display:flex;align-items:center;gap:12px;background:var(--card);border:3px solid var(--bd);border-radius:22px;padding:10px 12px}
+#ear{flex:none;width:64px;height:64px;border:0;border-radius:18px;background:var(--gm);color:#fff;font-size:30px;box-shadow:0 4px 0 #3a4f63}
+#name{flex:1;font-size:min(7.5vw,30px);font-weight:700;line-height:1.2}
+#grid{flex:1;min-height:0;display:grid;grid-template-columns:1fr 1fr;gap:14px;align-content:center}
+#grid.g6{grid-template-columns:1fr 1fr 1fr;gap:10px}
+.sh{aspect-ratio:1;border:4px solid var(--bd);border-radius:20px;background:var(--card);padding:6px;position:relative}
+.sh svg{width:100%;height:100%;display:block}
+.sh.ok{border-color:var(--ok);box-shadow:0 0 0 4px var(--ok);animation:pop .4s}
+.sh.ko{border-color:var(--ko);opacity:.45;animation:shake .35s}
+@keyframes pop{50%{transform:scale(1.06)}}
+@keyframes shake{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+#msg{min-height:52px;text-align:center;font-size:20px;font-weight:700;line-height:1.3}
+#cnt{text-align:center;color:var(--mut);font-size:18px;font-weight:600}
+#end{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;text-align:center}
+#end b{font-size:34px}#end p{font-size:22px;margin:0}
+#again{min-width:220px;height:72px;border:0;border-radius:22px;background:var(--gm);color:#fff;font-size:24px;font-weight:700;box-shadow:0 5px 0 #3a4f63}
+.sheet{position:fixed;inset:0;background:rgba(10,15,30,.55);display:flex;align-items:flex-end;justify-content:center;z-index:9}
+.panel{background:var(--bg);width:100%;max-width:560px;border-radius:26px 26px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:10px}
+.panel h2{margin:0 0 4px;font-size:26px}
+.opt{min-height:64px;border:3px solid var(--bd);background:var(--card);border-radius:18px;font-size:21px;font-weight:700;text-align:left;padding:8px 14px}
+.opt small{display:block;font-size:16px;color:var(--mut);font-weight:600}.opt.on{border-color:var(--gm);box-shadow:0 0 0 3px var(--gm)}
+#close{height:60px;border:0;border-radius:18px;background:var(--gm);color:#fff;font-size:21px;font-weight:700}
+</style>
+</head>
+<body>
+<div id="inner">
+  <div id="top"><button id="lvlb"></button></div>
+  <div id="ask"><button id="ear" aria-label="Réécouter">🔊</button><span id="name"></span></div>
+  <div id="grid"></div>
+  <div id="msg"></div>
+  <div id="cnt"></div>
+  <div id="end" hidden><b>🎉 Bravo !</b><p id="score"></p><button id="again">Encore</button></div>
+</div>
+<div class="sheet" id="sheet" hidden><div class="panel"><h2>Niveau</h2><div id="lvls" style="display:flex;flex-direction:column;gap:10px"></div><button id="close">Fermer</button></div></div>
+<script>
+(function(){
+// Les formes (matière Géométrie, à la demande de l'utilisateur) : la voix demande « Où est le triangle ? », l'enfant touche la bonne forme.
+// Formes du CP : carré, rectangle, triangle, cercle, cube. Couleurs, tailles et (dès Moyen) orientations au hasard : on reconnaît la forme, pas la couleur.
+// Difficile : 6 cases avec des pièges (losange, ovale, triangle pas fermé). Bonne réponse = une phrase qui dit pourquoi (« Le triangle a 3 côtés »).
+var $=function(i){return document.getElementById(i)};
+function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
+function R(a,b){return a+Math.random()*(b-a)}
+function voiceFor(l){try{var v=speechSynthesis.getVoices().filter(function(v){return v.lang&&v.lang.indexOf(l)===0});return v.filter(function(x){return x.localService})[0]||v[0]||null}catch(e){return null}}
+function say(t){try{if(!window.speechSynthesis)return;speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.lang="fr-FR";var v=voiceFor("fr");if(v)u.voice=v;u.rate=.9;speechSynthesis.speak(u)}catch(e){}}
+var ac=null;function tone(f,t,d){try{if(!ac){var C=window.AudioContext||window.webkitAudioContext;if(!C)return;ac=new C()}if(ac.state==="suspended")ac.resume();var o=ac.createOscillator(),g=ac.createGain(),s=ac.currentTime+t;o.type="triangle";o.frequency.value=f;g.gain.setValueAtTime(.16,s);g.gain.exponentialRampToValueAtTime(.001,s+d);o.connect(g);g.connect(ac.destination);o.start(s);o.stop(s+d)}catch(e){}}
+var COL=["#ef6b6b","#4a90e2","#f5b82e","#4cbf7a","#a97be0","#f08a3c","#3fb8c4","#e86fb0"];
+var NAME={carre:"le carré",rect:"le rectangle",tri:"le triangle",cercle:"le cercle",cube:"le cube",losange:"un losange",ovale:"un ovale",ouvert:"un triangle pas fermé"};
+var UN={carre:"un carré",rect:"un rectangle",tri:"un triangle",cercle:"un cercle",cube:"un cube",losange:"un losange",ovale:"un ovale"};
+var WHY={carre:"Le carré a 4 côtés de la même longueur.",rect:"Le rectangle a 4 côtés : 2 longs et 2 courts.",tri:"Le triangle a 3 côtés.",cercle:"Le cercle est tout rond : il n'a pas de côté.",cube:"Le cube a 6 faces carrées."};
+var WRONG={losange:"Ça, c'est un losange : ses côtés sont penchés.",ovale:"Ça, c'est un ovale : il est allongé.",ouvert:"Ce n'est pas un triangle : il n'est pas fermé."};
+function poly(pts,c,rot){return '<polygon points="'+pts.map(function(p){return p[0].toFixed(1)+","+p[1].toFixed(1)}).join(" ")+'" fill="'+c+'" stroke="rgba(0,0,0,.35)" stroke-width="2.5" stroke-linejoin="round" transform="rotate('+rot+' 50 50)"/>'}
+// dessin d'une forme dans un carré 100 × 100 ; turn = orientation au hasard (Moyen et Difficile)
+function draw(k,c,turn){var rot=turn?Math.round(R(-40,40)):0,s;
+ if(k==="carre"){s=turn?R(40,58):R(46,62);return poly([[50-s/2,50-s/2],[50+s/2,50-s/2],[50+s/2,50+s/2],[50-s/2,50+s/2]],c,turn?Math.round(R(0,45)):0)}
+ if(k==="rect"){var w=turn?R(62,74):R(70,80),h=w*R(.38,.55);return poly([[50-w/2,50-h/2],[50+w/2,50-h/2],[50+w/2,50+h/2],[50-w/2,50+h/2]],c,turn&&Math.random()<.5?90+rot:rot)}
+ if(k==="tri"){var T=[[[50,18],[84,78],[16,78]],[[22,20],[22,80],[82,80]],[[14,74],[86,74],[62,24]],[[30,18],[82,50],[26,82]]],t=turn?T[Math.floor(Math.random()*T.length)]:T[0];return poly(t,c,turn?rot:0)}
+ if(k==="cercle"){var r=turn?R(24,36):R(30,36);return '<circle cx="50" cy="50" r="'+r.toFixed(1)+'" fill="'+c+'" stroke="rgba(0,0,0,.35)" stroke-width="2.5"/>'}
+ if(k==="ovale")return '<ellipse cx="50" cy="50" rx="38" ry="'+R(18,24).toFixed(1)+'" fill="'+c+'" stroke="rgba(0,0,0,.35)" stroke-width="2.5" transform="rotate('+rot+' 50 50)"/>';
+ if(k==="losange"){var a=R(18,24);return poly([[50,12],[50+a+8,50],[50,88],[50-a-8,50]],c,rot/3)}
+ if(k==="ouvert")return '<polyline points="34,20 82,78 18,78 28,46" fill="none" stroke="'+c+'" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" transform="rotate('+rot+' 50 50)"/>';
+ if(k==="cube"){var e=R(34,42),d=e*.45,x=50-(e+d)/2,y=50-(e-d)/2+2; // vue en perspective : face avant, dessus, côté
+  return '<g stroke="rgba(0,0,0,.4)" stroke-width="2.5" stroke-linejoin="round"><polygon points="'+[x,y,x+e,y,x+e,y+e,x,y+e].join(",")+'" fill="'+c+'"/>'+
+   '<polygon points="'+[x,y,x+d,y-d,x+e+d,y-d,x+e,y].join(",")+'" fill="'+c+'" style="filter:brightness(1.25)"/>'+
+   '<polygon points="'+[x+e,y,x+e+d,y-d,x+e+d,y+e-d,x+e,y+e].join(",")+'" fill="'+c+'" style="filter:brightness(.75)"/></g>'}}
+// niveaux : formes demandées, formes proposées en plus (pièges), nombre de cases, orientation au hasard
+var LV=[null,{t:"Facile",d:"Carré, rectangle, triangle, cercle",ask:["carre","rect","tri","cercle"],trap:[],n:4,turn:false,x:1},
+ {t:"Moyen",d:"Formes tournées, de toutes les tailles, et le cube",ask:["carre","rect","tri","cercle","cube"],trap:[],n:4,turn:true,x:1.25},
+ {t:"Difficile",d:"6 formes avec des pièges",ask:["carre","rect","tri","cercle","cube"],trap:["losange","ovale","ouvert"],n:6,turn:true,x:1.5}];
+var PK="@"+(window.PROFILE||"p1");function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
+var level=Math.min(3,Math.max(1,parseInt(ls("formes_lvl"+PK))||1));
+var N=window.PATHN||10,deck,qi,good,cur,miss,busy;
+function ask(k){return "Où est "+NAME[k]+" ?"}
+function start(){var L=LV[level],d=[];while(d.length<N)d=d.concat(shuffle(L.ask));deck=d.slice(0,N);qi=0;good=0;$("lvlb").textContent="Niveau : "+L.t;
+ $("end").hidden=true;$("ask").hidden=$("grid").hidden=$("cnt").hidden=$("msg").hidden=false;show()}
+function show(){var L=LV[level];cur=deck[qi];miss=0;busy=false;$("msg").textContent="";
+ var others=shuffle(L.ask.filter(function(k){return k!==cur}).concat(L.trap));
+ if(cur==="carre"&&L.n>4&&others.indexOf("losange")<0)others.unshift("losange");
+ var ks=shuffle([cur].concat(others.slice(0,L.n-1))),cols=shuffle(COL);
+ $("grid").className=L.n>4?"g6":"";
+ $("grid").innerHTML=ks.map(function(k,i){return '<button class="sh" data-k="'+k+'" aria-label="forme"><svg viewBox="0 0 100 100">'+draw(k,cols[i%cols.length],L.turn)+"</svg></button>"}).join("");
+ $("name").textContent=ask(cur);$("cnt").textContent=(qi+1)+" / "+deck.length;setTimeout(function(){say(ask(cur))},250)}
+$("ear").onclick=function(){if(cur)say(ask(cur))};
+function answer(ok){try{if(parent!==window)parent.postMessage({type:"answer",game:"formes",ok:ok,diff:LV[level].x,k:NAME[cur].replace(/^le /,"Le "),item:LV[level].t+" · "+NAME[cur]},"*")}catch(e){}}
+$("grid").addEventListener("click",function(e){var b=e.target.closest(".sh");if(!b||busy||!cur||b.classList.contains("ko"))return;var k=b.dataset.k;
+ if(k===cur){busy=true;b.classList.add("ok");tone(660,0,.12);tone(880,.1,.2);if(!miss){good++;answer(true)}$("msg").textContent="✅ "+WHY[cur];say("Bravo ! "+WHY[cur]);
+  setTimeout(function(){qi++;if(qi<deck.length)show();else end()},2600)}
+ else{if(!miss)answer(false);miss++;b.classList.add("ko");tone(220,0,.25);var t=WRONG[k]||"Ça, c'est "+UN[k]+".";$("msg").textContent=t;say(t)}});
+function end(){$("ask").hidden=$("grid").hidden=$("cnt").hidden=$("msg").hidden=true;$("end").hidden=false;$("score").textContent=good+" / "+deck.length+" du premier coup";cur=null;
+ [523,659,784,1047].forEach(function(f,k){tone(f,k*.1,.25)});
+ try{if(parent!==window)parent.postMessage({type:"roundEnd"},"*")}catch(e){}}
+$("again").onclick=start;
+$("lvlb").onclick=function(){$("lvls").innerHTML=[1,2,3].map(function(i){return '<button class="opt'+(i===level?" on":"")+'" data-l="'+i+'">'+LV[i].t+"<small>"+LV[i].d+"</small></button>"}).join("");$("sheet").hidden=false};
+$("lvls").onclick=function(e){var b=e.target.closest("[data-l]");if(!b)return;level=+b.dataset.l;ls("formes_lvl"+PK,level);$("sheet").hidden=true;start()};
+$("close").onclick=function(){$("sheet").hidden=true};
+window.hubBack=function(){if(!$("sheet").hidden){$("sheet").hidden=true;return true}return false};
+window.__F={cur:function(){return cur}};
+start();
+})();
+</script>
+</body>
+</html>
