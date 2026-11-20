@@ -50,6 +50,7 @@ h1{margin:0;font-size:34px;font-weight:700;line-height:1.15}
 .btn.okb{background:var(--ok);border-color:var(--ok);color:#fff}
 .btn.danger{color:var(--ko);border-color:var(--ko)}
 .btn:disabled{opacity:.4}
+.ic.icimg img{width:1.2em;height:1.2em;object-fit:contain;display:block} /* icônes dessinées au crayon (icons/menu, à la demande de l'utilisateur) ; data-e = émoji gardé pour les listes */
 .ic.icb{position:relative;display:inline-block;line-height:1} /* Anna avec une bulle (icône de Plaudern) */
 .ic.icb i{position:absolute;font-style:normal;font-size:22px;right:-6px;top:-10px}
 .ic.opc{font-family:"Fredoka",system-ui,sans-serif;font-weight:700;font-size:64px;line-height:1;display:flex;align-items:center;justify-content:center;width:56px;flex:none} /* + rouge, − bleu (Additions, Soustractions) */
@@ -363,23 +364,23 @@ body.rw-shop #purse{display:none!important}
   <div class="mid">
     <h1 id="hello">Bonjour ! 👋</h1>
     <p class="sub">Choisis une matière<span id="daytxt"></span></p>
-    <button class="tile fr" data-go="francais"><span class="ic">📚</span><span>Français<small>Complète la phrase, conjugaison</small></span></button>
-    <button class="tile math" data-go="maths"><span class="ic">🧮</span><span>Mathématiques<small>Calcul, téléphone, l'heure</small></span></button>
-    <button class="tile de" data-go="allemand"><span class="ic">🇩🇪</span><span>Allemand<small>Der · Die · Das, mots en images, écrire</small></span></button>
-    <button class="tile lo" data-go="logique"><span class="ic">🧩</span><span>Logique<small>Code secret, petit robot</small></span></button>
-    <button class="tile me" data-go="memoire"><span class="ic">🧠</span><span>Mémoire<small>Memory, liste des courses</small></span></button>
-    <button class="tile geo" data-go="geo"><span class="ic">🌍</span><span>Géographie<small>Drapeaux, pays, continents, océans</small></span></button>
-    <button class="tile mu" data-go="musique"><span class="ic">🎵</span><span>Musique<small>Trouve la note</small></span></button>
-    <button class="tile jx" data-go="jeux"><span class="ic">🎲</span><span>Jeux<small>Morpion, jeux de la boutique 🛍️</small></span></button>
+    <button class="tile fr" data-go="francais"><span class="ic icimg" data-e="📚"><img src="icons/menu/francais.webp" alt="" draggable="false"></span><span>Français<small>Complète la phrase, conjugaison</small></span></button>
+    <button class="tile math" data-go="maths"><span class="ic icimg" data-e="🧮"><img src="icons/menu/maths.webp" alt="" draggable="false"></span><span>Mathématiques<small>Calcul, téléphone, l'heure</small></span></button>
+    <button class="tile de" data-go="allemand"><span class="ic icimg" data-e="🇩🇪"><img src="icons/menu/allemand.webp" alt="" draggable="false"></span><span>Allemand<small>Der · Die · Das, mots en images, écrire</small></span></button>
+    <button class="tile lo" data-go="logique"><span class="ic icimg" data-e="🧩"><img src="icons/menu/logique.webp" alt="" draggable="false"></span><span>Logique<small>Code secret, petit robot</small></span></button>
+    <button class="tile me" data-go="memoire"><span class="ic icimg" data-e="🧠"><img src="icons/menu/memoire.webp" alt="" draggable="false"></span><span>Mémoire<small>Memory, liste des courses</small></span></button>
+    <button class="tile geo" data-go="geo"><span class="ic icimg" data-e="🌍"><img src="icons/menu/geo.webp" alt="" draggable="false"></span><span>Géographie<small>Drapeaux, pays, continents, océans</small></span></button>
+    <button class="tile mu" data-go="musique"><span class="ic icimg" data-e="🎵"><img src="icons/menu/musique.webp" alt="" draggable="false"></span><span>Musique<small>Trouve la note</small></span></button>
+    <button class="tile jx" data-go="jeux"><span class="ic icimg" data-e="🎲"><img src="icons/menu/jeux.webp" alt="" draggable="false"></span><span>Jeux<small>Morpion, jeux de la boutique 🛍️</small></span></button>
   </div>
 </section>
 
 <section class="view" id="v-francais">
   <div class="top"><button class="btn icon-btn" data-back="1" aria-label="Retour"><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 4.5 8.5 12l7 7.5"/></svg></button><h2 class="ttl">📚 Français</h2><span class="purse" style="flex:none"><span class="st">⭐ <span class="nst">0</span></span></span></div>
   <div class="mid">
-    <button class="game" data-play="phrase"><span class="ic">✏️</span><span>Complète la phrase<small>Écoute et écris le mot manquant</small></span></button>
-    <button class="game" data-play="quique"><span class="ic">⌨️</span><span>Complète la phrase : qui ou que ?<small>Écoute et écris le mot manquant</small></span></button>
-    <button class="game" data-play="conj"><span class="ic">📝</span><span>Conjugue être et avoir<small>Complète le verbe pour chaque pronom</small></span></button>
+    <button class="game" data-play="phrase"><span class="ic icimg" data-e="✏️"><img src="icons/menu/phrase.webp" alt="" draggable="false"></span><span>Complète la phrase<small>Écoute et écris le mot manquant</small></span></button>
+    <button class="game" data-play="quique"><span class="ic icimg" data-e="⌨️"><img src="icons/menu/quique.webp" alt="" draggable="false"></span><span>Complète la phrase : qui ou que ?<small>Écoute et écris le mot manquant</small></span></button>
+    <button class="game" data-play="conj"><span class="ic icimg" data-e="📝"><img src="icons/menu/conj.webp" alt="" draggable="false"></span><span>Conjugue être et avoir<small>Complète le verbe pour chaque pronom</small></span></button>
   </div>
 </section>
 
@@ -388,27 +389,27 @@ body.rw-shop #purse{display:none!important}
   <div class="mid">
     <button class="game" data-play="addition"><span class="ic opc" style="color:#e5484d">+</span><span>Additions<small>Calcul malin · voix en allemand</small></span></button>
     <button class="game" data-play="soustraction"><span class="ic opc" style="color:#2f6fe0">−</span><span>Soustractions<small>Calcul malin · voix en allemand</small></span></button>
-    <button class="game" data-play="complement"><span class="ic">🔟</span><span>Compléments<small>3 + ? = 10 · voix en allemand</small></span></button>
-    <button class="game" data-play="telephone"><span class="ic">📞</span><span>Le téléphone magique<small>Écoute les nombres et compose le numéro</small></span></button>
-    <button class="game" data-play="heure"><span class="ic">🕒</span><span>Quelle heure est-il ?<small>Lis l'horloge et règle les aiguilles</small></span></button>
+    <button class="game" data-play="complement"><span class="ic icimg" data-e="🔟"><img src="icons/menu/complement.webp" alt="" draggable="false"></span><span>Compléments<small>3 + ? = 10 · voix en allemand</small></span></button>
+    <button class="game" data-play="telephone"><span class="ic icimg" data-e="📞"><img src="icons/menu/telephone.webp" alt="" draggable="false"></span><span>Le téléphone magique<small>Écoute les nombres et compose le numéro</small></span></button>
+    <button class="game" data-play="heure"><span class="ic icimg" data-e="🕒"><img src="icons/menu/heure.webp" alt="" draggable="false"></span><span>Quelle heure est-il ?<small>Lis l'horloge et règle les aiguilles</small></span></button>
   </div>
 </section>
 
 <section class="view" id="v-allemand">
   <div class="top"><button class="btn icon-btn" data-back="1" aria-label="Retour"><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 4.5 8.5 12l7 7.5"/></svg></button><h2 class="ttl">🇩🇪 Allemand</h2><span class="purse" style="flex:none"><span class="st">⭐ <span class="nst">0</span></span></span></div>
   <div class="mid">
-    <button class="game" data-play="lerne"><span class="ic">🆕</span><span>Lerne neue Wörter<small>Regarde, écoute et retiens</small></span></button>
-    <button class="game" data-play="mot"><span class="ic">🖼️</span><span>Finde das Wort<small>Une image, trois mots</small></span></button>
-    <button class="game" data-play="article"><span class="ic">🔤</span><span>Der · Die · Das<small>Trouve le bon article</small></span></button>
-    <button class="game" data-play="plaudern"><span class="ic icb">👩🏼<i>💬</i></span><span>Unterhalte dich mit Anna<small>Discute avec Anna</small></span></button>
-    <button class="game" data-play="schreib"><span class="ic">✍️</span><span>Schreib das Wort<small>Regarde l'image et écris le mot</small></span></button>
+    <button class="game" data-play="lerne"><span class="ic icimg" data-e="🆕"><img src="icons/menu/lerne.webp" alt="" draggable="false"></span><span>Lerne neue Wörter<small>Regarde, écoute et retiens</small></span></button>
+    <button class="game" data-play="mot"><span class="ic icimg" data-e="🖼️"><img src="icons/menu/mot.webp" alt="" draggable="false"></span><span>Finde das Wort<small>Une image, trois mots</small></span></button>
+    <button class="game" data-play="article"><span class="ic icimg" data-e="🔤"><img src="icons/menu/article.webp" alt="" draggable="false"></span><span>Der · Die · Das<small>Trouve le bon article</small></span></button>
+    <button class="game" data-play="plaudern"><span class="ic icimg" data-e="👩🏼"><img src="icons/menu/plaudern.webp" alt="" draggable="false"></span><span>Unterhalte dich mit Anna<small>Discute avec Anna</small></span></button>
+    <button class="game" data-play="schreib"><span class="ic icimg" data-e="✍️"><img src="icons/menu/schreib.webp" alt="" draggable="false"></span><span>Schreib das Wort<small>Regarde l'image et écris le mot</small></span></button>
   </div>
 </section>
 
 <section class="view" id="v-logique">
   <div class="top"><button class="btn icon-btn" data-back="1" aria-label="Retour"><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 4.5 8.5 12l7 7.5"/></svg></button><h2 class="ttl">🧩 Logique</h2><span class="purse" style="flex:none"><span class="st">⭐ <span class="nst">0</span></span></span></div>
   <div class="mid">
-    <button class="game" data-play="chenille"><span class="ic">🐛</span><span>La chenille des couleurs<small>Trouve la perle qui vient ensuite</small></span></button>
+    <button class="game" data-play="chenille"><span class="ic icimg" data-e="🐛"><img src="icons/menu/chenille.webp" alt="" draggable="false"></span><span>La chenille des couleurs<small>Trouve la perle qui vient ensuite</small></span></button>
     <button class="game" data-play="code"><span class="ic">🔐</span><span>Le code secret<small>Devine le code de chiffres caché</small></span></button>
     <button class="game" data-play="robot"><span class="ic">🤖</span><span>Le petit robot<small>Programme le chemin avec des flèches</small></span></button>
     <button class="game" data-play="boucles"><span class="ic">🔁</span><span>Le robot qui répète<small>Moins de briques : répète avec ×2 ×3 ×4</small></span></button>
@@ -1432,7 +1433,7 @@ function acc(o,t){return t?Math.round(o/t*100)+" %":"—"}
    2. réussite du premier coup par matière (courbes), puis compétences = catégories des réponses (ou le jeu entier), classées Acquis / En cours / À travailler. */
 var SUBJ=[["maths","Maths","#4a7cff"],["allemand","Allemand","#ff5c7a"],["musique","Musique","#13a8a8"],["logique","Logique","#9b6bff"],["francais","Français","#22a861"],["memoire","Mémoire","#d94fc4"],["geo","Géographie","#c08a1e"],["jeux","Jeux","#ff8a3d"]]; // ordre validé (couleurs distinctes, daltonisme compris)
 var SUBJC={};SUBJ.forEach(function(x){SUBJC[x[0]]=x});
-var GICON={};document.querySelectorAll("[data-play]").forEach(function(b){var i=b.querySelector(".ic");if(i)GICON[b.dataset.play]=i.textContent});
+var GICON={};document.querySelectorAll("[data-play]").forEach(function(b){var i=b.querySelector(".ic");if(i)GICON[b.dataset.play]=i.dataset.e||i.textContent});
 var BL={per:7,hi:null};
 var BL_LONG={code:1,robot:1,boucles:1,reparateur:1,courses:1};
 function blLuck(S,subj,from,to){var r=[];Object.keys(GAMES).forEach(function(g){if(GAMES[g].subj!==subj||!GAMES[g].luck||!S.g[g])return;var x=rSum(S.g[g],from,to);if(x.tot)r.push({t:GAMES[g].t,n:x.tot})});return r} // une réponse = une partie ou un niveau entier : compétence affichée dès 2 réponses (5 sinon) // hi = matière mise en avant (toucher la légende)

@@ -92,6 +92,7 @@ Paramètres → carte « Application » : affiche la version en cache (`jeux-eco
 
 ## Design system tactile
 **Règle (à la demande de l'utilisateur) : un mot d'un seul tenant s'affiche toujours sur une seule ligne, jamais coupé** ; les noms de pays/continents de la Géographie (`fitName` de `drapeau.html` et `pays.html`) passent à la ligne entre les mots (chaque mot dans un `<span>` insécable, « Bosnie-Herzégovine » reste entier), 2 lignes au plus, taille réduite si besoin : toujours entièrement lisibles (à la demande de l'utilisateur) (`white-space:nowrap` + taille réduite jusqu'à ce qu'il tienne : `fitWord` de `deutsch.html`, `fitW` de Memory et de L'océan, Lerne neue Wörter).
+**Icônes des menus dessinées au crayon** (à la demande de l'utilisateur, planches « Icônes 1 / 2 » de `outils/chatgpt-planches.md`) : `icons/menu/<clé>.webp` (128 px, clé de matière ou de `GAMES`), `<span class="ic icimg" data-e="émoji"><img …></span>` ; `data-e` garde l'émoji pour `GICON` (listes du Parcours, Bilan). Faites : les 8 matières + Français, Maths (sauf + et −), Allemand, Chenille ; reste la planche 2 (Logique, Mémoire, Géographie, Musique, Jeux).
 Cibles >= 56px, bordures 3px, textes secondaires >= 16px, menus centrés verticalement (`.mid`). En-tête des matières et des jeux : bouton retour à gauche (gros chevron SVG `.chev` centré dans `.icon-btn`) puis le titre (`.ttl`).
 
 ### Français (`francais.html`)
