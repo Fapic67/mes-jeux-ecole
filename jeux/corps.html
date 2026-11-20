@@ -108,7 +108,7 @@ var N=window.PATHN||10,deck,qi,good,cur,miss,busy,val="",KB=null;
 function kbh(){var k=document.querySelector(".kb");if(k)document.body.style.setProperty("--kbh",k.offsetHeight+"px")}
 window.addEventListener("resize",kbh);
 function zones(L){return Z.filter(function(z){return L.w||L.p.indexOf(z[0])>=0||true}).map(function(z){return '<g class="z" data-k="'+z[0]+'">'+z[1]+"</g>"}).join("")}
-function ask(){var p=P[cur];return LV[level].w?"Comment s'appelle cette partie du corps ?":(p[2]?"Où sont ":"Où est ")+p[0]+" ?"}
+function ask(){var p=P[cur];return LV[level].w?"Comment ça s'appelle ?":(p[2]?"Où sont ":"Où est ")+p[0]+" ?"}
 function start(){var L=LV[level],d=[];while(d.length<N)d=d.concat(shuffle(L.p));deck=d.slice(0,N);qi=0;good=0;$("lvlb").textContent="Niveau : "+L.t;
  $("end").hidden=true;$("ask").hidden=$("bw").hidden=$("cnt").hidden=$("msg").hidden=false;$("gapw").hidden=!L.w;
  if(L.w&&!KB){KB=Clavier({onKey:function(k){if(busy||val.length>=12)return;val+=k;paint()},onDel:function(){if(busy)return;val=val.slice(0,-1);paint()},onOk:check});document.body.classList.add("withkb");kbh();requestAnimationFrame(kbh)}
