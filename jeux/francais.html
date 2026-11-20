@@ -61,7 +61,8 @@ var TOTAL=window.PATHN||15,app=document.getElementById("app"),voice=null;
 var bk=document.createElement("button");bk.className="back";bk.textContent="← Menu";bk.style.display="none";bk.onclick=function(){home()};if(!window.START)document.body.appendChild(bk);
 function pickVoice(){var v=(window.speechSynthesis&&speechSynthesis.getVoices())||[];voice=v.find(function(x){return x.lang&&/^fr/i.test(x.lang)})||null}
 if(window.speechSynthesis){pickVoice();speechSynthesis.onvoiceschanged=pickVoice}
-function say(t,cb){var done=false,fin=function(){if(!done){done=true;cb&&cb()}};setTimeout(fin,1200+t.length*90);try{if(!window.speechSynthesis)return;pickVoice();speechSynthesis.cancel();setTimeout(function(){var u=new SpeechSynthesisUtterance(t);u.lang="fr-FR";if(voice)u.voice=voice;u.rate=.85;u.onend=function(){setTimeout(fin,500)};speechSynthesis.resume();speechSynthesis.speak(u)},60)}catch(e){}}
+var SAYTOK=0;
+function say(t,cb){var done=false,fin=function(){if(!done){done=true;cb&&cb()}};setTimeout(fin,1200+t.length*90);try{if(!window.speechSynthesis)return;pickVoice();speechSynthesis.cancel();var my=++SAYTOK;setTimeout(function(){if(my!==SAYTOK)return;var u=new SpeechSynthesisUtterance(t);u.lang="fr-FR";if(voice)u.voice=voice;u.rate=.85;u.onend=function(){setTimeout(fin,500)};speechSynthesis.resume();speechSynthesis.speak(u)},60)}catch(e){}}
 // Étoiles : phrase juste du premier coup = série ; les mots simples (plus longs à écrire) comptent un peu plus
 function star(ok,q){var g=cur===4?"phrase":"quique";try{if(parent!==window)parent.postMessage({type:"answer",game:g,ok:ok!==false,diff:cur===4?1.25:1,k:q&&cur!==4?q.w:null,item:q?(cur===4?q.w:q.full):null},"*")}catch(e){}}
 function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}

@@ -99,6 +99,13 @@ body.nomoney .home-mon{display:none!important}
 body.rw-none .purse,body.rw-none #pstars,body.rw-none .ptile small{display:none!important}
 body.rw-shop #purse{display:none!important}
 #shopbar{display:none}body.rw-shop #shopbar{display:flex}
+#pathnext{position:fixed;inset:0;z-index:61;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 30%,#7b6bff,#3d2f9e 70%);color:#fff;animation:piIn .35s ease-out;transition:opacity .45s}
+#pathnext.out{opacity:0}
+#pathnext .pn-in{display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center;padding:24px}
+#pathnext .pn-ic{font-size:96px;line-height:1;animation:pnPop .6s ease-out}#pathnext .pn-ic img{width:120px;height:120px;object-fit:contain;display:block}
+#pathnext .pn-h{font-size:22px;font-weight:700;opacity:.85}#pathnext h2{margin:0;font-size:32px}
+@keyframes pnPop{0%{transform:scale(.3) rotate(-15deg);opacity:0}70%{transform:scale(1.15)}100%{transform:none;opacity:1}}
+#pd-go:disabled{opacity:.5}
 #pathintro{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 30%,#7b6bff,#3d2f9e 70%);color:#fff;overflow:auto;animation:piIn .4s ease-out}
 #pathintro[hidden]{display:none}
 #pathintro .pi-in{width:100%;max-width:440px;padding:28px 20px calc(28px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center}
@@ -724,6 +731,8 @@ body.rw-shop #purse{display:none!important}
   <div id="pi-steps"></div>
   <button class="btn okb" id="pi-go">🚀 C'est parti !</button>
 </div></div>
+<!-- Parcours : passage à l'étape suivante -->
+<div id="pathnext" hidden><div class="pn-in"><div class="pn-ic" id="pn-ic"></div><div class="pn-h" id="pn-h"></div><h2 id="pn-t"></h2></div></div>
 <!-- Parcours : étape terminée -->
 <div class="sheet" id="pathdone" hidden><div class="panel" style="text-align:center;align-items:center">
   <div class="big" id="pd-ic">✅</div><h2 style="justify-content:center" id="pd-t"></h2>
@@ -1182,17 +1191,29 @@ function pathStepDone(p){var nx=pathCur(p),P=p.path;$("pd-ic").textContent=nx?"�
  $("pd-h").textContent=nx?"Étape "+(P.prog.i+1)+" / "+P.steps.length+" : "+GAMES[nx.g].t:"Tu peux jouer à ce que tu veux.";
  $("pd-go").textContent=nx?"▶ Étape suivante":"🏠 Retour à l'accueil";$("pathdone").hidden=false;updPback();freezeGame()}
 /* étape finie : le jeu s'arrête (plus de question suivante ni de voix derrière la fenêtre) */
-// le jeu disparaît tout de suite (plus de question suivante), mais la phrase en cours (« Bravo ! … ») se termine avant l'arrêt (6 s au plus)
-function freezeGame(){if(!GAMES[cur])return;var tok=++loadTok,f=$("frame"),t0=Date.now(),ss=null,orig=null,own=false;f.style.visibility="hidden";
- // le jeu ne peut plus rien dire de nouveau (la question suivante, par exemple) ; la synthèse d'Android est partagée avec l'accueil : on la rétablit ensuite
- try{ss=f.contentWindow&&f.contentWindow.speechSynthesis;if(ss){orig=ss.speak;own=Object.prototype.hasOwnProperty.call(ss,"speak");ss.speak=function(){}}}catch(e){}
- function done(){try{if(ss){if(own)ss.speak=orig;else delete ss.speak}}catch(e){}}
- (function w(){if(tok!==loadTok||$("frame")!==f){done();return}
-  if(ss&&(ss.speaking||ss.pending)&&Date.now()-t0<6000){setTimeout(w,100);return}
-  try{ss&&ss.cancel()}catch(e){}try{window.speechSynthesis&&speechSynthesis.cancel()}catch(e){}done();if(f.hasAttribute("srcdoc"))setFrame(null)})()}
+// fin d'étape du Parcours : le jeu disparaît tout de suite (plus de question suivante), mais la dernière réponse est dite en entier
+// (si le jeu ne parlait pas encore, sa prochaine phrase — le « Bravo » — est encore permise, les suivantes non), puis le cadre est vidé ;
+// « Étape suivante » reste grisé tant que la voix parle (à la demande de l'utilisateur)
+function freezeGame(){if(!GAMES[cur])return;var tok=++loadTok,f=$("frame"),t0=Date.now(),ss=null,orig=null,own=false,allow=false;f.style.visibility="hidden";
+ var go=$("pd-go");go.disabled=true;
+ try{ss=f.contentWindow&&f.contentWindow.speechSynthesis;if(ss){orig=ss.speak;own=Object.prototype.hasOwnProperty.call(ss,"speak");allow=!(ss.speaking||ss.pending);
+  ss.speak=function(u){if(allow){allow=false;return orig.call(ss,u)}}}}catch(e){}
+ function done(){go.disabled=false;try{if(ss){if(own)ss.speak=orig;else delete ss.speak}}catch(e){}}
+ (function w(){if(tok!==loadTok||$("frame")!==f){done();return}var el=Date.now()-t0;
+  if(ss&&el<9000&&((allow&&el<1500)||ss.speaking||ss.pending)){setTimeout(w,100);return}
+  try{ss&&ss.cancel()}catch(e){}done();if(f.hasAttribute("srcdoc"))setFrame(null)})()}
 $("pd-go").onclick=function(){$("pathdone").hidden=true;updPback();var nx=pathCur();
  if(!nx){if(GAMES[cur]){var d=depth();if(d>1)history.go(1-d);else{history.replaceState({d:1,r:""},"",url(""));show("")}}return} // parcours terminé : retour à l'accueil
- if(nx.g===cur){var c=cur;cur=null;show(c);return}if(GAMES[cur]){back();setTimeout(function(){go(nx.g)},350)}else go(nx.g)};
+ if(GAMES[cur]){pathNext(nx);return}go(nx.g)};
+// écran de transition entre deux étapes (à la demande de l'utilisateur) : « Étape 2 / 4 », icône et nom de l'exercice, dits à voix haute ;
+// l'exercice suivant remplace le précédent dans l'historique et se charge derrière l'écran (on ne revoit jamais l'ancien exercice)
+function pathNext(nx){var o=$("pathnext"),g=GAMES[nx.g],b=document.querySelector('[data-play="'+nx.g+'"] .ic'),p=prof(),t0=Date.now(),shown=false;
+ $("pn-ic").innerHTML=b?b.innerHTML:"🧭";$("pn-h").textContent="Étape "+(pathProg(p).i+1)+" / "+p.path.steps.length;$("pn-t").textContent=g.t;
+ o.classList.remove("out");o.hidden=false;
+ function load(){if(shown)return;shown=true;history.replaceState({d:depth(),r:nx.g},"",url(nx.g));if(nx.g===cur)cur=null;show(nx.g);
+  setTimeout(function(){o.classList.add("out");setTimeout(function(){o.hidden=true;o.classList.remove("out")},450)},900)}
+ try{speechSynthesis.cancel();var u=new SpeechSynthesisUtterance("Maintenant : "+g.t);u.lang="fr-FR";u.rate=.95;u.onend=u.onerror=function(){setTimeout(load,Math.max(0,1400-(Date.now()-t0)))};speechSynthesis.speak(u)}catch(e){}
+ setTimeout(load,4500)}
 function renderPathbar(){var p=prof(),on=pathActive(p),b=$("pathbar");b.hidden=!on;if(!on)return;var P=p.path,c=pathCur(p);
  $("pb-t").textContent=c?"Parcours "+(P.prog.i+1)+" / "+P.steps.length+" · "+GAMES[c.g].t:"Parcours terminé ✅";$("pb-h").textContent=c?pathLeft(p):"";b.classList.toggle("can",!!c)}
 $("pathbar").onclick=function(){var c=pathCur();if(c)go(c.g)};
