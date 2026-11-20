@@ -18,7 +18,7 @@ button{font-family:inherit;touch-action:manipulation;cursor:pointer;color:var(--
 .m{display:flex;align-items:flex-end;gap:8px;max-width:92%;animation:in .3s}
 .m.me{align-self:flex-end;flex-direction:row-reverse}
 @keyframes in{from{opacity:0;transform:translateY(10px)}}
-.av{flex:none;width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;background:#cfe0ff;font-weight:700}
+.av{flex:none;width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;background:#cfe0ff;font-weight:700;overflow:hidden} /* Anna : portrait crayonné (icône du menu, sans la bulle) */
 .me .av{background:var(--de);color:#fff;font-size:22px;overflow:hidden}
 .av img{width:100%;height:100%;object-fit:cover;display:block}
 .b{background:var(--bot);border:2px solid var(--bd);border-radius:20px 20px 20px 6px;padding:10px 14px;font-size:21px;line-height:1.35;font-weight:600}
@@ -99,7 +99,7 @@ var chat=$("chat");
 function scroll(){chat.scrollTop=chat.scrollHeight;requestAnimationFrame(function(){chat.scrollTop=chat.scrollHeight})}
 // la zone de réponse (étiquettes) change de taille à chaque question : on redescend en bas de la conversation
 if(window.ResizeObserver){var ro=new ResizeObserver(function(){chat.scrollTop=chat.scrollHeight});ro.observe(chat);ro.observe($("zone"))}
-function bubble(me,html){var d=document.createElement("div");d.className="m"+(me?" me":"");d.innerHTML='<div class="av">'+(me?(PHOTO?'<img src="'+PHOTO+'" alt="">':esc(INI)):"👩🏼")+'</div><div class="b">'+html+"</div>";chat.appendChild(d);scroll();return d}
+function bubble(me,html){var d=document.createElement("div");d.className="m"+(me?" me":"");d.innerHTML='<div class="av">'+(me?(PHOTO?'<img src="'+PHOTO+'" alt="">':esc(INI)):'<img src="jeux/img/anna.webp" alt="Anna">')+'</div><div class="b">'+html+"</div>";chat.appendChild(d);scroll();return d}
 function botSay(Q,pre){var d=bubble(false,'<span class="dots"><i></i><i></i><i></i></span>');busy=true;
  setTimeout(function(){var txt=(pre?pre+" ":"")+Q.q;
   d.querySelector(".b").innerHTML=esc(txt)+'<div class="tools"><button class="tde" aria-label="Wiederholen"><span>🔊</span></button></div>';
