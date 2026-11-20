@@ -371,7 +371,7 @@ body.rw-shop #purse{display:none!important}
     <button class="tile me" data-go="memoire"><span class="ic icimg" data-e="🧠"><img src="icons/menu/memoire.webp" alt="" draggable="false"></span><span>Mémoire<small>Memory, liste des courses</small></span></button>
     <button class="tile geo" data-go="geo"><span class="ic icimg" data-e="🌍"><img src="icons/menu/geo.webp" alt="" draggable="false"></span><span>Géographie<small>Drapeaux, pays, continents, océans</small></span></button>
     <button class="tile gm" data-go="geom"><span class="ic">📐</span><span>Géométrie<small>Les formes</small></span></button>
-    <button class="tile bio" data-go="bio"><span class="ic">🌱</span><span>Biologie<small>Les parties du corps</small></span></button>
+    <button class="tile bio" data-go="bio"><span class="ic">🌱</span><span>Sciences<small>Les parties du corps</small></span></button>
     <button class="tile mu" data-go="musique"><span class="ic icimg" data-e="🎵"><img src="icons/menu/musique.webp" alt="" draggable="false"></span><span>Musique<small>Trouve la note</small></span></button>
     <button class="tile jx" data-go="jeux"><span class="ic icimg" data-e="🎲"><img src="icons/menu/jeux.webp" alt="" draggable="false"></span><span>Jeux<small>Morpion, jeux de la boutique 🛍️</small></span></button>
   </div>
@@ -448,7 +448,7 @@ body.rw-shop #purse{display:none!important}
 </section>
 
 <section class="view" id="v-bio">
-  <div class="top"><button class="btn icon-btn" data-back="1" aria-label="Retour"><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 4.5 8.5 12l7 7.5"/></svg></button><h2 class="ttl">🌱 Biologie</h2><span class="purse" style="flex:none"><span class="st">⭐ <span class="nst">0</span></span></span></div>
+  <div class="top"><button class="btn icon-btn" data-back="1" aria-label="Retour"><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 4.5 8.5 12l7 7.5"/></svg></button><h2 class="ttl">🌱 Sciences</h2><span class="purse" style="flex:none"><span class="st">⭐ <span class="nst">0</span></span></span></div>
   <div class="mid">
     <button class="game" data-play="corps"><span class="ic">🧍</span><span>Les parties du corps<small>Touche ou écris : la tête, le genou…</small></span></button>
   </div>
@@ -1455,7 +1455,7 @@ function acc(o,t){return t?Math.round(o/t*100)+" %":"—"}
 /* ---------- 📊 Bilan (fiche profil) : épuré, à la demande de l'utilisateur ----------
    1. temps par jeu sur la période (jeux disponibles seulement : pas les jeux de la boutique non débloqués), barres défilant à l'horizontale ;
    2. réussite du premier coup par matière (courbes), puis compétences = catégories des réponses (ou le jeu entier), classées Acquis / En cours / À travailler. */
-var SUBJ=[["maths","Maths","#4a7cff"],["allemand","Allemand","#ff5c7a"],["musique","Musique","#13a8a8"],["logique","Logique","#9b6bff"],["francais","Français","#22a861"],["memoire","Mémoire","#d94fc4"],["geo","Géographie","#c08a1e"],["geom","Géométrie","#56708a"],["bio","Biologie","#6f8f2e"],["jeux","Jeux","#ff8a3d"]]; // ordre validé (couleurs distinctes, daltonisme compris)
+var SUBJ=[["maths","Maths","#4a7cff"],["allemand","Allemand","#ff5c7a"],["musique","Musique","#13a8a8"],["logique","Logique","#9b6bff"],["francais","Français","#22a861"],["memoire","Mémoire","#d94fc4"],["geo","Géographie","#c08a1e"],["geom","Géométrie","#56708a"],["bio","Sciences","#6f8f2e"],["jeux","Jeux","#ff8a3d"]]; // ordre validé (couleurs distinctes, daltonisme compris)
 var SUBJC={};SUBJ.forEach(function(x){SUBJC[x[0]]=x});
 var GICON={};document.querySelectorAll("[data-play]").forEach(function(b){var i=b.querySelector(".ic");if(i)GICON[b.dataset.play]=i.dataset.e||i.textContent});
 var BL={per:7,hi:null};
