@@ -484,3 +484,14 @@ Illustration pour une appli d'apprentissage destinée à une enfant de 6 ans, au
 
 Sujet : un enfant souriant de 6 ans, debout, vu bien de face, parfaitement symétrique, qui occupe toute la hauteur de l'image. Il porte un tee-shirt à manches courtes uni et un short uni, il est pieds nus. Les bras sont légèrement écartés du corps, coudes visibles, les mains ouvertes paumes vers l'avant avec les cinq doigts bien séparés. Les jambes sont un peu écartées, les genoux et les pieds bien visibles. Le visage est grand et bien lisible : deux yeux, un nez, une bouche souriante, les deux oreilles bien dégagées (cheveux courts qui ne les cachent pas), le cou visible.
 ```
+
+### Le corps, version 2 pour Gemini (torse nu en short de bain, un bras et une jambe pliés)
+
+```
+Illustration pour une appli d'apprentissage destinée à une enfant de 6 ans, sur les parties du corps, au format portrait (1:2). Style : dessin doux aux crayons de couleur, couleurs douces, contours fins, comme un autocollant, dans l'esprit d'une planche d'imagier pour l'école. Fond blanc uni, sans décor, sans ombre au sol, sans cadre. Aucun texte, aucune lettre, aucune étiquette, aucun trait de légende.
+
+Sujet : un enfant souriant de 6 ans, debout, vu bien de face, qui occupe toute la hauteur de l'image. Il porte seulement un short de bain uni, comme à la piscine : le torse est nu pour bien voir la poitrine, le ventre et le nombril. Il est pieds nus, les orteils bien visibles.
+Le bras gauche pend le long du corps, un peu écarté, main ouverte paume vers l'avant, cinq doigts bien séparés. Le bras droit est plié au coude, la main ouverte à hauteur de la taille, pour que le coude soit bien visible.
+La jambe gauche est droite. La jambe droite est légèrement pliée, le genou un peu avancé et le pied posé sur la pointe, pour que le genou soit bien visible.
+Le visage est grand et bien lisible : deux yeux, deux sourcils, un nez, une bouche souriante, les deux oreilles bien dégagées (cheveux courts qui ne les cachent pas), le cou et les épaules bien visibles.
+```
