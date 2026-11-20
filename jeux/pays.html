@@ -84,7 +84,7 @@ var $=function(i){return document.getElementById(i)};
 function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
 function voiceFor(l){try{var v=speechSynthesis.getVoices().filter(function(v){return v.lang&&v.lang.indexOf(l)===0});return v.filter(function(x){return x.localService})[0]||v[0]||null}catch(e){return null}}
 // voix propre à chaque exercice (à la demande de l'utilisateur) : pays = guide posé, continents = explorateur à la voix grave, océans = voix douce et aiguë
-var VX=window.START==3?{p:1.4,r:.85}:window.START==2?{p:.75,r:.85}:{p:1,r:.9};
+var VX=window.START==3?{p:1.2,r:.88}:window.START==2?{p:.87,r:.88}:{p:1,r:.9};
 function say(t){try{if(!window.speechSynthesis)return;speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.lang="fr-FR";var v=voiceFor("fr");if(v)u.voice=v;u.rate=VX.r;u.pitch=VX.p;speechSynthesis.speak(u)}catch(e){}}
 // attendre la fin de la phrase en cours (et au moins ms) avant d'enchaîner : la question suivante ne coupe plus la voix (signalé par l'utilisateur)
 function afterSay(fn,ms){var t0=Date.now(),quiet=0;(function w(){var s=window.speechSynthesis,busy=s&&(s.speaking||s.pending),now=Date.now();if(busy)quiet=0;else if(!quiet)quiet=now;if((now-t0>=ms&&quiet&&now-quiet>=250)||now-t0>15000)fn();else setTimeout(w,120)})()}
