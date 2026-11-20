@@ -16,7 +16,7 @@
 <style>
 /* ---------- Design system (tactile) ----------
    Cibles tactiles >= 56px, bordures 3px, textes secondaires >= 16px. */
-:root{--bg:#f4f1ff;--card:#fff;--ink:#22204a;--soft:#5f5b8a;--line:#d9d3f3;--fr:#22a861;--math:#4a7cff;--de:#ff5c7a;--lo:#9b6bff;--jx:#ff8a3d;--mu:#13a8a8;--me:#d94fc4;--geo:#c08a1e;--gm:#56708a;--star:#ffb800;--ok:#22a861;--ko:#e5484d;
+:root{--bg:#f4f1ff;--card:#fff;--ink:#22204a;--soft:#5f5b8a;--line:#d9d3f3;--fr:#22a861;--math:#4a7cff;--de:#ff5c7a;--lo:#9b6bff;--jx:#ff8a3d;--mu:#13a8a8;--me:#d94fc4;--geo:#c08a1e;--gm:#56708a;--bio:#6f8f2e;--star:#ffb800;--ok:#22a861;--ko:#e5484d;
  --tap:56px;--r:20px;--bw:3px;box-sizing:border-box}
 @media (prefers-color-scheme:dark){:root{--bg:#16152b;--card:#232142;--ink:#f2f0ff;--soft:#b3afdb;--line:#3d3a68}}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -36,7 +36,7 @@ h1{margin:0;font-size:34px;font-weight:700;line-height:1.15}
 .tile:active{transform:translateY(4px);box-shadow:0 3px 0 rgba(0,0,0,.18)}
 .tile .ic{font-size:46px;line-height:1}
 .tile small{display:block;font-size:18px;font-weight:500;opacity:.95;margin-top:2px}
-.fr{background:var(--fr)}.math{background:var(--math)}.lo{background:var(--lo)}.jx{background:var(--jx)}.mu{background:var(--mu)}.de{background:var(--de)}.me{background:var(--me)}.geo{background:var(--geo)}.gm{background:var(--gm)}
+.fr{background:var(--fr)}.math{background:var(--math)}.lo{background:var(--lo)}.jx{background:var(--jx)}.mu{background:var(--mu)}.de{background:var(--de)}.me{background:var(--me)}.geo{background:var(--geo)}.gm{background:var(--gm)}.bio{background:var(--bio)}
 
 .game{display:flex;align-items:center;gap:16px;width:100%;min-height:96px;border:var(--bw) solid var(--line);background:var(--card);color:var(--ink);border-radius:24px;padding:16px 18px;font:700 24px "Fredoka",sans-serif;text-align:left;cursor:pointer;box-shadow:0 5px 0 var(--line)}
 .game:active{transform:translateY(3px);box-shadow:0 2px 0 var(--line)}
@@ -371,6 +371,7 @@ body.rw-shop #purse{display:none!important}
     <button class="tile me" data-go="memoire"><span class="ic icimg" data-e="🧠"><img src="icons/menu/memoire.webp" alt="" draggable="false"></span><span>Mémoire<small>Memory, liste des courses</small></span></button>
     <button class="tile geo" data-go="geo"><span class="ic icimg" data-e="🌍"><img src="icons/menu/geo.webp" alt="" draggable="false"></span><span>Géographie<small>Drapeaux, pays, continents, océans</small></span></button>
     <button class="tile gm" data-go="geom"><span class="ic">📐</span><span>Géométrie<small>Les formes</small></span></button>
+    <button class="tile bio" data-go="bio"><span class="ic">🌱</span><span>Biologie<small>Les parties du corps</small></span></button>
     <button class="tile mu" data-go="musique"><span class="ic icimg" data-e="🎵"><img src="icons/menu/musique.webp" alt="" draggable="false"></span><span>Musique<small>Trouve la note</small></span></button>
     <button class="tile jx" data-go="jeux"><span class="ic icimg" data-e="🎲"><img src="icons/menu/jeux.webp" alt="" draggable="false"></span><span>Jeux<small>Morpion, jeux de la boutique 🛍️</small></span></button>
   </div>
@@ -384,7 +385,6 @@ body.rw-shop #purse{display:none!important}
     <button class="game" data-play="conj"><span class="ic icimg" data-e="📝"><img src="icons/menu/conj.webp" alt="" draggable="false"></span><span>Conjugue être et avoir<small>Complète le verbe pour chaque pronom</small></span></button>
     <button class="game" data-play="jours"><span class="ic">🗓️</span><span>Les jours, les mois, les saisons<small>Écris le bon mot avec le clavier</small></span></button>
     <button class="game" data-play="femplu"><span class="ic">👭</span><span>Féminin et pluriel<small>Un chat → des chats</small></span></button>
-    <button class="game" data-play="corps"><span class="ic">🧍</span><span>Les parties du corps<small>Touche ou écris : la tête, le genou…</small></span></button>
   </div>
 </section>
 
@@ -444,6 +444,13 @@ body.rw-shop #purse{display:none!important}
   <div class="top"><button class="btn icon-btn" data-back="1" aria-label="Retour"><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 4.5 8.5 12l7 7.5"/></svg></button><h2 class="ttl">📐 Géométrie</h2><span class="purse" style="flex:none"><span class="st">⭐ <span class="nst">0</span></span></span></div>
   <div class="mid">
     <button class="game" data-play="formes"><span class="ic">🔺</span><span>Les formes<small>Carré, rectangle, triangle, cercle, cube</small></span></button>
+  </div>
+</section>
+
+<section class="view" id="v-bio">
+  <div class="top"><button class="btn icon-btn" data-back="1" aria-label="Retour"><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 4.5 8.5 12l7 7.5"/></svg></button><h2 class="ttl">🌱 Biologie</h2><span class="purse" style="flex:none"><span class="st">⭐ <span class="nst">0</span></span></span></div>
+  <div class="mid">
+    <button class="game" data-play="corps"><span class="ic">🧍</span><span>Les parties du corps<small>Touche ou écris : la tête, le genou…</small></span></button>
   </div>
 </section>
 
@@ -805,7 +812,7 @@ var GAMES={
  formes:{t:"Les formes",app:"formes",subj:"geom",eco:"formes"},
  jours:{t:"Les jours, les mois, les saisons",app:"ecrire",start:1,subj:"francais",eco:"jours"},
  femplu:{t:"Féminin et pluriel",app:"ecrire",start:2,subj:"francais",eco:"femplu"},
- corps:{t:"Les parties du corps",app:"corps",subj:"francais",eco:"corps"},
+ corps:{t:"Les parties du corps",app:"corps",subj:"bio",eco:"corps"},
  memory:{t:"Memory",app:"memory",subj:"memoire",eco:"memory",luck:1}, // luck : jeu en partie de hasard → pas de série 🔥, étoiles à la fin de la partie
  courses:{t:"Die Einkaufsliste",app:"courses",subj:"memoire",eco:"courses"},
  morpion:{t:"Morpion",app:"morpion",subj:"jeux"},
@@ -1448,7 +1455,7 @@ function acc(o,t){return t?Math.round(o/t*100)+" %":"—"}
 /* ---------- 📊 Bilan (fiche profil) : épuré, à la demande de l'utilisateur ----------
    1. temps par jeu sur la période (jeux disponibles seulement : pas les jeux de la boutique non débloqués), barres défilant à l'horizontale ;
    2. réussite du premier coup par matière (courbes), puis compétences = catégories des réponses (ou le jeu entier), classées Acquis / En cours / À travailler. */
-var SUBJ=[["maths","Maths","#4a7cff"],["allemand","Allemand","#ff5c7a"],["musique","Musique","#13a8a8"],["logique","Logique","#9b6bff"],["francais","Français","#22a861"],["memoire","Mémoire","#d94fc4"],["geo","Géographie","#c08a1e"],["geom","Géométrie","#56708a"],["jeux","Jeux","#ff8a3d"]]; // ordre validé (couleurs distinctes, daltonisme compris)
+var SUBJ=[["maths","Maths","#4a7cff"],["allemand","Allemand","#ff5c7a"],["musique","Musique","#13a8a8"],["logique","Logique","#9b6bff"],["francais","Français","#22a861"],["memoire","Mémoire","#d94fc4"],["geo","Géographie","#c08a1e"],["geom","Géométrie","#56708a"],["bio","Biologie","#6f8f2e"],["jeux","Jeux","#ff8a3d"]]; // ordre validé (couleurs distinctes, daltonisme compris)
 var SUBJC={};SUBJ.forEach(function(x){SUBJC[x[0]]=x});
 var GICON={};document.querySelectorAll("[data-play]").forEach(function(b){var i=b.querySelector(".ic");if(i)GICON[b.dataset.play]=i.dataset.e||i.textContent});
 var BL={per:7,hi:null};

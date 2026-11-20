@@ -476,3 +476,11 @@ Style identique aux autres images de l'appli : illustration douce aux crayons de
 
 Sujet : un enfant souriant de 6 ans, debout, vu bien de face, parfaitement symétrique, qui occupe toute la hauteur de l'image. Il porte un tee-shirt à manches courtes uni et un short uni, il est pieds nus. Les bras sont légèrement écartés du corps, coudes visibles, les mains ouvertes paumes vers l'avant avec les cinq doigts bien séparés. Les jambes sont un peu écartées, les genoux et les pieds bien visibles. Le visage est grand et bien lisible : deux yeux, un nez, une bouche souriante, les deux oreilles bien dégagées (cheveux courts qui ne les cachent pas), le cou visible.
 ```
+
+### Le corps : version Gemini (fond blanc, détouré ensuite par `alpha` : remplissage du blanc depuis les bords)
+
+```
+Illustration pour une appli d'apprentissage destinée à une enfant de 6 ans, au format portrait (1:2). Style : dessin doux aux crayons de couleur, couleurs douces, contours fins, comme un autocollant. Fond blanc uni, sans décor, sans ombre au sol, sans cadre. Aucun texte, aucune lettre, aucune étiquette, aucun trait de légende.
+
+Sujet : un enfant souriant de 6 ans, debout, vu bien de face, parfaitement symétrique, qui occupe toute la hauteur de l'image. Il porte un tee-shirt à manches courtes uni et un short uni, il est pieds nus. Les bras sont légèrement écartés du corps, coudes visibles, les mains ouvertes paumes vers l'avant avec les cinq doigts bien séparés. Les jambes sont un peu écartées, les genoux et les pieds bien visibles. Le visage est grand et bien lisible : deux yeux, un nez, une bouche souriante, les deux oreilles bien dégagées (cheveux courts qui ne les cachent pas), le cou visible.
+```
