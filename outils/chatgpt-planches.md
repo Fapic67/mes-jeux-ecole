@@ -212,3 +212,67 @@ O13. Une branche de corail rose.
 O14. Un requin gentil.
 O15. Le dos d'une carte de jeu rectangulaire aux coins arrondis : dégradé bleu océan avec des vagues et des petites bulles, un coquillage au centre.
 ```
+
+## Icônes des menus (I1-I40, deux planches de 5 × 4) : remplacer les émojis des matières et des exercices par des dessins au crayon
+
+Additions (+ rouge) et Soustractions (− bleu) gardent leur signe. À intégrer en images `icons/menu/<clé>.webp` (clé de matière ou de `GAMES`).
+
+### Icônes 1 (I1-I20)
+
+```
+Génère UNE image PNG avec un vrai fond transparent (canal alpha) : 20 illustrations détourées, sans aucun fond, ni blanc, ni couleur, ni damier dessiné. Dispose-les en grille régulière de 5 colonnes et 4 lignes, toutes les cases de la même taille, dans l'ordre de la liste (de gauche à droite, puis ligne suivante). Exactement 20 sujets, pas de doublon, pas de cadre ni de bordure autour des cases, et un espace vide entre les sujets pour qu'ils ne se touchent jamais. Ce sont des icônes de menu pour une appli éducative destinée à une enfant de 6 ans : chaque dessin doit être simple, très lisible même en petit, avec une forme bien nette.
+
+Style identique pour toutes : illustration douce aux crayons de couleur, couleurs vives mais douces, contours fins, un seul sujet bien centré dans chaque case, découpé proprement sur son contour comme un autocollant, sans ombre portée au sol, aucun texte, aucune lettre, aucun chiffre écrit.
+
+Sujets :
+I1. Un livre ouvert avec une plume.
+I2. Un boulier coloré.
+I3. Un petit drapeau allemand (noir, rouge, jaune) qui flotte sur un mât.
+I4. Deux pièces de puzzle qui s'emboîtent.
+I5. Un petit cerveau rose souriant.
+I6. Un globe terrestre sur son pied.
+I7. Deux notes de musique attachées.
+I8. Deux dés.
+I9. Un crayon qui écrit sur une feuille.
+I10. Un petit tableau d'école vert avec une craie.
+I11. Un cahier ouvert avec une gomme.
+I12. Dix pommes rouges rangées en deux lignes de cinq.
+I13. Un vieux téléphone rouge à cadran.
+I14. Un réveil rond.
+I15. Une boîte de cartes imagées avec une étoile qui brille.
+I16. Une loupe posée sur une petite image.
+I17. Trois étiquettes de couleur : une bleue, une rose, une verte.
+I18. Portrait (tête et épaules) d'une gentille dame blonde souriante, avec une petite bulle de parole à côté.
+I19. Une main qui tient un crayon.
+I20. Une chenille faite de perles de couleurs.
+```
+
+### Icônes 2 (I21-I40)
+
+```
+Génère UNE image PNG avec un vrai fond transparent (canal alpha) : 20 illustrations détourées, sans aucun fond, ni blanc, ni couleur, ni damier dessiné. Dispose-les en grille régulière de 5 colonnes et 4 lignes, toutes les cases de la même taille, dans l'ordre de la liste (de gauche à droite, puis ligne suivante). Exactement 20 sujets, pas de doublon, pas de cadre ni de bordure autour des cases, et un espace vide entre les sujets pour qu'ils ne se touchent jamais. Ce sont des icônes de menu pour une appli éducative destinée à une enfant de 6 ans : chaque dessin doit être simple, très lisible même en petit, avec une forme bien nette.
+
+Style identique pour toutes : illustration douce aux crayons de couleur, couleurs vives mais douces, contours fins, un seul sujet bien centré dans chaque case, découpé proprement sur son contour comme un autocollant, sans ombre portée au sol, aucun texte, aucune lettre, aucun chiffre écrit.
+
+Sujets :
+I21. Un cadenas avec des molettes.
+I22. Un petit robot gentil.
+I23. Un petit robot avec une flèche qui tourne en boucle autour de lui.
+I24. Un petit robot qui tient une clé à molette.
+I25. Deux cartes à jouer retournées, l'une montrant un cœur.
+I26. Un panier de courses rempli de fruits.
+I27. Trois petits drapeaux de couleurs différentes plantés sur des piques.
+I28. Une carte routière à moitié dépliée.
+I29. Une boussole.
+I30. Une grande vague.
+I31. Une clé de sol.
+I32. Une grille de morpion avec des croix rouges et des ronds bleus.
+I33. Des bulles de savon irisées.
+I34. Un hérisson sur la glace à côté d'une fraise.
+I35. Trois allumettes.
+I36. Une pizza.
+I37. Des tuyaux qui se croisent avec une goutte d'eau bleue.
+I38. Un perroquet coloré.
+I39. Un dauphin qui saute hors de l'eau.
+I40. Une grille verte de quatre en ligne avec des jetons rouges et jaunes.
+```
