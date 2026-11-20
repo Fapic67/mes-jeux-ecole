@@ -22,7 +22,7 @@ header{display:flex;align-items:center;gap:8px}
 .cd .in{position:relative;width:100%;height:100%;transition:transform .35s;transform-style:preserve-3d}
 .cd.up .in,.cd.ok .in{transform:rotateY(180deg)}
 .cd .f,.cd .b{position:absolute;inset:0;border-radius:14px;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;align-items:center;justify-content:center}
-.cd .b{background:radial-gradient(circle at 22% 72%,rgba(255,255,255,.45) 0 4%,transparent 5%),radial-gradient(circle at 30% 58%,rgba(255,255,255,.35) 0 3%,transparent 4%),radial-gradient(circle at 26% 46%,rgba(255,255,255,.3) 0 2.2%,transparent 3%),repeating-linear-gradient(100deg,rgba(255,255,255,.07) 0 8%,transparent 8% 16%),linear-gradient(180deg,#1d8fae,#0d4f66 55%,#0a3646);box-shadow:0 4px 0 #0c5468;font-size:30px;font-weight:700;color:#fff}
+.cd .b{background:#1d6fa5 url(jeux/img/ocean/dos.webp) center/cover no-repeat;border:3px solid #fff;box-shadow:0 3px 0 rgba(0,0,0,.18)} /* dos de carte dessiné (planche Océan) */
 .cd .f{transform:rotateY(180deg);background:var(--card);border:3px solid var(--bd);padding:4px;text-align:center}
 .cd .f .e{font-size:var(--es,40px);line-height:1}
 .cd .f .w{font-size:var(--ws,16px);font-weight:700;line-height:1.15;white-space:nowrap}
@@ -49,7 +49,7 @@ header{display:flex;align-items:center;gap:8px}
 [hidden]{display:none!important}
 
 .cd .f img{width:86%;height:auto;aspect-ratio:1;object-fit:contain;border-radius:8px}
-.cd .b::after{content:"🐚";position:absolute;right:10%;bottom:8%;font-size:calc(var(--es,40px)*.5);opacity:.9}
+
 .hb.lx{font-size:26px;padding:0 12px}
 #lex .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 #lex .it{border:3px solid var(--bd);background:var(--card);border-radius:16px;padding:6px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--fg)}
