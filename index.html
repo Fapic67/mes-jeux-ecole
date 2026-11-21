@@ -607,7 +607,7 @@ body.rw-shop #purse{display:none!important}
     <div class="card" id="p-gainc">
       <h3>⚖️ Gain de base</h3>
       <div id="p-gain" class="pg" style="gap:6px"></div>
-      <button class="btn" id="p-gain0">↺ Valeurs d'origine</button>
+      <button class="btn" id="p-gain0">↺ Tout à 0</button>
     </div>
     <div class="card mon">
       <h3>Récompense</h3>
@@ -974,8 +974,12 @@ function money(v,p){p=p||prof();v=r2(v);return v.toLocaleString("fr-FR",v%1?{min
 var ECON={P:{plaudern:2,jours:1.1,femplu:1.1,corps:.7,formes:.5,position:.6,calcul:.7,telephone:.9,dde:.5,fdw:.5,quique:1.1,phrase:1.1,note:.5,code:7,robot:5,boucles:6,reparateur:4,chenille:.8,memory:1,courses:2.5,conj:.8,sdw:1.1,drapeau:.5,pays:.6,continent:.6,oceans:.6,heure:.8},PTS:10};
 function bonusOf(p,k){return p&&p.bonusG&&p.bonusG.indexOf(k)>=0?(+p.bonusX||2):1}
 var GAINRAW=null,GAINC={};function gainCfg(){var r=localStorage.getItem("gain_cfg")||"{}";if(r!==GAINRAW){GAINRAW=r;try{GAINC=JSON.parse(r)||{}}catch(e){GAINC={}}}return GAINC}
-function baseDef(k){var g=GAMES[k],P=g&&ECON.P[g.eco];if(P==null)return 0;if(g.luck)return P*4/ECON.PTS;var N=partOf(k)[0]*(APR[k]||1),t=0;for(var i=1;i<=N;i++)t+=tierOf(i);return P*t/ECON.PTS}
-function gainF(k){var G=gainCfg(),b;if(!k||G[k]==null)return 1;b=baseDef(k);return b>0?G[k]/b:1}
+function baseDef(k){var g=GAMES[k],P=Pof(k);if(P==null)return 0;if(g.luck)return P*4/ECON.PTS;var N=partOf(k)[0]*(APR[k]||1),t=0;for(var i=1;i<=N;i++)t+=tierOf(i);return P*t/ECON.PTS}
+function gainV(k){var v=gainCfg()[k];return v>0?+v:0} // gain de base réglé par l'administrateur, 0 par défaut (à la demande de l'utilisateur)
+function gainF(k){var v=gainV(k),b;if(!v)return 0;b=baseDef(k);return b>0?v/b:0}
+function Pof(k){var g=GAMES[k];if(!g)return null;var P=ECON.P[g.eco||k];return P!=null?P:1}
+// jeux qui n'envoient pas de réponses (Jeux de la matière Jeux) : le gain est donné à chaque fin de manche (gain de base / manches d'une partie)
+function rndOnly(k){var g=GAMES[k];return !!g&&ECON.P[g.eco||k]==null&&!g.luck&&partOf(k)[1]==="round"}
 function tierOf(st){return st>=10?3:st>=5?2:1}
 function pad(n){return(n<10?"0":"")+n}
 function dkey(d){d=d||new Date();return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())}
@@ -1015,11 +1019,11 @@ function renderPurse(bump){var p=prof(),E=ensureEcon(p),d=today(p),w=weekSum(p,E
  renderEco();renderLocks();renderTime();renderShopbar();
  if(bump){["pstars","purse"].forEach(function(id){var e=$(id);e.classList.remove("bump");void e.offsetWidth;e.classList.add("bump")})}}
 var lastDiff=1,lastAct=0;
-function starTxt(){var p=prof(),E=ensureEcon(p),t=p.noFlame||!(GAMES[cur]&&ECON.P[GAMES[cur].eco]!=null)||GAMES[cur].luck||noStars()?1:tierOf(E.streak),
- c=GAMES[cur]&&!noStars()&&ECON.P[GAMES[cur].eco]!=null?r2(lastDiff*t*bonusOf(p,cur)):1,e=$("pstars");
+function starTxt(){var p=prof(),E=ensureEcon(p),t=p.noFlame||!GAMES[cur]||rndOnly(cur)||GAMES[cur].luck||noStars()?1:tierOf(E.streak),
+ c=GAMES[cur]&&!noStars()&&!rndOnly(cur)&&gainV(cur)>0?r2(lastDiff*t*bonusOf(p,cur)):1,e=$("pstars");
  e.innerHTML=(c>1?'<span class="mul">×'+String(c).replace(".",",")+"</span>":"")+'<span class="st">⭐</span> '+p.stars;e.classList.toggle("g2",t===2);e.classList.toggle("g3",t===3)}
-function renderEco(){var p=prof(),E=ensureEcon(p),t=tierOf(E.streak),g=GAMES[cur]&&ECON.P[GAMES[cur].eco]!=null;
- $("eco").hidden=!g||noStars();$("pstars").hidden=!!(GAMES[cur]&&GAMES[cur].subj==="jeux");var s=$("pstreak");
+function renderEco(){var p=prof(),E=ensureEcon(p),t=tierOf(E.streak),g=!!GAMES[cur]&&gainV(cur)>0;
+ $("eco").hidden=!g||noStars();$("pstars").hidden=false;var s=$("pstreak");
  s.hidden=!!(GAMES[cur]&&GAMES[cur].luck)||!!p.noFlame;s.className=E.streak?(t===3?"t3":t===2?"t2":""):"off";
  s.innerHTML=(t===3?"🔥🔥🔥":t===2?"🔥🔥":"🔥")+" "+E.streak+(t>1?'<span class="x">×'+t+"</span>":"");
  starTxt();$("pgauge").firstChild.style.width=Math.min(100,E.gauge/ECON.PTS*100)+"%";
@@ -1027,8 +1031,8 @@ function renderEco(){var p=prof(),E=ensureEcon(p),t=tierOf(E.streak),g=GAMES[cur
 function toast(txt,ms){var t=document.createElement("div");t.className="toast";t.textContent=txt;if(ms)t.style.animationDuration=ms+"ms";document.body.appendChild(t);setTimeout(function(){t.remove()},(ms||1400)+100)}
 // Matière « Jeux » : jamais d'étoiles, quel que soit le jeu
 var ecoOff=false; // un jeu peut couper les étoiles (ex. code secret hors Difficile)
-function noStars(){return prof().rmode==="none"||!!(GAMES[cur]&&GAMES[cur].subj==="jeux")||ecoOff}
-function onAnswer(m){if(noStars())return;var p=prof(),E=ensureEcon(p),P=ECON.P[m.game];if(P==null)return;rollWeek(p);
+function noStars(){return prof().rmode==="none"||ecoOff}
+function onAnswer(m){if(noStars())return;var p=prof(),E=ensureEcon(p),P=ECON.P[m.game];if(P==null){if(!GAMES[cur]||rndOnly(cur))return;P=1}rollWeek(p);
  var d=today(p),diff=Math.max(1,Math.min(3,(+m.diff||1)*ageBonus(p,cur))),q=m.q==null?1:Math.max(0,Math.min(1,+m.q));lastDiff=diff;if(GAMES[cur]){(p.sd=p.sd||{})[cur]=diff}lastAct=Date.now();d.tot++;
  if(m.ok){E.streak++;d.ok++;d.best=Math.max(d.best,E.streak);E.best=Math.max(E.best||0,E.streak);
   var t=p.noFlame?1:tierOf(E.streak);E.gauge=r2(E.gauge+P*diff*t*q*bonusOf(p,cur)*gainF(cur));var n=0;while(E.gauge>=ECON.PTS){E.gauge=r2(E.gauge-ECON.PTS);n++}
@@ -1092,6 +1096,9 @@ function classOf(p){return isAdult(p)?null:(p.cls||classAuto(p))}
 function ageBonus(p,g){var c=classOf(p),t=AGEBONUS[g];return(t&&c&&t[c])||1}
 /* Jeux en partie de hasard (GAMES[x].luck, ex. Memory) : ni série 🔥 ni erreur ; on gagne des étoiles en terminant la partie.
    Le jeu envoie {type:"finish", game, n (taille de la partie, ex. nombre de paires), diff} ; points = P × n × difficulté. */
+function onRound(inPath){if(noStars()||!rndOnly(cur))return;var p=prof(),v=gainV(cur);if(!v)return;var E=ensureEcon(p),d=today(p),n=0;rollWeek(p);lastAct=Date.now();
+ E.gauge=r2(E.gauge+v*bonusOf(p,cur)/partOf(cur)[0]*ECON.PTS);while(E.gauge>=ECON.PTS){E.gauge=r2(E.gauge-ECON.PTS);n++}
+ if(n){p.stars+=n;d.st+=n;toast("+"+n+" ⭐",2000);if(inPath)pathGain(p,n)}saveP();renderPurse(n>0)}
 function onFinish(m){if(noStars())return;var p=prof(),E=ensureEcon(p),P=ECON.P[m.game];if(P==null)return;rollWeek(p);
  var d=today(p),diff=Math.max(1,Math.min(3,(+m.diff||1)*ageBonus(p,cur))),n=0;lastDiff=diff;lastAct=Date.now();
  if(GAMES[cur]){(p.sp=p.sp||{})[cur]=r2(P*(+m.n||1)*diff)}E.gauge=r2(E.gauge+P*(+m.n||1)*diff*bonusOf(p,cur)*gainF(cur));while(E.gauge>=ECON.PTS){E.gauge=r2(E.gauge-ECON.PTS);n++}
@@ -1332,16 +1339,16 @@ $("do-parent").onclick=function(){$("dayover").hidden=true;checkCode(function(){
 // sinon le bonus d'âge) × paliers de la série 🔥 (×1 les 5 premières, ×2 jusqu'à 10, ×3 ensuite ; pas de palier si le profil l'a désactivé) ;
 // jeux de hasard : les points de la dernière partie ; rien pour Jeux, sans récompense, exercices sans étoiles, Code secret hors Difficile
 var APR={plaudern:11}; // réponses par manche quand une partie se compte en manches (une conversation d'Anna = 11 réponses)
-function starPot(k,p){var g=GAMES[k],P=g&&ECON.P[g.eco];if(P==null||p.rmode==="none"||g.subj==="jeux"||g.old)return 0;
+function starPot(k,p){var g=GAMES[k];if(!g||p.rmode==="none"||g.old||!gainV(k))return 0;if(rndOnly(k))return gainV(k)*bonusOf(p,k);var P=Pof(k);
  if(k==="code"&&+(localStorage.getItem("code_lvl")||1)<3)return 0;
  if(g.luck)return((p.sp&&p.sp[k])||P*4)*bonusOf(p,k)*gainF(k)/ECON.PTS;
  var c=pathCur(p),N=(c&&c.g===k&&c.t==="games"&&partOfSt(c)[1]==="q"?partSize(c):partOf(k)[0])*(APR[k]||1),d=(p.sd&&p.sd[k])||ageBonus(p,k)||1,t=0;
  for(var i=1;i<=N;i++)t+=p.noFlame?1:tierOf(i);return P*d*t*bonusOf(p,k)*gainF(k)/ECON.PTS}
 // étoiles d'une étape du parcours (toutes les réponses justes du premier coup, série 🔥 continue dans l'étape) ; null = étape en minutes (inconnu)
 function stepPot(p,st){var k=st.g,g=GAMES[k];if(!g||!starPot(k,p))return 0;if(st.t==="min")return null;
- if(g.luck)return st.t==="games"?starPot(k,p)*st.n:0;
+ if(g.luck||rndOnly(k))return st.t==="games"?starPot(k,p)*st.n:0;
  var N=st.t==="ok"?st.n:partSize(st)*st.n*(st.s==="r"&&k==="telephone"?5:(APR[k]||1)),d=(p.sd&&p.sd[k])||ageBonus(p,k)||1,t=0;
- for(var i=1;i<=N;i++)t+=p.noFlame?1:tierOf(i);return ECON.P[g.eco]*d*t*bonusOf(p,k)*gainF(k)/ECON.PTS}
+ for(var i=1;i<=N;i++)t+=p.noFlame?1:tierOf(i);return Pof(k)*d*t*bonusOf(p,k)*gainF(k)/ECON.PTS}
 // total des étapes qui restent aujourd'hui (écran de départ, à la demande de l'utilisateur)
 function pathPot(p){var pr=pathProg(p),v=0,more=false;p.path.steps.forEach(function(st,i){if(i<pr.i)return;var x=stepPot(p,st);if(x==null)more=true;else v+=x});return{v:v,more:more}}
 function renderLocks(){var p=prof(),left=playLeft(p),over=dayOver(p);
@@ -1585,11 +1592,11 @@ function renderProfil(){var p=prof(EDIT);if(p.id!==EDIT)EDIT=p.id;
 // étoiles d'une partie entière réussie du premier coup au niveau de base ; le facteur gainF multiplie les points de l'exercice
 function fmtN(v){return String(Math.round(v*10)/10).replace(".",",")}
 function renderGain(){var G=gainCfg();$("p-gain").innerHTML=bonusGames().map(function(k){var P=partOf(k);
-  return '<label class="row"><span class="grow">'+(GICON[k]?GICON[k]+" ":"")+esc(GAMES[k].t)+'<small class="muted" style="display:block;font-size:16px">'+(GAMES[k].luck?"1 partie":P[0]+" "+P[2])+'</small></span><input class="field num" type="number" inputmode="decimal" min="0" step="0.5" data-gk="'+k+'" placeholder="'+fmtN(baseDef(k))+'" value="'+(G[k]!=null?G[k]:"")+'"><span>⭐</span></label>'}).join("")}
+  return '<label class="row"><span class="grow">'+(GICON[k]?GICON[k]+" ":"")+esc(GAMES[k].t)+'<small class="muted" style="display:block;font-size:16px">'+(GAMES[k].luck?"1 partie":P[0]+" "+P[2])+'</small></span><input class="field num" type="number" inputmode="decimal" min="0" step="0.5" data-gk="'+k+'" placeholder="0" value="'+(G[k]>0?G[k]:"")+'"><span>⭐</span></label>'}).join("")}
 $("p-gain").addEventListener("change",function(e){var k=e.target.dataset.gk;if(!k)return;var v=parseFloat(String(e.target.value).replace(",",".")),G=gainCfg();
  if(v>=0)G[k]=Math.round(v*10)/10;else delete G[k];ls("gain_cfg",JSON.stringify(G));renderLocks()});
-$("p-gain0").onclick=function(){if(!confirm("Revenir aux gains d'origine pour tous les exercices ?"))return;ls("gain_cfg","{}");renderGain();renderLocks()};
-function bonusGames(){return Object.keys(GAMES).filter(function(g){var x=GAMES[g];return !x.old&&x.subj!=="jeux"&&ECON.P[x.eco]!=null})}
+$("p-gain0").onclick=function(){if(!confirm("Remettre le gain de base de tous les exercices à 0 ?"))return;ls("gain_cfg","{}");renderGain();renderLocks()};
+function bonusGames(){return Object.keys(GAMES).filter(function(g){return !GAMES[g].old})}
 $("p-bx").onchange=function(){var v=+this.value;upd(function(p){p.bonusX=v})};
 $("p-bg").addEventListener("change",function(e){var g=e.target.dataset.bg,v=e.target.checked;if(!g)return;upd(function(p){var a=(p.bonusG||[]).filter(function(x){return x!==g});if(v)a.push(g);p.bonusG=a})});
 function fmtMin(sec){var m=Math.round(sec/60);return m+" min"}
@@ -1827,7 +1834,7 @@ window.addEventListener("message",function(e){
  if(e.source!==$("frame").contentWindow)return;
  if(e.data==="hub-back")back();
  else if(e.data&&e.data.type==="eco"){ecoOff=!e.data.on;renderEco()}
- else if(e.data&&e.data.type==="roundEnd"){pathEvt("round");if(dayUp){clearTimeout(dayT);dayT=setTimeout(endDay,2500)}else if(timeUp){clearTimeout(graceT);graceT=setTimeout(endPlay,2500)}}
+ else if(e.data&&e.data.type==="roundEnd"){var rg=pathActive()&&pathIsCur(cur);pathEvt("round");onRound(rg);if(dayUp){clearTimeout(dayT);dayT=setTimeout(endDay,2500)}else if(timeUp){clearTimeout(graceT);graceT=setTimeout(endPlay,2500)}}
  else if(e.data&&e.data.type==="answer"){if(GAMES[cur]&&GAMES[cur].luck)return;recordStat(e.data);if(e.data.ok)pathAdd("ok",1);PGAIN=pathActive()&&pathIsCur(cur);pathEvt("q");onAnswer(e.data);PGAIN=false}
  else if(e.data&&e.data.type==="finish"){recordStat({ok:true,k:e.data.k});onFinish(e.data)}
  else if(e.data&&e.data.type==="stars")addStars(e.data.n)});
