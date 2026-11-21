@@ -598,8 +598,6 @@ body.rw-shop #purse{display:none!important}
       <div class="row"><input class="field num" id="p-stv" type="number" inputmode="numeric" min="0" step="1" placeholder="0"><span class="grow muted">⭐</span>
         <button class="btn" id="p-stset">Définir</button><button class="btn danger" id="p-st0">Remettre à 0</button></div>
       <label class="switch" id="p-flamerow"><input type="checkbox" id="p-flame"><span class="grow">🔥 Multiplicateur de série</span></label>
-      <h4 style="margin:6px 0 0">🎯 Bonus</h4>
-      <div id="p-bg" class="pg" style="gap:4px"></div>
     </div>
     <div class="card" id="p-gainc">
       <h3>⚖️ Gains</h3>
@@ -970,8 +968,13 @@ function money(v,p){p=p||prof();v=r2(v);return v.toLocaleString("fr-FR",v%1?{min
    Barème : objectif (min/jour) × 7 jours ≈ autant d'étoiles = maximum €/semaine ; le surplus est reporté. */
 var ECON={P:{plaudern:2,jours:1.1,femplu:1.1,corps:.7,formes:.5,position:.6,calcul:.7,telephone:.9,dde:.5,fdw:.5,quique:1.1,phrase:1.1,note:.5,code:7,robot:5,boucles:6,reparateur:4,chenille:.8,memory:1,courses:2.5,conj:.8,sdw:1.1,drapeau:.5,pays:.6,continent:.6,oceans:.6,heure:.8},PTS:10};
 // bonus par exercice : multiplicateur saisi en chiffre (vide ou 1 = pas de bonus), p.bonus = {jeu: ×} ; ancien format bonusG/bonusX repris
-function bonusMap(p){if(!p)return{};if(p.bonusG){var m=p.bonus||{};p.bonusG.forEach(function(k){m[k]=+p.bonusX||2});p.bonus=m;delete p.bonusG;delete p.bonusX}return p.bonus||{}}
-function bonusOf(p,k){var v=+bonusMap(p)[k];return v>1?v:1}
+// bonus global par exercice (à la demande de l'utilisateur : plus par profil), réglé dans ⚖️ Gains ; clé bonus_cfg = {jeu: ×} synchronisée
+var BONRAW=null,BONC={};function bonusCfg(){var r=localStorage.getItem("bonus_cfg")||"{}";if(r!==BONRAW){BONRAW=r;try{BONC=JSON.parse(r)||{}}catch(e){BONC={}}}return BONC}
+// reprise des anciens bonus par profil (bonusG/bonusX puis p.bonus) : le plus grand multiplicateur de chaque exercice devient le bonus global
+function bonusMigrate(){var B=bonusCfg(),ch=false;(PR.list||[]).forEach(function(p){var m=p.bonus||{};if(p.bonusG){p.bonusG.forEach(function(k){m[k]=+p.bonusX||2})}
+  if(p.bonus||p.bonusG){Object.keys(m).forEach(function(k){if(+m[k]>1&&!(+B[k]>=+m[k]))B[k]=+m[k]});delete p.bonus;delete p.bonusG;delete p.bonusX;ch=true}});
+ if(ch){ls("bonus_cfg",JSON.stringify(B));saveP()}}
+function bonusOf(p,k){var v=+bonusCfg()[k];return v>1?v:1}
 var GAINRAW=null,GAINC={};function gainCfg(){var r=localStorage.getItem("gain_cfg")||"{}";if(r!==GAINRAW){GAINRAW=r;try{GAINC=JSON.parse(r)||{}}catch(e){GAINC={}}}return GAINC}
 function baseDef(k){var g=GAMES[k],P=Pof(k);if(P==null)return 0;if(g.luck)return P*4/ECON.PTS;var N=partOf(k)[0]*(APR[k]||1),t=0;for(var i=1;i<=N;i++)t+=tierOf(i);return P*t/ECON.PTS}
 function gainV(k){var v=gainCfg()[k];return v>0?+v:0} // gain de base réglé par l'administrateur, 0 par défaut (à la demande de l'utilisateur)
@@ -1583,21 +1586,19 @@ function renderProfil(){var p=prof(EDIT);if(p.id!==EDIT)EDIT=p.id;
  $("p-agetxt").textContent=ag==null?"Indique la date de naissance : la classe sert à donner un bonus d'étoiles sur les exercices en avance sur le programme.":ad?ag+" ans · adulte : pas de classe ni de bonus d'étoiles.":ag+" ans · classe "+(classOf(p)||"?")+(p.cls?"":" (d'après l'âge)")+" · "+(bl.length?"bonus d'étoiles : "+bl.join(", "):"pas de bonus d'étoiles à ce niveau")+".";
  $("p-st").textContent=p.stars;$("p-mo").textContent=money(p.money,p);
  $("p-gainc").hidden=!p.admin;if(p.admin&&!$("p-gain").contains(document.activeElement))renderGain();
- var bm=bonusMap(p);if(!$("p-bg").contains(document.activeElement))
- $("p-bg").innerHTML=bonusGames().map(function(g){return '<label class="row"><span class="grow">'+(GICON[g]?GICON[g]+" ":"")+esc(GAMES[g].t)+'</span><span>×</span><input class="field num" type="number" inputmode="decimal" min="1" step="0.5" placeholder="1" data-bg="'+g+'" value="'+(bm[g]>1?bm[g]:"")+'"></label>'}).join("");
  renderPurse()}
 // bonus d'étoiles sur des exercices choisis par un parent (à la demande de l'utilisateur : pour encourager à faire ces exercices)
 // gain de base de chaque exercice (réglé par un administrateur, commun à tous les profils, clé gain_cfg synchronisée) :
 // étoiles d'une partie entière réussie du premier coup au niveau de base ; le facteur gainF multiplie les points de l'exercice
 function fmtN(v){return String(Math.round(v*10)/10).replace(".",",")}
-function renderGain(){var G=gainCfg();$("p-gain").innerHTML=bonusGames().map(function(k){var P=partOf(k);
-  return '<label class="row"><span class="grow">'+(GICON[k]?GICON[k]+" ":"")+esc(GAMES[k].t)+'<small class="muted" style="display:block;font-size:16px">'+(GAMES[k].luck?"1 partie":P[0]+" "+P[2])+'</small></span><input class="field num" type="number" inputmode="decimal" min="0" step="0.5" data-gk="'+k+'" placeholder="0" value="'+(G[k]>0?G[k]:"")+'"><span>⭐</span></label>'}).join("")}
+function renderGain(){var G=gainCfg(),B=bonusCfg();$("p-gain").innerHTML=bonusGames().map(function(k){var P=partOf(k);
+  return '<label class="row" style="gap:6px"><span class="grow">'+(GICON[k]?GICON[k]+" ":"")+esc(GAMES[k].t)+'<small class="muted" style="display:block;font-size:16px">'+(GAMES[k].luck?"1 partie":P[0]+" "+P[2])+'</small></span><input class="field num" type="number" inputmode="decimal" min="0" step="0.5" data-gk="'+k+'" placeholder="0" value="'+(G[k]>0?G[k]:"")+'" style="width:58px;padding:0 4px"><span>⭐</span><span>×</span><input class="field num" type="number" inputmode="decimal" min="1" step="0.5" data-bg="'+k+'" placeholder="1" value="'+(B[k]>1?B[k]:"")+'" style="width:52px;padding:0 4px"></label>'}).join("")}
 $("p-gain").addEventListener("change",function(e){var k=e.target.dataset.gk;if(!k)return;var v=parseFloat(String(e.target.value).replace(",",".")),G=gainCfg();
  if(v>=0)G[k]=Math.round(v*10)/10;else delete G[k];ls("gain_cfg",JSON.stringify(G));renderLocks()});
-$("p-gain0").onclick=function(){if(!confirm("Remettre le gain de base de tous les exercices à 0 ?"))return;ls("gain_cfg","{}");renderGain();renderLocks()};
+$("p-gain0").onclick=function(){if(!confirm("Remettre le gain de tous les exercices à 0 et retirer les bonus ?"))return;ls("gain_cfg","{}");ls("bonus_cfg","{}");renderGain();renderLocks()};
 function bonusGames(){return Object.keys(GAMES).filter(function(g){return !GAMES[g].old})}
-$("p-bg").addEventListener("change",function(e){var g=e.target.dataset.bg;if(!g)return;var v=parseFloat(String(e.target.value).replace(",","."));
- upd(function(p){var m=bonusMap(p);if(v>1)m[g]=Math.min(10,Math.round(v*10)/10);else delete m[g];p.bonus=m})});
+$("p-gain").addEventListener("change",function(e){var g=e.target.dataset.bg;if(!g)return;var v=parseFloat(String(e.target.value).replace(",",".")),B=bonusCfg();
+ if(v>1)B[g]=Math.min(10,Math.round(v*10)/10);else delete B[g];ls("bonus_cfg",JSON.stringify(B));renderLocks()});
 function fmtMin(sec){var m=Math.round(sec/60);return m+" min"}
 function acc(o,t){return t?Math.round(o/t*100)+" %":"—"}
 /* ---------- 📊 Bilan (fiche profil) : épuré, à la demande de l'utilisateur ----------
@@ -1852,7 +1853,7 @@ if("serviceWorker" in navigator){
 </script>
 <script src="sync.js"></script>
 <script>// après chaque synchronisation : redessiner l'écran affiché (profils ajoutés, étoiles, réglages venus d'un autre téléphone)
-if(!(window.SYNC&&SYNC.fam))econX1();
+bonusMigrate();if(!(window.SYNC&&SYNC.fam))econX1();
 if(window.SYNC)SYNC.after=function(ch){if(!SYNC.err&&econX1()){setTimeout(function(){SYNC.now()},500);ch=true}try{var top=PG[PG.length-1]||"menu",open=!$("settings").hidden;if(open&&top==="family")renderFamily();if(!ch)return;
  renderPurse();if(cur==="profil")renderProfilScreen();
  if(open){if(["menu","profils","app"].indexOf(top)>=0)renderPage();else if(top==="profil"&&document.activeElement&&!/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName))renderPage()}}catch(e){}};</script>
