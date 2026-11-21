@@ -226,6 +226,10 @@ body.rw-shop #purse{display:none!important}
 /* potentiel d'étoiles d'une partie (à droite du bouton) */
 .game .pot{margin-left:auto;flex:none;font-size:18px;font-weight:700;color:#8a5a00;background:#fff4cc;border:2px solid #ffd34d;border-radius:999px;padding:2px 10px;white-space:nowrap}
 .game.locked .pot{display:none}
+.game.gbonus{position:relative;border-color:#f5b800;box-shadow:0 5px 0 #c98a00;animation:gbg 1.6s ease-in-out infinite}
+@keyframes gbg{50%{box-shadow:0 5px 0 #c98a00,0 0 22px 4px rgba(255,200,0,.55)}}
+.game .brib{position:absolute;top:-14px;right:18px;font:700 15px "Fredoka",sans-serif;letter-spacing:.5px;color:#fff;background:linear-gradient(#ffb800,#f08a00);border:2px solid #fff3c4;border-radius:999px;padding:2px 12px;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.25)}
+.game.gbonus .ic{animation:stp 1.6s ease-in-out infinite}
 .tile .tbn{margin-left:auto;flex:none;font-size:40px;line-height:1;filter:drop-shadow(0 0 8px #ffe680);animation:stp 1.1s ease-in-out infinite}
 .tile .tbn[hidden]{display:none}
 /* exercice en bonus : la pastille brille et pulse */
@@ -1336,7 +1340,10 @@ function renderLocks(){var p=prof(),left=playLeft(p),over=dayOver(p);
   if(pz){sm.innerHTML=b.dataset.sub+'<span class="pt">'+(p.rmode==="shop"?"🛍️ à acheter dans la boutique":"🔒 à débloquer par un parent")+"</span>";return}
   sm.innerHTML=b.dataset.sub+(over?'<span class="pt">⏱️ fini pour aujourd\'hui</span>':lim?'<span class="pt">'+(lk?"🔒 apprends d'abord":"⏳ "+mins(left)+" min de jeu")+"</span>":"");
   var sp=starPot(k,p),pe=b.querySelector(".pot");if(!pe){pe=document.createElement("span");pe.className="pot";b.appendChild(pe)}
-  pe.hidden=!sp||over||lk;pe.classList.toggle("bonus",bonusOf(p,k)>1);pe.textContent="⭐ "+Math.ceil(sp-1e-9)});
+  pe.hidden=!sp||over||lk;var bx=bonusOf(p,k);pe.classList.toggle("bonus",bx>1);pe.textContent="⭐ "+Math.ceil(sp-1e-9);
+  // exercice en bonus : bouton doré qui brille + ruban « BONUS ×2 » (à la demande de l'utilisateur : la pastille seule ne se remarquait pas)
+  var on=bx>1&&!pe.hidden,rb=b.querySelector(".brib");b.classList.toggle("gbonus",on);
+  if(on){if(!rb){rb=document.createElement("span");rb.className="brib";b.appendChild(rb)}rb.textContent="BONUS ×"+String(bx).replace(".",",")}else if(rb)rb.remove()});
  document.querySelectorAll(".tile[data-go]").forEach(function(t){var ks=Object.keys(GAMES).filter(function(k){return GAMES[k].subj===t.dataset.go});
   t.classList.toggle("locked",over||(ks.length>0&&ks.every(function(k){return isPlay(k,p)})&&left<30)||(ks.length>0&&ks.every(function(k){return pathLocked(k,p)})));
   // matière qui contient un exercice en bonus (ouvert) : étoile qui pulse (à la demande de l'utilisateur)
