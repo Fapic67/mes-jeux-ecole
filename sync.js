@@ -38,7 +38,7 @@ var LOCALP=["stars","econ","shopBought","shopPend","shopLog","shopGiven"]; // la
 function settingsOf(p){var o={};Object.keys(p).forEach(function(k){if(LOCALP.indexOf(k)<0)o[k]=p[k]});if(o.path){o.path=clone(o.path);delete o.path.prog}return o}
 function addPart(p){var E=p.econ||{},days={},best={};Object.keys(E.days||{}).forEach(function(d){var x=E.days[d],y={};ADDF.forEach(function(f){if(x[f])y[f]=x[f]});days[d]=y;if(x.best)best[d]=x.best});
  return{add:{stars:p.stars||0,days:days,bought:p.shopBought||{}},best:best}}
-function gkeys(){var r=[];for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k==="shop"||k==="rw_cfg"||k==="de_words"||/^de_off@/.test(k))r.push(k)}return r}
+function gkeys(){var r=[];for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k==="shop"||k==="rw_cfg"||k==="gain_cfg"||k==="de_words"||/^de_off@/.test(k))r.push(k)}return r}
 function lvkeys(){var r=[];for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(/_(lvl|best)(_[a-z0-9]+)?@/.test(k))r.push(k)}return r}
 function touch(){ // horodate ce qui a changé ici depuis la dernière fois
  var now=Date.now(),ch=false;PR.list.forEach(function(p){var h=hash(JSON.stringify(settingsOf(p)));if(SY.h[p.id]!==h){SY.h[p.id]=h;SY.mt[p.id]=now;ch=true}});

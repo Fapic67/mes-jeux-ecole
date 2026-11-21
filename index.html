@@ -604,6 +604,11 @@ body.rw-shop #purse{display:none!important}
       <label class="row"><span class="grow">🎯 Bonus</span><select class="field" id="p-bx"><option value="1.5">×1,5</option><option value="2">×2</option><option value="3">×3</option></select></label>
       <div id="p-bg" class="pg" style="gap:4px"></div>
     </div>
+    <div class="card" id="p-gainc">
+      <h3>⚖️ Gain de base</h3>
+      <div id="p-gain" class="pg" style="gap:6px"></div>
+      <button class="btn" id="p-gain0">↺ Valeurs d'origine</button>
+    </div>
     <div class="card mon">
       <h3>Récompense</h3>
       <div class="big" id="p-mo">0</div>
@@ -968,6 +973,9 @@ function money(v,p){p=p||prof();v=r2(v);return v.toLocaleString("fr-FR",v%1?{min
    Barème : objectif (min/jour) × 7 jours ≈ autant d'étoiles = maximum €/semaine ; le surplus est reporté. */
 var ECON={P:{plaudern:2,jours:1.1,femplu:1.1,corps:.7,formes:.5,position:.6,calcul:.7,telephone:.9,dde:.5,fdw:.5,quique:1.1,phrase:1.1,note:.5,code:7,robot:5,boucles:6,reparateur:4,chenille:.8,memory:1,courses:2.5,conj:.8,sdw:1.1,drapeau:.5,pays:.6,continent:.6,oceans:.6,heure:.8},PTS:10};
 function bonusOf(p,k){return p&&p.bonusG&&p.bonusG.indexOf(k)>=0?(+p.bonusX||2):1}
+var GAINRAW=null,GAINC={};function gainCfg(){var r=localStorage.getItem("gain_cfg")||"{}";if(r!==GAINRAW){GAINRAW=r;try{GAINC=JSON.parse(r)||{}}catch(e){GAINC={}}}return GAINC}
+function baseDef(k){var g=GAMES[k],P=g&&ECON.P[g.eco];if(P==null)return 0;if(g.luck)return P*4/ECON.PTS;var N=partOf(k)[0]*(APR[k]||1),t=0;for(var i=1;i<=N;i++)t+=tierOf(i);return P*t/ECON.PTS}
+function gainF(k){var G=gainCfg(),b;if(!k||G[k]==null)return 1;b=baseDef(k);return b>0?G[k]/b:1}
 function tierOf(st){return st>=10?3:st>=5?2:1}
 function pad(n){return(n<10?"0":"")+n}
 function dkey(d){d=d||new Date();return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())}
@@ -1023,7 +1031,7 @@ function noStars(){return prof().rmode==="none"||!!(GAMES[cur]&&GAMES[cur].subj=
 function onAnswer(m){if(noStars())return;var p=prof(),E=ensureEcon(p),P=ECON.P[m.game];if(P==null)return;rollWeek(p);
  var d=today(p),diff=Math.max(1,Math.min(3,(+m.diff||1)*ageBonus(p,cur))),q=m.q==null?1:Math.max(0,Math.min(1,+m.q));lastDiff=diff;if(GAMES[cur]){(p.sd=p.sd||{})[cur]=diff}lastAct=Date.now();d.tot++;
  if(m.ok){E.streak++;d.ok++;d.best=Math.max(d.best,E.streak);E.best=Math.max(E.best||0,E.streak);
-  var t=p.noFlame?1:tierOf(E.streak);E.gauge=r2(E.gauge+P*diff*t*q*bonusOf(p,cur));var n=0;while(E.gauge>=ECON.PTS){E.gauge=r2(E.gauge-ECON.PTS);n++}
+  var t=p.noFlame?1:tierOf(E.streak);E.gauge=r2(E.gauge+P*diff*t*q*bonusOf(p,cur)*gainF(cur));var n=0;while(E.gauge>=ECON.PTS){E.gauge=r2(E.gauge-ECON.PTS);n++}
   if(p.noFlame){if(n)toast("+"+n+" ⭐")} // multiplicateur de série désactivé dans le profil : ni ×2/×3 ni annonces
   else if(n)toast("+"+n+" ⭐"); // plus d'annonces de série : c'est l'étoile du solde qui brille (à la demande de l'utilisateur)
   if(n){p.stars+=n;d.st+=n;if(PGAIN)pathGain(p,n)}saveP();renderPurse(n>0);}
@@ -1086,7 +1094,7 @@ function ageBonus(p,g){var c=classOf(p),t=AGEBONUS[g];return(t&&c&&t[c])||1}
    Le jeu envoie {type:"finish", game, n (taille de la partie, ex. nombre de paires), diff} ; points = P × n × difficulté. */
 function onFinish(m){if(noStars())return;var p=prof(),E=ensureEcon(p),P=ECON.P[m.game];if(P==null)return;rollWeek(p);
  var d=today(p),diff=Math.max(1,Math.min(3,(+m.diff||1)*ageBonus(p,cur))),n=0;lastDiff=diff;lastAct=Date.now();
- if(GAMES[cur]){(p.sp=p.sp||{})[cur]=r2(P*(+m.n||1)*diff)}E.gauge=r2(E.gauge+P*(+m.n||1)*diff*bonusOf(p,cur));while(E.gauge>=ECON.PTS){E.gauge=r2(E.gauge-ECON.PTS);n++}
+ if(GAMES[cur]){(p.sp=p.sp||{})[cur]=r2(P*(+m.n||1)*diff)}E.gauge=r2(E.gauge+P*(+m.n||1)*diff*bonusOf(p,cur)*gainF(cur));while(E.gauge>=ECON.PTS){E.gauge=r2(E.gauge-ECON.PTS);n++}
  if(n){p.stars+=n;d.st+=n;toast("+"+n+" ⭐",2000);if(pathActive(p)&&pathIsCur(cur,p))pathGain(p,n)}saveP();renderPurse(n>0)}
 /* ---------- Type de récompense par profil : p.rmode = "none" (rien), "stars" (compteur d'étoiles), "shop" (boutique) ----------
    Boutique commune (clé « shop ») gérée dans les Paramètres : articles {id, ic, t, price, rep (répétable), game (clé d'un jeu à débloquer), on}.
@@ -1326,14 +1334,14 @@ $("do-parent").onclick=function(){$("dayover").hidden=true;checkCode(function(){
 var APR={plaudern:11}; // réponses par manche quand une partie se compte en manches (une conversation d'Anna = 11 réponses)
 function starPot(k,p){var g=GAMES[k],P=g&&ECON.P[g.eco];if(P==null||p.rmode==="none"||g.subj==="jeux"||g.old)return 0;
  if(k==="code"&&+(localStorage.getItem("code_lvl")||1)<3)return 0;
- if(g.luck)return((p.sp&&p.sp[k])||P*4)*bonusOf(p,k)/ECON.PTS;
+ if(g.luck)return((p.sp&&p.sp[k])||P*4)*bonusOf(p,k)*gainF(k)/ECON.PTS;
  var c=pathCur(p),N=(c&&c.g===k&&c.t==="games"&&partOfSt(c)[1]==="q"?partSize(c):partOf(k)[0])*(APR[k]||1),d=(p.sd&&p.sd[k])||ageBonus(p,k)||1,t=0;
- for(var i=1;i<=N;i++)t+=p.noFlame?1:tierOf(i);return P*d*t*bonusOf(p,k)/ECON.PTS}
+ for(var i=1;i<=N;i++)t+=p.noFlame?1:tierOf(i);return P*d*t*bonusOf(p,k)*gainF(k)/ECON.PTS}
 // étoiles d'une étape du parcours (toutes les réponses justes du premier coup, série 🔥 continue dans l'étape) ; null = étape en minutes (inconnu)
 function stepPot(p,st){var k=st.g,g=GAMES[k];if(!g||!starPot(k,p))return 0;if(st.t==="min")return null;
  if(g.luck)return st.t==="games"?starPot(k,p)*st.n:0;
  var N=st.t==="ok"?st.n:partSize(st)*st.n*(st.s==="r"&&k==="telephone"?5:(APR[k]||1)),d=(p.sd&&p.sd[k])||ageBonus(p,k)||1,t=0;
- for(var i=1;i<=N;i++)t+=p.noFlame?1:tierOf(i);return ECON.P[g.eco]*d*t*bonusOf(p,k)/ECON.PTS}
+ for(var i=1;i<=N;i++)t+=p.noFlame?1:tierOf(i);return ECON.P[g.eco]*d*t*bonusOf(p,k)*gainF(k)/ECON.PTS}
 // total des étapes qui restent aujourd'hui (écran de départ, à la demande de l'utilisateur)
 function pathPot(p){var pr=pathProg(p),v=0,more=false;p.path.steps.forEach(function(st,i){if(i<pr.i)return;var x=stepPot(p,st);if(x==null)more=true;else v+=x});return{v:v,more:more}}
 function renderLocks(){var p=prof(),left=playLeft(p),over=dayOver(p);
@@ -1568,10 +1576,19 @@ function renderProfil(){var p=prof(EDIT);if(p.id!==EDIT)EDIT=p.id;
  var bl=Object.keys(AGEBONUS).filter(function(g){return ageBonus(p,g)>1}).map(function(g){return GAMES[g].t+" ⭐×"+String(ageBonus(p,g)).replace(".",",")});
  $("p-agetxt").textContent=ag==null?"Indique la date de naissance : la classe sert à donner un bonus d'étoiles sur les exercices en avance sur le programme.":ad?ag+" ans · adulte : pas de classe ni de bonus d'étoiles.":ag+" ans · classe "+(classOf(p)||"?")+(p.cls?"":" (d'après l'âge)")+" · "+(bl.length?"bonus d'étoiles : "+bl.join(", "):"pas de bonus d'étoiles à ce niveau")+".";
  $("p-st").textContent=p.stars;$("p-mo").textContent=money(p.money,p);
+ $("p-gainc").hidden=!p.admin;if(p.admin&&!$("p-gain").contains(document.activeElement))renderGain();
  $("p-bx").value=String(p.bonusX||2);var bg=p.bonusG||[];
  $("p-bg").innerHTML=bonusGames().map(function(g){return '<label class="switch"><input type="checkbox" data-bg="'+g+'"'+(bg.indexOf(g)>=0?" checked":"")+'><span class="grow">'+(GICON[g]?GICON[g]+" ":"")+esc(GAMES[g].t)+"</span></label>"}).join("");
  renderPurse()}
 // bonus d'étoiles sur des exercices choisis par un parent (à la demande de l'utilisateur : pour encourager à faire ces exercices)
+// gain de base de chaque exercice (réglé par un administrateur, commun à tous les profils, clé gain_cfg synchronisée) :
+// étoiles d'une partie entière réussie du premier coup au niveau de base ; le facteur gainF multiplie les points de l'exercice
+function fmtN(v){return String(Math.round(v*10)/10).replace(".",",")}
+function renderGain(){var G=gainCfg();$("p-gain").innerHTML=bonusGames().map(function(k){var P=partOf(k);
+  return '<label class="row"><span class="grow">'+(GICON[k]?GICON[k]+" ":"")+esc(GAMES[k].t)+'<small class="muted" style="display:block;font-size:16px">'+(GAMES[k].luck?"1 partie":P[0]+" "+P[2])+'</small></span><input class="field num" type="number" inputmode="decimal" min="0" step="0.5" data-gk="'+k+'" placeholder="'+fmtN(baseDef(k))+'" value="'+(G[k]!=null?G[k]:"")+'"><span>⭐</span></label>'}).join("")}
+$("p-gain").addEventListener("change",function(e){var k=e.target.dataset.gk;if(!k)return;var v=parseFloat(String(e.target.value).replace(",",".")),G=gainCfg();
+ if(v>=0)G[k]=Math.round(v*10)/10;else delete G[k];ls("gain_cfg",JSON.stringify(G));renderLocks()});
+$("p-gain0").onclick=function(){if(!confirm("Revenir aux gains d'origine pour tous les exercices ?"))return;ls("gain_cfg","{}");renderGain();renderLocks()};
 function bonusGames(){return Object.keys(GAMES).filter(function(g){var x=GAMES[g];return !x.old&&x.subj!=="jeux"&&ECON.P[x.eco]!=null})}
 $("p-bx").onchange=function(){var v=+this.value;upd(function(p){p.bonusX=v})};
 $("p-bg").addEventListener("change",function(e){var g=e.target.dataset.bg,v=e.target.checked;if(!g)return;upd(function(p){var a=(p.bonusG||[]).filter(function(x){return x!==g});if(v)a.push(g);p.bonusG=a})});
