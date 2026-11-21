@@ -970,14 +970,23 @@ function money(v,p){p=p||prof();v=r2(v);return v.toLocaleString("fr-FR",v%1?{min
    Les jeux envoient {type:"answer", game, ok, diff, q} à chaque réponse.
    Points = P(jeu) × difficulté × palier de série (×1, ×2 dès 5, ×3 dès 10) × qualité ; 10 points = 1 ⭐.
    Barème : objectif (min/jour) × 7 jours ≈ autant d'étoiles = maximum €/semaine ; le surplus est reporté. */
-var ECON={P:{plaudern:2,jours:1.1,femplu:1.1,corps:.7,formes:.5,position:.6,calcul:.7,telephone:.9,dde:.5,fdw:.5,quique:1.1,phrase:1.1,note:.5,code:7,robot:5,boucles:6,reparateur:4,chenille:.8,memory:1,courses:2.5,conj:.8,sdw:1.1,drapeau:.5,pays:.6,continent:.6,oceans:.6,heure:.8},PTS:10};
+var ECON={P:{plaudern:2,jours:1.1,femplu:1.1,corps:.7,formes:.5,position:.6,calcul:.7,telephone:.9,dde:.5,fdw:.5,quique:1.1,phrase:1.1,note:.5,code:7,robot:5,boucles:6,reparateur:4,chenille:.8,memory:1,courses:2.5,conj:.8,sdw:1.1,drapeau:.5,pays:.6,continent:.6,oceans:.6,heure:.8},PTS:1};
 function bonusOf(p,k){return p&&p.bonusG&&p.bonusG.indexOf(k)>=0?(+p.bonusX||2):1}
 function tierOf(st){return st>=10?3:st>=5?2:1}
 function pad(n){return(n<10?"0":"")+n}
 function dkey(d){d=d||new Date();return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())}
 function monday(d){d=new Date(d||new Date());d.setHours(12,0,0,0);d.setDate(d.getDate()-((d.getDay()+6)%7));return dkey(d)}
 function addDays(k,n){var d=new Date(k+"T12:00:00");d.setDate(d.getDate()+n);return dkey(d)}
-function ensureEcon(p){if(p.rmode==null)p.rmode=p.reward===false?"stars":"shop";if(p.rmode==="gifts"){p.rmode="shop";if(p.gifts)p.stars=Math.max(p.stars||0,0)}if(!p.daily)p.daily={on:false,min:30,bonus:{}};if(!p.play)p.play={on:true,ratio:5/13,games:["morpion","code","robot"],bonus:{},v2:1};if(!p.play.v2){p.play.ratio=5/13;p.play.v2=1};if(p.goal==null)p.goal=20;if(p.cap==null)p.cap=3;if(p.rate==null)p.rate=50;if(!p.econ)p.econ={streak:0,gauge:0,days:{},weeks:[],wk:monday(),best:0};return p.econ}
+function ensureEcon(p){if(p.rmode==null)p.rmode=p.reward===false?"stars":"shop";if(p.rmode==="gifts"){p.rmode="shop";if(p.gifts)p.stars=Math.max(p.stars||0,0)}if(!p.daily)p.daily={on:false,min:30,bonus:{}};if(!p.play)p.play={on:true,ratio:5/13,games:["morpion","code","robot"],bonus:{},v2:1};if(!p.play.v2){p.play.ratio=5/13;p.play.v2=1};if(p.goal==null)p.goal=20;if(p.cap==null)p.cap=3;if(p.rate==null)p.rate=500;if(!p.econ)p.econ={streak:0,gauge:0,days:{},weeks:[],wk:monday(),best:0};return p.econ}
+var SX=10; // étoiles par minute de l'objectif du jour (×10 depuis l'échelle ×10)
+// échelle des étoiles ×10 (à la demande de l'utilisateur : gains de base plus élevés pour qu'un bonus ×2 se voie) :
+// 1 point = 1 étoile au lieu de 10 ; conversion unique des soldes, de l'historique, du taux € et des prix de la boutique.
+// Avec une famille, on attend la première synchronisation de la séance (le drapeau x10 d'un autre téléphone évite une double conversion).
+function econX10(){var ch=false;PR.list.forEach(function(p){if(p.x10)return;ensureEcon(p);p.stars=Math.round((p.stars||0)*10);
+  var E=p.econ;Object.keys(E.days||{}).forEach(function(d){if(E.days[d].st)E.days[d].st*=10});(E.weeks||[]).forEach(function(w){if(w.st)w.st*=10});
+  p.rate=(p.rate||50)*10;p.x10=1;ch=true});
+ var S=shop();if(!S.x10){S.items.forEach(function(i){i.price=Math.round((i.price||0)*10)});S.x10=1;saveShop();ch=true}
+ if(ch){saveP();try{renderPurse()}catch(e){}}return ch}
 function target(p){return Math.max(1,Math.round(p.rate*p.cap))}          // étoiles pour atteindre le maximum de la semaine (taux × maximum)
 function eurOf(p,st){return Math.floor(Math.min(p.cap,st/p.rate)*10+1e-9)/10}
 function today(p){var E=ensureEcon(p),k=dkey(),d=E.days[k]||(E.days[k]={st:0,ok:0,tot:0,sec:0,best:0});if(d.learn==null){d.learn=0;d.play=0}return d}
@@ -995,9 +1004,9 @@ function renderPurse(bump){var p=prof(),E=ensureEcon(p),d=today(p),w=weekSum(p,E
  document.body.classList.toggle("nomoney",true);["none","stars","shop"].forEach(function(m){document.body.classList.toggle("rw-"+m,p.rmode===m)});
  document.querySelectorAll(".nst").forEach(function(e){e.textContent=p.stars});
  starTxt();
- $("h-day").textContent=d.st;$("h-goal").textContent=p.goal;$("h-bar").style.width=Math.min(100,d.st/p.goal*100)+"%";
+ $("h-day").textContent=d.st;$("h-goal").textContent=p.goal*SX;$("h-bar").style.width=Math.min(100,d.st/(p.goal*SX)*100)+"%";
  var carry=Math.max(0,p.stars-w.st);
- $("hint").textContent=(d.st>=p.goal?"🎯 Objectif du jour atteint ! ":"")+"Cette semaine : ⭐ "+w.st;
+ $("hint").textContent=(d.st>=p.goal*SX?"🎯 Objectif du jour atteint ! ":"")+"Cette semaine : ⭐ "+w.st;
  $("whon").textContent=pname(p)+(p.admin?" 🔑":"");$("whoi").innerHTML=p.photo?'<span class="mini-av" style="background-image:url('+p.photo+')"></span>':"👤";
  $("hello").textContent=p.name?"Bonjour "+p.name+" ! 👋":"Bonjour ! 👋";
  renderEco();renderLocks();renderTime();renderShopbar();
@@ -1087,17 +1096,17 @@ function onFinish(m){if(noStars())return;var p=prof(),E=ensureEcon(p),P=ECON.P[m
 /* ---------- Type de récompense par profil : p.rmode = "none" (rien), "stars" (compteur d'étoiles), "shop" (boutique) ----------
    Boutique commune (clé « shop ») gérée dans les Paramètres : articles {id, ic, t, price, rep (répétable), game (clé d'un jeu à débloquer), on}.
    Par profil : p.stars = étoiles à dépenser ; p.games = jeux débloqués ; p.shopBought {id: nombre} ; p.shopPend [{id, ic, t, d}] = à remettre ; p.shopLog. */
-var SHOP_DEF=[{id:"bonbon",ic:"🍬",t:"Un bonbon",price:20,rep:true,on:true},{id:"coussins",ic:"🛋️",t:"Bataille de coussins avec Papa",price:30,rep:true,on:true},
- {id:"ecran",ic:"📺",t:"15 min d'écran",price:40,rep:true,on:true},{id:"dessert",ic:"🍰",t:"Tu choisis le dessert",price:50,rep:true,on:true},
- {id:"euro",ic:"💶",t:"1 € dans la tirelire",price:60,rep:true,on:true},
- {id:"g-bulles",ic:"🫧",t:"Attrape les bulles",price:60,game:"bulles",on:true},{id:"g-glissant",ic:"🦔",t:"Le jardin glissant",price:80,game:"glissant",on:true},
- {id:"g-allumettes",ic:"🔥",t:"Le jeu des allumettes",price:60,game:"allumettes",on:true},
- {id:"g-pizzeria",ic:"🍕",t:"La pizzeria",price:80,game:"pizzeria",on:true},{id:"g-tuyaux",ic:"🚰",t:"Les tuyaux magiques",price:80,game:"tuyaux",on:true},
- {id:"g-perroquet",ic:"🦜",t:"Le perroquet musical",price:60,game:"perroquet",on:true},{id:"g-quatre",ic:"🔴",t:"Quatre en ligne",price:70,game:"quatre",on:true},{id:"g-ocean",ic:"🐬",t:"L'océan des animaux",price:70,game:"ocean",on:true}];
+var SHOP_DEF=[{id:"bonbon",ic:"🍬",t:"Un bonbon",price:200,rep:true,on:true},{id:"coussins",ic:"🛋️",t:"Bataille de coussins avec Papa",price:300,rep:true,on:true},
+ {id:"ecran",ic:"📺",t:"15 min d'écran",price:400,rep:true,on:true},{id:"dessert",ic:"🍰",t:"Tu choisis le dessert",price:500,rep:true,on:true},
+ {id:"euro",ic:"💶",t:"1 € dans la tirelire",price:600,rep:true,on:true},
+ {id:"g-bulles",ic:"🫧",t:"Attrape les bulles",price:600,game:"bulles",on:true},{id:"g-glissant",ic:"🦔",t:"Le jardin glissant",price:800,game:"glissant",on:true},
+ {id:"g-allumettes",ic:"🔥",t:"Le jeu des allumettes",price:600,game:"allumettes",on:true},
+ {id:"g-pizzeria",ic:"🍕",t:"La pizzeria",price:800,game:"pizzeria",on:true},{id:"g-tuyaux",ic:"🚰",t:"Les tuyaux magiques",price:800,game:"tuyaux",on:true},
+ {id:"g-perroquet",ic:"🦜",t:"Le perroquet musical",price:600,game:"perroquet",on:true},{id:"g-quatre",ic:"🔴",t:"Quatre en ligne",price:700,game:"quatre",on:true},{id:"g-ocean",ic:"🐬",t:"L'océan des animaux",price:700,game:"ocean",on:true}];
 var SHOP=null;
-function shop(){if(!SHOP){SHOP=lj("shop",null);if(!SHOP||!SHOP.items){SHOP={items:JSON.parse(JSON.stringify(SHOP_DEF))}}
+function shop(){if(!SHOP){SHOP=lj("shop",null);if(!SHOP||!SHOP.items){SHOP={items:JSON.parse(JSON.stringify(SHOP_DEF)),x10:1}}
   if(!SHOP.known)SHOP.known=["bulles","glissant","allumettes"].concat(SHOP.items.filter(function(i){return i.game}).map(function(i){return i.game}));
-  SHOP_DEF.forEach(function(d){if(d.game&&SHOP.known.indexOf(d.game)<0){SHOP.known.push(d.game);if(!SHOP.items.some(function(i){return i.game===d.game}))SHOP.items.push(JSON.parse(JSON.stringify(d)))}});saveShop()}return SHOP}
+  SHOP_DEF.forEach(function(d){if(d.game&&SHOP.known.indexOf(d.game)<0){SHOP.known.push(d.game);if(!SHOP.items.some(function(i){return i.game===d.game})){var it=JSON.parse(JSON.stringify(d));if(!SHOP.x10)it.price=it.price/10;SHOP.items.push(it)}}});saveShop()}return SHOP}
 function saveShop(){if(window.NOSAVE)return;ls("shop",JSON.stringify(SHOP))}
 function ensureShop(p){if(!p.games)p.games=(p.gifts&&p.gifts.games)?p.gifts.games.slice():[];if(!p.shopBought)p.shopBought={};if(!p.shopPend)p.shopPend=(p.gifts&&p.gifts.pending)?p.gifts.pending.slice():[];if(!p.shopLog)p.shopLog=[];return p}
 // jeux à débloquer : GAMES[x].prize
@@ -1148,7 +1157,7 @@ function renderShopAdmin(){var S=shop();$("sa-form").hidden=true;
  $("sa-emo").innerHTML=EMO.map(function(e){return'<button data-emo="'+e+'">'+e+"</button>"}).join("")}
 function saForm(it,game){SA={id:it?it.id:null,ic:it?it.ic:(game?"🎮":"🎁"),game:!!game};$("sa-form").hidden=false;
  $("sa-ft").textContent=it?"Modifier":game?"Nouveau jeu à vendre":"Nouvelle récompense";$("sa-ic").textContent=SA.ic;$("sa-icx").value="";
- $("sa-t").value=it?it.t:"";$("sa-p").value=it?it.price:(game?60:30);$("sa-rep").checked=it?!!it.rep:!game;$("sa-reprow").hidden=game;$("sa-grow").hidden=!game;
+ $("sa-t").value=it?it.t:"";$("sa-p").value=it?it.price:(game?600:300);$("sa-rep").checked=it?!!it.rep:!game;$("sa-reprow").hidden=game;$("sa-grow").hidden=!game;
  if(game){var used=shop().items.filter(function(x){return x.game&&(!it||x.id!==it.id)}).map(function(x){return x.game});
   var opts=prizeGames().filter(function(k){return used.indexOf(k)<0||(it&&it.game===k)});
   $("sa-game").innerHTML=opts.map(function(k){return'<option value="'+k+'"'+(it&&it.game===k?" selected":"")+">"+esc(GAMES[k].t)+"</option>"}).join("");
@@ -1382,7 +1391,7 @@ $("plist2").addEventListener("click",function(e){var b=e.target.closest("[data-w
 $("pnew").onclick=function(){$("pnew").hidden=true;$("pform").hidden=false;$("pfname").value="";setTimeout(function(){$("pfname").focus()},50)};
 $("pfcancel").onclick=function(){$("pform").hidden=true;$("pnew").hidden=false};
 function createProfile(){var n=$("pfname").value.trim().slice(0,20);if(!n){$("pfname").focus();return}
- var id="p"+Date.now().toString(36);PR.list.push({id:id,name:n,reward:true,unit:"€",per:10,gain:1,stars:0,money:0});PR.active=id;saveP();go("")}
+ var id="p"+Date.now().toString(36);PR.list.push({id:id,name:n,reward:true,unit:"€",per:10,gain:1,stars:0,money:0,x10:1});PR.active=id;saveP();go("")}
 $("pfok").onclick=createProfile;
 $("pfname").addEventListener("keydown",function(e){if(e.key==="Enter")createProfile()});
 // bouton « 👤 Prénom » de l'accueil : retour à l'écran « Qui joue ? »
@@ -1549,7 +1558,7 @@ $("fa-share").onclick=function(){var t="Code de la famille pour Ludea : "+window
 $("fa-leave").onclick=function(){if(!confirm("Ce téléphone ne sera plus synchronisé. Les profils restent sur ce téléphone."))return;window.SYNC.leave();renderFamily()};
 function renderProfils(){$("plist").innerHTML=PR.list.map(function(p){return '<button class="menuitem" data-edit="'+p.id+'"><span class="ic">'+(p.photo?'<span class="mini-av" style="width:40px;height:40px;background-image:url('+p.photo+')"></span>':"👤")+'</span><span>'+esc(pname(p))+(p.id===PR.active?'<span class="badge">actif</span>':'')+'<small>⭐ '+p.stars+({none:" · sans récompense",stars:" · étoiles seules",shop:" · 🛍️ boutique"})[p.rmode||"shop"]+'</small></span></button>'}).join("")}
 $("plist").addEventListener("click",function(e){var b=e.target.closest("[data-edit]");if(!b)return;EDIT=b.dataset.edit;openPage("profil")});
-$("padd").onclick=function(){var id="p"+Date.now().toString(36);PR.list.push({id:id,name:"",reward:true,unit:"€",per:10,gain:1,stars:0,money:0});saveP();EDIT=id;openPage("profil");setTimeout(function(){$("p-name").focus()},100)};
+$("padd").onclick=function(){var id="p"+Date.now().toString(36);PR.list.push({id:id,name:"",reward:true,unit:"€",per:10,gain:1,stars:0,money:0,x10:1});saveP();EDIT=id;openPage("profil");setTimeout(function(){$("p-name").focus()},100)};
 function renderProfil(){var p=prof(EDIT);if(p.id!==EDIT)EDIT=p.id;
  $("p-admin").checked=!!p.admin;
  // administrateur : tous les jeux sont ouverts et sans limite → on masque les réglages inutiles
@@ -1828,7 +1837,8 @@ if("serviceWorker" in navigator){
 </script>
 <script src="sync.js"></script>
 <script>// après chaque synchronisation : redessiner l'écran affiché (profils ajoutés, étoiles, réglages venus d'un autre téléphone)
-if(window.SYNC)SYNC.after=function(ch){try{var top=PG[PG.length-1]||"menu",open=!$("settings").hidden;if(open&&top==="family")renderFamily();if(!ch)return;
+if(!(window.SYNC&&SYNC.fam))econX10();
+if(window.SYNC)SYNC.after=function(ch){if(!SYNC.err&&econX10()){setTimeout(function(){SYNC.now()},500);ch=true}try{var top=PG[PG.length-1]||"menu",open=!$("settings").hidden;if(open&&top==="family")renderFamily();if(!ch)return;
  renderPurse();if(cur==="profil")renderProfilScreen();
  if(open){if(["menu","profils","app"].indexOf(top)>=0)renderPage();else if(top==="profil"&&document.activeElement&&!/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName))renderPage()}}catch(e){}};</script>
 </body>
