@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Désamorce la bombe</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f3f5fb;--fg:#1f2740;--mut:#5d6884;--card:#fff;--bd:#d5dcea;--ma:#4a7cff;--ok:#22a861;--ko:#e5484d;--led:#ff3b30;box-sizing:border-box}
+@media (prefers-color-scheme:dark){:root{--bg:#151a28;--fg:#eef1fa;--mut:#a7b0c8;--card:#222a3d;--bd:#36405a}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--fg);font-family:"Fredoka",system-ui,sans-serif;user-select:none}
+button{font-family:inherit;touch-action:manipulation;cursor:pointer;color:var(--fg)}
+[hidden]{display:none!important}
+#inner{position:fixed;inset:0;max-width:560px;margin:0 auto;padding:10px 12px calc(14px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:10px}
+#top{display:flex;align-items:center;gap:10px}
+#lvlb{min-height:52px;padding:0 14px;border:3px solid var(--bd);background:var(--card);border-radius:16px;font-size:17px;font-weight:700}
+/* la bombe : corps noir, mèche qui brûle, écran rouge du compte à rebours */
+#bomb{flex:1;display:flex;align-items:center;gap:10px;background:#1d2130;border:3px solid #0d0f17;border-radius:20px;padding:8px 12px;box-shadow:inset 0 -6px 0 rgba(0,0,0,.35)}
+#bomb .b{font-size:40px;line-height:1;position:relative}
+#bomb .b::after{content:"";position:absolute;top:-4px;right:-4px;width:12px;height:12px;border-radius:50%;background:radial-gradient(#fff6a8,#ffb000 55%,transparent 70%);animation:spark .25s infinite alternate}
+body.off #bomb .b::after{display:none}
+@keyframes spark{to{transform:scale(1.5);opacity:.6}}
+#time{flex:1;text-align:center;font:700 40px ui-monospace,"Courier New",monospace;color:var(--led);letter-spacing:2px;text-shadow:0 0 10px rgba(255,59,48,.8);background:#120607;border-radius:12px;padding:2px 8px}
+#time.hurry{animation:blink .5s infinite}
+@keyframes blink{50%{opacity:.35}}
+#code{display:grid;grid-template-columns:repeat(10,1fr);gap:4px}
+#code i{font-style:normal;height:30px;border-radius:8px;background:var(--card);border:2px dashed var(--bd);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:var(--mut)}
+#code i.on{border:2px solid var(--ok);background:#dff5e8;color:#146b3d}
+#code i.now{border:2px solid var(--ma);animation:pulse 1s infinite}
+@keyframes pulse{50%{transform:scale(1.12)}}
+#ask{display:flex;align-items:center;gap:10px}
+#ear{flex:none;width:64px;height:60px;border:0;border-radius:18px;background:var(--ma);color:#fff;font-size:28px;box-shadow:0 4px 0 #2f56c4}
+#msg{flex:1;font-size:20px;font-weight:700;line-height:1.25}
+#grid{flex:1;min-height:0;display:grid;grid-template-columns:repeat(5,1fr);grid-auto-rows:1fr;gap:6px}
+.n{border:3px solid var(--bd);background:var(--card);border-radius:14px;font-size:min(8vw,34px);font-weight:700;padding:0;box-shadow:0 3px 0 var(--bd)}
+.n:active{transform:translateY(2px);box-shadow:none}
+.n.ok{background:var(--ok);border-color:var(--ok);color:#fff;animation:pop .35s}
+.n.done{opacity:.35}
+.n.ko{background:var(--ko);border-color:var(--ko);color:#fff;animation:shake .35s}
+.n.hint{animation:hint .6s 4}
+@keyframes pop{50%{transform:scale(1.12)}}
+@keyframes shake{25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+@keyframes hint{50%{background:#ffd34d;border-color:#e0a800}}
+#end{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center}
+#end .big{font-size:96px;line-height:1}
+#end b{font-size:32px}#end p{font-size:21px;margin:0}
+#again{min-width:220px;height:72px;border:0;border-radius:22px;background:var(--ma);color:#fff;font-size:24px;font-weight:700;box-shadow:0 5px 0 #2f56c4}
+/* explosion */
+#boom{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;pointer-events:none;background:radial-gradient(circle,#fff7c2 0,#ffb020 30%,#ff4d00 55%,rgba(60,0,0,.9) 80%);animation:flash 1.6s ease-out forwards}
+#boom span{font-size:200px;animation:bang 1.6s ease-out forwards}
+@keyframes flash{0%{opacity:0}8%{opacity:1}60%{opacity:.9}100%{opacity:0}}
+@keyframes bang{0%{transform:scale(.2) rotate(-20deg)}25%{transform:scale(1.6) rotate(8deg)}100%{transform:scale(2.4);opacity:0}}
+body.shake #inner{animation:quake .6s}
+@keyframes quake{10%,50%,90%{transform:translate(-12px,6px)}30%,70%{transform:translate(12px,-6px)}}
+.sheet{position:fixed;inset:0;background:rgba(10,15,30,.55);display:flex;align-items:flex-end;justify-content:center;z-index:9}
+.panel{background:var(--bg);width:100%;max-width:560px;border-radius:26px 26px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:10px}
+.panel h2{margin:0 0 4px;font-size:26px}
+.opt{min-height:64px;border:3px solid var(--bd);background:var(--card);border-radius:18px;font-size:21px;font-weight:700;text-align:left;padding:8px 14px}
+.opt small{display:block;font-size:16px;color:var(--mut);font-weight:600}.opt.on{border-color:var(--ma);box-shadow:0 0 0 3px var(--ma)}
+#close{height:60px;border:0;border-radius:18px;background:var(--ma);color:#fff;font-size:21px;font-weight:700}
+</style>
+</head>
+<body>
+<div id="inner">
+  <div id="top"><button id="lvlb"></button><div id="bomb"><span class="b">💣</span><span id="time">2:00</span></div></div>
+  <div id="code"></div>
+  <div id="ask"><button id="ear" aria-label="Réécouter">🔊</button><span id="msg"></span></div>
+  <div id="grid"></div>
+  <div id="end" hidden><div class="big" id="eic"></div><b id="et"></b><p id="score"></p><button id="again">Encore</button></div>
+</div>
+<div id="boom" hidden><span>💥</span></div>
+<div class="sheet" id="sheet" hidden><div class="panel"><h2>Niveau</h2><div id="lvls" style="display:flex;flex-direction:column;gap:10px"></div><button id="close">Fermer</button></div></div>
+<script>
+(function(){
+// Désamorce la bombe (Mathématiques, à la demande de l'utilisateur, d'après une fiche « Fluence nombres de 10 à 39 ») :
+// une grille de 30 nombres ; la voix annonce un nombre, l'enfant le touche ; 10 nombres trouvés = bombe désamorcée ; 2 minutes, à 0 : Boum !
+var $=function(i){return document.getElementById(i)};
+function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
+function voiceFor(l){try{var v=speechSynthesis.getVoices().filter(function(v){return v.lang&&v.lang.indexOf(l)===0});return v.filter(function(x){return x.localService})[0]||v[0]||null}catch(e){return null}}
+function say(t){try{if(!window.speechSynthesis)return;speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.lang="fr-FR";var v=voiceFor("fr");if(v)u.voice=v;u.rate=.9;speechSynthesis.speak(u)}catch(e){}}
+function afterSay(fn,ms){var t0=Date.now(),quiet=0;(function w(){var s=window.speechSynthesis,busy=s&&(s.speaking||s.pending),now=Date.now();if(busy)quiet=0;else if(!quiet)quiet=now;if((now-t0>=ms&&quiet&&now-quiet>=250)||now-t0>15000)fn();else setTimeout(w,120)})()}
+var ac=null;function actx(){try{if(!ac){var C=window.AudioContext||window.webkitAudioContext;if(!C)return null;ac=new C()}if(ac.state==="suspended")ac.resume();return ac}catch(e){return null}}
+function tone(f,t,d,v,type){var a=actx();if(!a)return;try{var o=a.createOscillator(),g=a.createGain(),s=a.currentTime+t;o.type=type||"triangle";o.frequency.value=f;g.gain.setValueAtTime(v||.16,s);g.gain.exponentialRampToValueAtTime(.001,s+d);o.connect(g);g.connect(a.destination);o.start(s);o.stop(s+d)}catch(e){}}
+// explosion : bruit blanc filtré qui s'éteint + grondement grave
+function blast(){var a=actx();if(!a)return;try{var n=a.sampleRate*1.8,b=a.createBuffer(1,n,a.sampleRate),d=b.getChannelData(0);for(var i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,2.5);
+ var s=a.createBufferSource(),f=a.createBiquadFilter(),g=a.createGain();s.buffer=b;f.type="lowpass";f.frequency.setValueAtTime(1800,a.currentTime);f.frequency.exponentialRampToValueAtTime(120,a.currentTime+1.6);g.gain.value=.9;s.connect(f);f.connect(g);g.connect(a.destination);s.start();
+ var o=a.createOscillator(),og=a.createGain();o.type="sine";o.frequency.setValueAtTime(90,a.currentTime);o.frequency.exponentialRampToValueAtTime(30,a.currentTime+1.2);og.gain.setValueAtTime(.6,a.currentTime);og.gain.exponentialRampToValueAtTime(.001,a.currentTime+1.4);o.connect(og);og.connect(a.destination);o.start();o.stop(a.currentTime+1.5)}catch(e){}}
+// niveaux : 30 nombres à la suite dans la grille (comme la fiche : 10 à 39), puis 40 à 69, puis 70 à 99 (soixante-dix, quatre-vingts…)
+var LV=[null,{t:"10 à 39",a:10,x:1},{t:"40 à 69",a:40,x:1.25},{t:"70 à 99",a:70,x:1.5}];
+var PK="@"+(window.PROFILE||"p1");function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
+var level=Math.min(3,Math.max(1,parseInt(ls("bombe_lvl"+PK))||1));
+var TIME=120,N=Math.min(30,window.PATHN||10),code,qi,good,cur,miss,busy,left,tick=null,over=true,tok=0;
+function fmt(s){return Math.floor(s/60)+":"+("0"+s%60).slice(-2)}
+function start(){var L=LV[level],nums=[];document.body.classList.remove("off");for(var i=0;i<30;i++)nums.push(L.a+i);tok++;
+ code=shuffle(nums).slice(0,N);qi=0;good=0;left=TIME;over=false;$("lvlb").textContent=L.t;
+ $("grid").innerHTML=shuffle(nums).map(function(n){return '<button class="n" data-n="'+n+'">'+n+"</button>"}).join("");
+ $("code").style.gridTemplateColumns="repeat("+Math.min(10,N)+",1fr)";
+ $("code").innerHTML=code.map(function(){return "<i></i>"}).join("");
+ $("end").hidden=true;$("grid").hidden=$("ask").hidden=$("code").hidden=false;$("time").textContent=fmt(left);$("time").className="";
+ clearInterval(tick);tick=setInterval(step,1000);show()}
+function step(){if(over||!$("sheet").hidden||document.hidden)return;left--;$("time").textContent=fmt(Math.max(0,left));
+ if(left<=10&&left>0){$("time").className="hurry";tone(1400,0,.08,.12,"square")}else if(left%2===0)tone(900,0,.04,.05,"square");
+ if(left<=0)boom()}
+function show(){cur=code[qi];miss=0;busy=false;var cs=$("code").children;for(var i=0;i<cs.length;i++)cs[i].classList.toggle("now",i===qi);
+ $("msg").textContent="🔊 Écoute et touche le nombre !";setTimeout(function(){if(!busy&&!miss&&!over)say(String(cur))},250)}
+$("ear").onclick=function(){if(cur&&!over)say(String(cur))};
+function answer(ok){try{if(parent!==window)parent.postMessage({type:"answer",game:"bombe",ok:ok,diff:LV[level].x,k:"Les "+Math.floor(cur/10)*10,item:String(cur)},"*")}catch(e){}}
+$("grid").addEventListener("click",function(e){var b=e.target.closest(".n");if(!b||busy||over||cur==null||b.classList.contains("done"))return;var n=+b.dataset.n;
+ if(n===cur){busy=true;b.classList.add("ok");tone(660,0,.1);tone(990,.08,.16);if(!miss){good++;answer(true)}
+  var c=$("code").children[qi];c.classList.add("on");c.classList.remove("now");c.textContent=cur;$("msg").textContent="✅ "+cur;
+  var t=tok;setTimeout(function(){if(t!==tok)return;b.classList.remove("ok");b.classList.add("done");qi++;if(qi<code.length)show();else win()},650)}
+ else{if(!miss)answer(false);miss++;b.classList.remove("ko");void b.offsetWidth;b.classList.add("ko");tone(200,0,.25,.18,"sawtooth");
+  setTimeout(function(){b.classList.remove("ko")},450);$("msg").textContent="Non, ça c'est "+n+". Écoute bien !";say("Non. "+cur);
+  if(miss>=2){var h=$("grid").querySelector('[data-n="'+cur+'"]');if(h){h.classList.remove("hint");void h.offsetWidth;h.classList.add("hint")}}}});
+function finish(){over=true;clearInterval(tick);cur=null;[].forEach.call($("code").children,function(c){c.classList.remove("now")});document.body.classList.add("off");$("grid").hidden=$("ask").hidden=true;$("end").hidden=false;try{if(parent!==window)parent.postMessage({type:"roundEnd"},"*")}catch(e){}}
+function win(){finish();$("eic").textContent="🎉";$("et").textContent="Bombe désamorcée !";$("score").textContent="Il restait "+fmt(left)+" · "+good+" / "+code.length+" du premier coup";
+ [523,659,784,1047].forEach(function(f,k){tone(f,k*.1,.25)});say("Bravo ! Tu as désamorcé la bombe !")}
+function boom(){var found=qi;finish();try{speechSynthesis.cancel()}catch(e){}blast();$("boom").hidden=false;document.body.classList.add("shake");
+ setTimeout(function(){$("boom").hidden=true;document.body.classList.remove("shake")},1700);
+ $("eic").textContent="💥";$("et").textContent="Boum !";$("score").textContent="Tu as trouvé "+found+" / "+code.length+" nombres. Essaie encore !";
+ setTimeout(function(){say("Boum ! La bombe a explosé. Essaie encore !")},900)}
+$("again").onclick=start;
+$("lvlb").onclick=function(){$("lvls").innerHTML=[1,2,3].map(function(i){return '<button class="opt'+(i===level?" on":"")+'" data-l="'+i+'">Nombres de '+LV[i].t+"</button>"}).join("");$("sheet").hidden=false};
+$("lvls").onclick=function(e){var b=e.target.closest("[data-l]");if(!b)return;level=+b.dataset.l;ls("bombe_lvl"+PK,level);$("sheet").hidden=true;start()};
+$("close").onclick=function(){$("sheet").hidden=true};
+window.hubBack=function(){if(!$("sheet").hidden){$("sheet").hidden=true;return true}return false};
+window.__B={cur:function(){return cur},left:function(){return left},set:function(s){left=s}};
+start();
+})();
+</script>
+</body>
+</html>
