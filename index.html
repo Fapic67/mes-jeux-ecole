@@ -531,20 +531,16 @@ body.rw-shop #purse{display:none!important}
         <span class="pg" style="gap:8px;flex:1"><label class="btn" style="text-align:center;cursor:pointer">📷 Choisir une photo<input type="file" id="p-photo" accept="image/*" hidden></label>
         <button class="btn danger" id="p-phdel">Retirer la photo</button></span></div>
       <label class="row"><span>Prénom</span><input class="field grow" id="p-name" maxlength="20" autocomplete="off"></label>
-      <label class="switch"><input type="checkbox" id="p-admin"><span class="grow">🔑 Administrateur<small class="muted" style="display:block;font-size:16px">Tous les jeux sont débloqués d'office, sans limite de temps, et les paramètres s'ouvrent sans code. Le code parent est demandé pour ouvrir ce profil.</small></span></label>
-      <div class="row"><button class="btn okb grow" id="p-use">Utiliser ce profil</button><span class="muted grow" id="p-active">✅ Profil utilisé en ce moment</span><button class="btn danger" id="p-del">Supprimer</button></div>
-    </div>
-    <div class="card" id="p-agec">
-      <h3>🎂 Âge et classe</h3>
       <label class="row"><span class="grow">Date de naissance</span><input class="field" id="p-birth" type="text" inputmode="numeric" maxlength="10" placeholder="jj/mm/aaaa" autocomplete="off" style="width:190px;letter-spacing:1px"></label>
       <div class="muted" id="p-birtherr" style="color:var(--ko)"></div>
       <label class="row" id="p-clsrow"><span class="grow">Classe</span><select class="field" id="p-cls"></select></label>
       <div class="muted" id="p-agetxt"></div>
+      <label class="switch"><input type="checkbox" id="p-admin"><span class="grow">🔑 Administrateur<small class="muted" style="display:block;font-size:16px">Tous les jeux sont débloqués d'office, sans limite de temps, et les paramètres s'ouvrent sans code. Le code parent est demandé pour ouvrir ce profil.</small></span></label>
+      <div class="row"><button class="btn okb grow" id="p-use">Utiliser ce profil</button><span class="muted grow" id="p-active">✅ Profil utilisé en ce moment</span><button class="btn danger" id="p-del">Supprimer</button></div>
     </div>
     <div class="card">
       <h3>🏆 Type de récompense</h3>
       <div class="rmodes" id="p-rmode"></div>
-      <label class="switch" id="p-flamerow"><input type="checkbox" id="p-flame"><span class="grow">🔥 Multiplicateur de série</span></label>
       <label class="row" id="p-goalrow"><span class="grow">Objectif de jeu par jour</span><input class="field num" id="p-goal" type="number" inputmode="numeric" min="5" max="120" step="5"><span>min</span></label>
       <div class="pg" id="p-gopts" style="gap:10px">
         <div class="muted">Les étoiles gagnées s'échangent dans la boutique contre des récompenses (bonbon, bataille de coussins, jeu à débloquer…). La boutique est la même pour tous les profils.</div>
@@ -601,6 +597,7 @@ body.rw-shop #purse{display:none!important}
       <div class="big">⭐ <span id="p-st">0</span></div>
       <div class="row"><input class="field num" id="p-stv" type="number" inputmode="numeric" min="0" step="1" placeholder="0"><span class="grow muted">⭐</span>
         <button class="btn" id="p-stset">Définir</button><button class="btn danger" id="p-st0">Remettre à 0</button></div>
+      <label class="switch" id="p-flamerow"><input type="checkbox" id="p-flame"><span class="grow">🔥 Multiplicateur de série</span></label>
       <h4 style="margin:6px 0 0">🎯 Bonus</h4>
       <div id="p-bg" class="pg" style="gap:4px"></div>
     </div>
