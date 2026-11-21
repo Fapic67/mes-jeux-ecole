@@ -208,6 +208,9 @@ body.rw-shop #purse{display:none!important}
 .game.locked,.tile.locked{filter:grayscale(1);opacity:.55}
 .game .pt{display:inline-block;margin-left:8px;font-size:15px;font-weight:700;color:#fff;background:var(--lo);border-radius:999px;padding:1px 8px;vertical-align:middle}
 .game.locked .pt{background:var(--soft)}
+/* potentiel d'étoiles d'une partie (à droite du bouton) */
+.game .pot{margin-left:auto;flex:none;font-size:18px;font-weight:700;color:#8a5a00;background:#fff4cc;border:2px solid #ffd34d;border-radius:999px;padding:2px 10px;white-space:nowrap}
+.game.locked .pot{display:none}
 #ptime{font-weight:700;font-size:17px;padding:2px 10px;border-radius:999px;background:var(--card);border:var(--bw) solid var(--line);white-space:nowrap}
 #ptime.warn{border-color:#ff8a3d;color:#ff8a3d}#ptime.up{background:#ff8a3d;border-color:#ff8a3d;color:#fff}
 .ratios{display:flex;gap:8px;flex-wrap:wrap}.ratios button{min-height:48px;padding:0 14px;border:var(--bw) solid var(--line);border-radius:999px;background:var(--card);color:var(--ink);font:700 18px "Fredoka",sans-serif}
@@ -976,7 +979,7 @@ function toast(txt,ms){var t=document.createElement("div");t.className="toast";t
 var ecoOff=false; // un jeu peut couper les étoiles (ex. code secret hors Difficile)
 function noStars(){return prof().rmode==="none"||!!(GAMES[cur]&&GAMES[cur].subj==="jeux")||ecoOff}
 function onAnswer(m){if(noStars())return;var p=prof(),E=ensureEcon(p),P=ECON.P[m.game];if(P==null)return;rollWeek(p);
- var d=today(p),diff=Math.max(1,Math.min(3,(+m.diff||1)*ageBonus(p,cur))),q=m.q==null?1:Math.max(0,Math.min(1,+m.q));lastDiff=diff;lastAct=Date.now();d.tot++;
+ var d=today(p),diff=Math.max(1,Math.min(3,(+m.diff||1)*ageBonus(p,cur))),q=m.q==null?1:Math.max(0,Math.min(1,+m.q));lastDiff=diff;if(GAMES[cur]){(p.sd=p.sd||{})[cur]=diff}lastAct=Date.now();d.tot++;
  if(m.ok){E.streak++;d.ok++;d.best=Math.max(d.best,E.streak);E.best=Math.max(E.best||0,E.streak);
   var t=p.noFlame?1:tierOf(E.streak);E.gauge=r2(E.gauge+P*diff*t*q);var n=0;while(E.gauge>=ECON.PTS){E.gauge=r2(E.gauge-ECON.PTS);n++}
   if(p.noFlame){if(n)toast("+"+n+" ⭐")} // multiplicateur de série désactivé dans le profil : ni ×2/×3 ni annonces
@@ -1041,7 +1044,7 @@ function ageBonus(p,g){var c=classOf(p),t=AGEBONUS[g];return(t&&c&&t[c])||1}
    Le jeu envoie {type:"finish", game, n (taille de la partie, ex. nombre de paires), diff} ; points = P × n × difficulté. */
 function onFinish(m){if(noStars())return;var p=prof(),E=ensureEcon(p),P=ECON.P[m.game];if(P==null)return;rollWeek(p);
  var d=today(p),diff=Math.max(1,Math.min(3,(+m.diff||1)*ageBonus(p,cur))),n=0;lastDiff=diff;lastAct=Date.now();
- E.gauge=r2(E.gauge+P*(+m.n||1)*diff);while(E.gauge>=ECON.PTS){E.gauge=r2(E.gauge-ECON.PTS);n++}
+ if(GAMES[cur]){(p.sp=p.sp||{})[cur]=r2(P*(+m.n||1)*diff)}E.gauge=r2(E.gauge+P*(+m.n||1)*diff);while(E.gauge>=ECON.PTS){E.gauge=r2(E.gauge-ECON.PTS);n++}
  if(n){p.stars+=n;d.st+=n;toast("+"+n+" ⭐",2000)}saveP();renderPurse(n>0)}
 /* ---------- Type de récompense par profil : p.rmode = "none" (rien), "stars" (compteur d'étoiles), "shop" (boutique) ----------
    Boutique commune (clé « shop ») gérée dans les Paramètres : articles {id, ic, t, price, rep (répétable), game (clé d'un jeu à débloquer), on}.
@@ -1250,13 +1253,24 @@ function showDayOver(inGame){dayInGame=inGame;$("dayover").hidden=false}
 $("do-ok").onclick=function(){$("dayover").hidden=true;dayUp=false;if(dayInGame)back();renderLocks()};
 $("do-parent").onclick=function(){$("dayover").hidden=true;checkCode(function(){var p=prof(),D=p.daily,b=D.bonus&&D.bonus.d===dkey()?D.bonus.sec:0;
  D.bonus={d:dkey(),sec:b+900+Math.max(0,-dayLeft(p))};dayUp=false;clearTimeout(dayT);saveP();renderLocks();renderTime();toast("🔑 +15 min pour aujourd'hui",2200)},function(){if(dayInGame&&dayOver())showDayOver(true)})};
+// potentiel d'étoiles d'une partie entière réussie du premier coup (à la demande de l'utilisateur) : P × difficulté (la dernière jouée par ce profil,
+// sinon le bonus d'âge) × paliers de la série 🔥 (×1 les 5 premières, ×2 jusqu'à 10, ×3 ensuite ; pas de palier si le profil l'a désactivé) ;
+// jeux de hasard : les points de la dernière partie ; rien pour Jeux, sans récompense, exercices sans étoiles, Code secret hors Difficile
+var APR={plaudern:11}; // réponses par manche quand une partie se compte en manches (une conversation d'Anna = 11 réponses)
+function starPot(k,p){var g=GAMES[k],P=g&&ECON.P[g.eco];if(P==null||p.rmode==="none"||g.subj==="jeux"||g.old)return 0;
+ if(k==="code"&&+(localStorage.getItem("code_lvl")||1)<3)return 0;
+ if(g.luck)return((p.sp&&p.sp[k])||P*4)/ECON.PTS;
+ var c=pathCur(p),N=(c&&c.g===k&&c.t==="games"&&partOfSt(c)[1]==="q"?partSize(c):partOf(k)[0])*(APR[k]||1),d=(p.sd&&p.sd[k])||ageBonus(p,k)||1,t=0;
+ for(var i=1;i<=N;i++)t+=p.noFlame?1:tierOf(i);return P*d*t/ECON.PTS}
 function renderLocks(){var p=prof(),left=playLeft(p),over=dayOver(p);
  $("daytxt").textContent=dayOn(p)?(over?" · ⏱️ fini pour aujourd'hui":(dayLeft(p)<60?" · ⏱️ moins d'1 min aujourd'hui":" · ⏱️ encore "+mins(dayLeft(p))+" min aujourd'hui")):"";
  document.querySelectorAll("[data-play]").forEach(function(b){var k=b.dataset.play,sm=b.querySelector("small");if(!sm)return;if(b.dataset.sub==null)b.dataset.sub=sm.innerHTML;
   var lim=isPlay(k,p),lk=lim&&left<30,pz=isLockedPrize(k,p),pl=pathLocked(k,p);b.classList.toggle("locked",lk||over||pz||pl);
   if(pl&&!pz){sm.innerHTML=b.dataset.sub+'<span class="pt">🧭 suis ton parcours</span>';return}
   if(pz){sm.innerHTML=b.dataset.sub+'<span class="pt">'+(p.rmode==="shop"?"🛍️ à acheter dans la boutique":"🔒 à débloquer par un parent")+"</span>";return}
-  sm.innerHTML=b.dataset.sub+(over?'<span class="pt">⏱️ fini pour aujourd\'hui</span>':lim?'<span class="pt">'+(lk?"🔒 apprends d'abord":"⏳ "+mins(left)+" min de jeu")+"</span>":"")});
+  sm.innerHTML=b.dataset.sub+(over?'<span class="pt">⏱️ fini pour aujourd\'hui</span>':lim?'<span class="pt">'+(lk?"🔒 apprends d'abord":"⏳ "+mins(left)+" min de jeu")+"</span>":"");
+  var sp=starPot(k,p),pe=b.querySelector(".pot");if(!pe){pe=document.createElement("span");pe.className="pot";b.appendChild(pe)}
+  pe.hidden=!sp||over||lk;pe.textContent="⭐ "+Math.max(1,Math.round(sp))});
  document.querySelectorAll(".tile[data-go]").forEach(function(t){var ks=Object.keys(GAMES).filter(function(k){return GAMES[k].subj===t.dataset.go});
   t.classList.toggle("locked",over||(ks.length>0&&ks.every(function(k){return isPlay(k,p)})&&left<30)||(ks.length>0&&ks.every(function(k){return pathLocked(k,p)})))});renderPathbar()}
 var timeUp=false,graceT=null,tick=0;
