@@ -116,6 +116,8 @@ body.rw-shop #purse{display:none!important}
 #pi-steps .st .n{flex:none;width:36px;height:36px;border-radius:50%;background:#fff;color:#3d2f9e;display:flex;align-items:center;justify-content:center;font-size:19px}
 #pi-steps .st .i{font-size:30px}#pi-steps .st small{display:block;font-weight:600;font-size:16px;opacity:.85}
 #pi-steps .st.done{background:rgba(34,168,97,.45)}#pi-steps .st.done .n{background:#22a861;color:#fff}
+#pi-pot{font:700 26px "Fredoka",sans-serif;color:#8a5a00;background:linear-gradient(#fff4cc,#ffd34d);border:3px solid #fff;border-radius:999px;padding:6px 22px;box-shadow:0 0 18px 4px rgba(255,211,77,.6);animation:piUp .5s both,piPulse 1.6s ease-in-out infinite}
+#pi-pot[hidden]{display:none}
 #pi-go{width:100%;min-height:68px;font-size:24px;animation:piUp .5s both,piPulse 1.6s 2s ease-in-out infinite}
 @keyframes piIn{from{opacity:0}}@keyframes piUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
 @keyframes piSpin{from{transform:scale(.2) rotate(-540deg);opacity:0}to{transform:none;opacity:1}}
@@ -736,6 +738,7 @@ body.rw-shop #purse{display:none!important}
 <div id="pathintro" hidden><div class="pi-in">
   <div class="pi-ic">🧭</div>
   <h2 id="pi-t">Aujourd'hui, ton parcours !</h2>
+  <div id="pi-pot" hidden></div>
   <div id="pi-steps"></div>
   <button class="btn okb" id="pi-go">🚀 C'est parti !</button>
 </div></div>
@@ -1232,6 +1235,7 @@ function pathIntro(force){var p=prof();if(!pathActive(p)||pathDone(p))return;var
  var P=p.path,pr=pathProg(p),d0=.9;
  $("pi-t").textContent=(pr.i?"On continue ton parcours":"Aujourd'hui, ton parcours")+(p.name?", "+p.name:"")+" !";
  $("pi-steps").innerHTML=P.steps.map(function(st,i){if(!GAMES[st.g])return"";return '<div class="st'+(i<pr.i?" done":"")+'" style="animation-delay:'+(d0+i*.25).toFixed(2)+'s"><span class="n">'+(i<pr.i?"✓":i+1)+'</span><span class="i">'+(GICON[st.g]||"🎮")+"</span><span>"+esc(GAMES[st.g].t)+"<small>"+st.n+" "+unitTxt(st,st.n)+"</small></span></div>"}).join("");
+ var tp=pathPot(p),dl=(d0-.2).toFixed(2);$("pi-pot").hidden=!tp.v;$("pi-pot").textContent="⭐ "+Math.ceil(tp.v-1e-9)+(tp.more?" +":"");$("pi-pot").style.animationDelay=dl+"s,"+(+dl+.6).toFixed(2)+"s";
  $("pi-go").style.animationDelay=(d0+P.steps.length*.25+.2).toFixed(2)+"s,"+(d0+P.steps.length*.25+1.2).toFixed(2)+"s";
  $("pathintro").hidden=false;setTimeout(function(){hubSay((pr.i?"On continue ton parcours !":"C'est l'heure de ton parcours !"))},700)}
 $("pi-go").onclick=function(){$("pathintro").hidden=true;var c=pathCur();if(c)go(c.g)};
@@ -1268,6 +1272,13 @@ function starPot(k,p){var g=GAMES[k],P=g&&ECON.P[g.eco];if(P==null||p.rmode==="n
  if(g.luck)return((p.sp&&p.sp[k])||P*4)*bonusOf(p,k)/ECON.PTS;
  var c=pathCur(p),N=(c&&c.g===k&&c.t==="games"&&partOfSt(c)[1]==="q"?partSize(c):partOf(k)[0])*(APR[k]||1),d=(p.sd&&p.sd[k])||ageBonus(p,k)||1,t=0;
  for(var i=1;i<=N;i++)t+=p.noFlame?1:tierOf(i);return P*d*t*bonusOf(p,k)/ECON.PTS}
+// étoiles d'une étape du parcours (toutes les réponses justes du premier coup, série 🔥 continue dans l'étape) ; null = étape en minutes (inconnu)
+function stepPot(p,st){var k=st.g,g=GAMES[k];if(!g||!starPot(k,p))return 0;if(st.t==="min")return null;
+ if(g.luck)return st.t==="games"?starPot(k,p)*st.n:0;
+ var N=st.t==="ok"?st.n:partSize(st)*st.n*(st.s==="r"&&k==="telephone"?5:(APR[k]||1)),d=(p.sd&&p.sd[k])||ageBonus(p,k)||1,t=0;
+ for(var i=1;i<=N;i++)t+=p.noFlame?1:tierOf(i);return ECON.P[g.eco]*d*t*bonusOf(p,k)/ECON.PTS}
+// total des étapes qui restent aujourd'hui (écran de départ, à la demande de l'utilisateur)
+function pathPot(p){var pr=pathProg(p),v=0,more=false;p.path.steps.forEach(function(st,i){if(i<pr.i)return;var x=stepPot(p,st);if(x==null)more=true;else v+=x});return{v:v,more:more}}
 function renderLocks(){var p=prof(),left=playLeft(p),over=dayOver(p);
  $("daytxt").textContent=dayOn(p)?(over?" · ⏱️ fini pour aujourd'hui":(dayLeft(p)<60?" · ⏱️ moins d'1 min aujourd'hui":" · ⏱️ encore "+mins(dayLeft(p))+" min aujourd'hui")):"";
  document.querySelectorAll("[data-play]").forEach(function(b){var k=b.dataset.play,sm=b.querySelector("small");if(!sm)return;if(b.dataset.sub==null)b.dataset.sub=sm.innerHTML;
