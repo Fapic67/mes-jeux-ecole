@@ -24,6 +24,11 @@ body.off #bomb .b::after{display:none}
 @keyframes spark{to{transform:scale(1.5);opacity:.6}}
 #time{flex:1;text-align:center;font:700 40px ui-monospace,"Courier New",monospace;color:var(--led);letter-spacing:2px;text-shadow:0 0 10px rgba(255,59,48,.8);background:#120607;border-radius:12px;padding:2px 8px}
 #time.hurry{animation:blink .5s infinite}
+#bomb{position:relative}
+.pen{position:absolute;right:24px;top:100%;z-index:5;font:700 24px "Fredoka",sans-serif;color:#fff;background:var(--ko);border-radius:999px;padding:2px 12px;box-shadow:0 3px 8px rgba(0,0,0,.3);pointer-events:none;animation:pen 1.2s ease-out forwards}
+@keyframes pen{0%{transform:translateY(-14px) scale(.5);opacity:0}20%{transform:translateY(-6px) scale(1.2);opacity:1}70%{opacity:1}100%{transform:translateY(10px) scale(1);opacity:0}}
+#time.hit{animation:hit .4s}
+@keyframes hit{30%{transform:scale(1.15);color:#fff}}
 @keyframes blink{50%{opacity:.35}}
 #code{display:grid;grid-template-columns:repeat(10,1fr);gap:4px}
 #code i{font-style:normal;height:30px;border-radius:8px;background:var(--card);border:2px dashed var(--bd);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:var(--mut)}
@@ -112,6 +117,10 @@ $("grid").addEventListener("click",function(e){var b=e.target.closest(".n");if(!
   var c=$("code").children[qi];c.classList.add("on");c.classList.remove("now");c.textContent=cur;$("msg").textContent="✅ "+cur;
   var t=tok;setTimeout(function(){if(t!==tok)return;b.classList.remove("ok");b.classList.add("done");qi++;if(qi<code.length)show();else win()},650)}
  else{if(!miss)answer(false);miss++;b.classList.remove("ko");void b.offsetWidth;b.classList.add("ko");tone(200,0,.25,.18,"sawtooth");
+  // erreur = 10 secondes de moins au compteur (à la demande de l'utilisateur)
+  left=Math.max(0,left-10);var tm=$("time");tm.textContent=fmt(left);tm.classList.remove("hit");void tm.offsetWidth;tm.classList.add("hit");
+  var pn=document.createElement("span");pn.className="pen";pn.textContent="−10 s";$("bomb").appendChild(pn);setTimeout(function(){pn.remove()},1200);
+  if(left<=0){boom();return}
   setTimeout(function(){b.classList.remove("ko")},450);$("msg").textContent="Non, ça c'est "+n+". Écoute bien !";say("Non. "+cur);
   if(miss>=2){var h=$("grid").querySelector('[data-n="'+cur+'"]');if(h){h.classList.remove("hint");void h.offsetWidth;h.classList.add("hint")}}}});
 function finish(){over=true;clearInterval(tick);cur=null;[].forEach.call($("code").children,function(c){c.classList.remove("now")});document.body.classList.add("off");$("grid").hidden=$("ask").hidden=true;$("end").hidden=false;try{if(parent!==window)parent.postMessage({type:"roundEnd"},"*")}catch(e){}}
