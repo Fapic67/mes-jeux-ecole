@@ -84,7 +84,11 @@ body.shake #inner{animation:quake .6s}
 var $=function(i){return document.getElementById(i)};
 function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
 function voiceFor(l){try{var v=speechSynthesis.getVoices().filter(function(v){return v.lang&&v.lang.indexOf(l)===0});return v.filter(function(x){return x.localService})[0]||v[0]||null}catch(e){return null}}
-function say(t){try{if(!window.speechSynthesis)return;speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.lang="fr-FR";var v=voiceFor("fr");if(v)u.voice=v;u.rate=.9;speechSynthesis.speak(u)}catch(e){}}
+// la voix ne coupe que si elle parlait déjà, puis attend un instant avant de reparler (sinon le début du mot suivant se perd)
+var stok=0;function say(t){try{var S=window.speechSynthesis;if(!S)return;var k=++stok,busy=S.speaking||S.pending;if(busy)S.cancel();
+ setTimeout(function(){if(k!==stok)return;var u=new SpeechSynthesisUtterance(t);u.lang="fr-FR";var v=voiceFor("fr");if(v)u.voice=v;u.rate=.9;S.speak(u)},busy?180:0)}catch(e){}}
+// un nombre seul (« douze », « seize ») est trop court : son début était avalé (signalé par l'utilisateur) → « le douze »
+function sayN(n){say("Le "+n+".")}
 function afterSay(fn,ms){var t0=Date.now(),quiet=0;(function w(){var s=window.speechSynthesis,busy=s&&(s.speaking||s.pending),now=Date.now();if(busy)quiet=0;else if(!quiet)quiet=now;if((now-t0>=ms&&quiet&&now-quiet>=250)||now-t0>15000)fn();else setTimeout(w,120)})()}
 var ac=null;function actx(){try{if(!ac){var C=window.AudioContext||window.webkitAudioContext;if(!C)return null;ac=new C()}if(ac.state==="suspended")ac.resume();return ac}catch(e){return null}}
 function tone(f,t,d,v,type){var a=actx();if(!a)return;try{var o=a.createOscillator(),g=a.createGain(),s=a.currentTime+t;o.type=type||"triangle";o.frequency.value=f;g.gain.setValueAtTime(v||.16,s);g.gain.exponentialRampToValueAtTime(.001,s+d);o.connect(g);g.connect(a.destination);o.start(s);o.stop(s+d)}catch(e){}}
@@ -109,8 +113,8 @@ function step(){if(over||!$("sheet").hidden||document.hidden)return;left--;$("ti
  if(left<=10&&left>0){$("time").className="hurry";tone(1400,0,.08,.12,"square")}else if(left%2===0)tone(900,0,.04,.05,"square");
  if(left<=0)boom()}
 function show(){cur=code[qi];miss=0;busy=false;var cs=$("code").children;for(var i=0;i<cs.length;i++)cs[i].classList.toggle("now",i===qi);
- $("msg").textContent="🔊 Écoute et touche le nombre !";setTimeout(function(){if(!busy&&!miss&&!over)say(String(cur))},250)}
-$("ear").onclick=function(){if(cur&&!over)say(String(cur))};
+ $("msg").textContent="🔊 Écoute et touche le nombre !";setTimeout(function(){if(!busy&&!miss&&!over)sayN(cur)},250)}
+$("ear").onclick=function(){if(cur&&!over)sayN(cur)};
 function answer(ok){try{if(parent!==window)parent.postMessage({type:"answer",game:"bombe",ok:ok,diff:LV[level].x,k:"Les "+Math.floor(cur/10)*10,item:String(cur)},"*")}catch(e){}}
 $("grid").addEventListener("click",function(e){var b=e.target.closest(".n");if(!b||busy||over||cur==null||b.classList.contains("done"))return;var n=+b.dataset.n;
  if(n===cur){busy=true;b.classList.add("ok");tone(660,0,.1);tone(990,.08,.16);if(!miss){good++;answer(true)}
