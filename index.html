@@ -118,6 +118,19 @@ body.rw-shop #purse{display:none!important}
 #pi-steps .st.done{background:rgba(34,168,97,.45)}#pi-steps .st.done .n{background:#22a861;color:#fff}
 #pi-pot{font:700 26px "Fredoka",sans-serif;color:#8a5a00;background:linear-gradient(#fff4cc,#ffd34d);border:3px solid #fff;border-radius:999px;padding:6px 22px;box-shadow:0 0 18px 4px rgba(255,211,77,.6);animation:piUp .5s both,piPulse 1.6s ease-in-out infinite}
 #pi-pot[hidden]{display:none}
+#pathwin{position:fixed;inset:0;z-index:62;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 30%,#ffb347,#d9541e 75%);color:#fff;overflow:hidden;animation:piIn .4s both}
+#pathwin[hidden]{display:none}
+#pathwin .pi-in{width:100%;max-width:440px;padding:28px 20px;display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center}
+#pathwin .pi-ic{font-size:100px;line-height:1;animation:piSpin 1.2s cubic-bezier(.2,1.4,.4,1) both,piFloat 2.4s 1.2s ease-in-out infinite}
+#pathwin h2{margin:0;font-size:34px;color:#fff;animation:piUp .5s .4s both}
+.pw-h{font:700 22px "Fredoka",sans-serif;animation:piUp .5s .5s both}
+.pw-bal{position:absolute;top:calc(14px + env(safe-area-inset-top,0px));right:14px;font:700 26px "Fredoka",sans-serif;color:#8a5a00;background:#fff4cc;border:3px solid #ffd34d;border-radius:999px;padding:4px 16px}
+.pw-bal.bump{animation:bump .4s}
+#pw-stars{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;min-height:80px}
+.pws{font-size:58px;line-height:1;background:none;border:0;padding:4px;cursor:pointer;filter:drop-shadow(0 0 10px #ffe680);animation:pnPop .5s both,stp 1.2s ease-in-out infinite}
+.pws.gone{visibility:hidden}
+.pwfly{position:fixed;font-size:58px;line-height:1;padding:4px;z-index:63;pointer-events:none;transition:transform .6s cubic-bezier(.5,-.3,.7,1),opacity .6s}
+#pw-go{width:100%;min-height:68px;font-size:24px;animation:piUp .5s both}
 #pi-go{width:100%;min-height:68px;font-size:24px;animation:piUp .5s both,piPulse 1.6s 2s ease-in-out infinite}
 @keyframes piIn{from{opacity:0}}@keyframes piUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
 @keyframes piSpin{from{transform:scale(.2) rotate(-540deg);opacity:0}to{transform:none;opacity:1}}
@@ -744,6 +757,16 @@ body.rw-shop #purse{display:none!important}
 </div></div>
 <!-- Parcours : passage à l'étape suivante -->
 <div id="pathnext" hidden><div class="pn-in"><div class="pn-ic" id="pn-ic"></div><div class="pn-h" id="pn-h"></div><h2 id="pn-t"></h2></div></div>
+<!-- Parcours : fin du parcours, étoiles à ranger dans le solde -->
+<div id="pathwin" hidden><div class="pi-in">
+  <div id="pw-bal" class="pw-bal">⭐ <span id="pw-bn">0</span></div>
+  <div class="pi-ic">🏆</div>
+  <h2 id="pw-t"></h2>
+  <div id="pw-h" class="pw-h"></div>
+  <div id="pw-stars"></div>
+  <div id="pw-tip" class="pw-h">👆 Touche les étoiles !</div>
+  <button class="btn okb" id="pw-go">🏠 Retour à l'accueil</button>
+</div></div>
 <!-- Parcours : étape terminée -->
 <div class="sheet" id="pathdone" hidden><div class="panel" style="text-align:center;align-items:center">
   <div class="big" id="pd-ic">✅</div><h2 style="justify-content:center" id="pd-t"></h2>
@@ -993,7 +1016,7 @@ function onAnswer(m){if(noStars())return;var p=prof(),E=ensureEcon(p),P=ECON.P[m
   var t=p.noFlame?1:tierOf(E.streak);E.gauge=r2(E.gauge+P*diff*t*q*bonusOf(p,cur));var n=0;while(E.gauge>=ECON.PTS){E.gauge=r2(E.gauge-ECON.PTS);n++}
   if(p.noFlame){if(n)toast("+"+n+" ⭐")} // multiplicateur de série désactivé dans le profil : ni ×2/×3 ni annonces
   else if(n)toast("+"+n+" ⭐"); // plus d'annonces de série : c'est l'étoile du solde qui brille (à la demande de l'utilisateur)
-  if(n){p.stars+=n;d.st+=n}saveP();renderPurse(n>0);}
+  if(n){p.stars+=n;d.st+=n;if(PGAIN)pathGain(p,n)}saveP();renderPurse(n>0);}
  else{E.streak=0;saveP();renderEco()}}
 /* ---------- Résultats par exercice et par profil (clé stats@<profil>) ----------
    g[jeu].d[jour] = {ok, tot, sec, k:{catégorie:[ok,tot]}} ; g[jeu].it[question] = [ok, tot, dernier jour] */
@@ -1054,7 +1077,7 @@ function ageBonus(p,g){var c=classOf(p),t=AGEBONUS[g];return(t&&c&&t[c])||1}
 function onFinish(m){if(noStars())return;var p=prof(),E=ensureEcon(p),P=ECON.P[m.game];if(P==null)return;rollWeek(p);
  var d=today(p),diff=Math.max(1,Math.min(3,(+m.diff||1)*ageBonus(p,cur))),n=0;lastDiff=diff;lastAct=Date.now();
  if(GAMES[cur]){(p.sp=p.sp||{})[cur]=r2(P*(+m.n||1)*diff)}E.gauge=r2(E.gauge+P*(+m.n||1)*diff*bonusOf(p,cur));while(E.gauge>=ECON.PTS){E.gauge=r2(E.gauge-ECON.PTS);n++}
- if(n){p.stars+=n;d.st+=n;toast("+"+n+" ⭐",2000)}saveP();renderPurse(n>0)}
+ if(n){p.stars+=n;d.st+=n;toast("+"+n+" ⭐",2000);if(pathActive(p)&&pathIsCur(cur,p))pathGain(p,n)}saveP();renderPurse(n>0)}
 /* ---------- Type de récompense par profil : p.rmode = "none" (rien), "stars" (compteur d'étoiles), "shop" (boutique) ----------
    Boutique commune (clé « shop ») gérée dans les Paramètres : articles {id, ic, t, price, rep (répétable), game (clé d'un jeu à débloquer), on}.
    Par profil : p.stars = étoiles à dépenser ; p.games = jeux débloqués ; p.shopBought {id: nombre} ; p.shopPend [{id, ic, t, d}] = à remettre ; p.shopLog. */
@@ -1186,8 +1209,10 @@ function pathHideCss(k,g){if(!pathIsCur(k))return"";var c=pathCur(),N=c.t==="gam
 function pathHideCss0(g){var sel=PATHHIDE[g.app];if(!sel||(g.app==="francais"&&g.start===5))return"<script>window.PATHMODE=1<\/script>";
  return"<style>"+sel+"{display:none!important}</style><script>window.PATHMODE=1<\/script>"}
 // en jeu pendant le parcours : pas de retour (ni bouton ←, ni retour du téléphone) tant que l'étape n'est pas finie ou que « Étape réussie » est affichée
-function pathStay(){return !!(GAMES[cur]&&!dayUp&&!dayOver()&&(pathIsCur(cur)||!$("pathdone").hidden))}
+function pathStay(){return !!(GAMES[cur]&&!dayUp&&!dayOver()&&(pathIsCur(cur)||!$("pathdone").hidden||!$("pathwin").hidden))}
 function updPback(){$("pback").style.visibility=pathStay()?"hidden":""}
+var PGAIN=false; // la réponse en cours appartient à l'étape du parcours (calculé avant que l'étape soit comptée finie)
+function pathGain(p,n){var pr=pathProg(p);pr.st=(pr.st||0)+n}
 function pathIsCur(k,p){var c=pathCur(p);return !!(c&&c.g===k)}
 function pathLocked(k,p){var c=pathCur(p);return !!(c&&c.g!==k)}
 function pathGoal(st){return st.t==="min"?st.n*60:st.n}
@@ -1199,7 +1224,7 @@ function pathEvt(kind){var c=pathCur();if(!c||c.g!==cur||c.t!=="games")return;va
  if(pr.q>=N){pr.q=0;pathAdd("games",1)}else renderPathbar()}
 function pathAdd(kind,n){var p=prof(),c=pathCur(p);if(!c||c.g!==cur||c.t!==kind)return;var pr=pathProg(p);pr.c+=n;
  if(pr.c>=pathGoal(c)){pr.i++;pr.c=0;pr.q=0;pathProg(p);saveP();renderPathbar();pathStepDone(p)}}
-function pathStepDone(p){var nx=pathCur(p),P=p.path;$("pd-ic").textContent=nx?"✅":"🎉";$("pd-t").textContent=nx?"Étape réussie !":"Parcours terminé !";
+function pathStepDone(p){var nx=pathCur(p),P=p.path;if(!nx){freezeGame();setTimeout(function(){pathWin(p)},0);return}$("pd-ic").textContent=nx?"✅":"🎉";$("pd-t").textContent=nx?"Étape réussie !":"Parcours terminé !";
  $("pd-h").textContent=nx?"Étape "+(P.prog.i+1)+" / "+P.steps.length+" : "+GAMES[nx.g].t:"Tu peux jouer à ce que tu veux.";
  $("pd-go").textContent=nx?"▶ Étape suivante":"🏠 Retour à l'accueil";$("pathdone").hidden=false;updPback();freezeGame()}
 /* étape finie : le jeu s'arrête (plus de question suivante ni de voix derrière la fenêtre) */
@@ -1214,11 +1239,33 @@ function freezeGame(){if(!GAMES[cur])return;var tok=++loadTok,f=$("frame"),t0=Da
  (function w(){if(tok!==loadTok||$("frame")!==f){done();return}var el=Date.now()-t0;
   if(ss&&el<9000&&((allow&&el<1500)||ss.speaking||ss.pending)){setTimeout(w,100);return}
   try{ss&&ss.cancel()}catch(e){}done();if(f.hasAttribute("srcdoc"))setFrame(null)})()}
+function pathHome(){if(GAMES[cur]){var d=depth();if(d>1)history.go(1-d);else{history.replaceState({d:1,r:""},"",url(""));show("")}}}
 $("pd-go").onclick=function(){$("pathdone").hidden=true;updPback();var nx=pathCur();
- if(!nx){if(GAMES[cur]){var d=depth();if(d>1)history.go(1-d);else{history.replaceState({d:1,r:""},"",url(""));show("")}}return} // parcours terminé : retour à l'accueil
+ if(!nx){pathHome();return} // parcours terminé : retour à l'accueil
  if(GAMES[cur]){pathNext(nx);return}go(nx.g)};
 // écran de transition entre deux étapes (à la demande de l'utilisateur) : « Étape 2 / 4 », icône et nom de l'exercice, dits à voix haute ;
 // l'exercice suivant remplace le précédent dans l'historique et se charge derrière l'écran (on ne revoit jamais l'ancien exercice)
+// fin du parcours (à la demande de l'utilisateur) : félicitations dites à voix haute, les étoiles gagnées pendant le parcours s'affichent ;
+// l'enfant les touche une à une, elles s'envolent vers le solde (déjà compté : l'affichage part du solde d'avant et monte)
+function pathWin(p){var o=$("pathwin"),N=pathProg(p).st||0,K=Math.min(N,12),bal=Math.max(0,p.stars-N),left=K,nm=p.name||"";
+ $("pw-t").textContent="Bravo"+(nm?" "+nm:"")+" !";$("pw-h").textContent=N?"Tu as gagné "+N+" étoile"+(N>1?"s":"")+" !":"Tu as fini ton parcours !";
+ $("pw-bal").hidden=!N;$("pw-bn").textContent=bal;$("pw-tip").hidden=!N;$("pw-go").hidden=!!N;
+ var box=$("pw-stars");box.innerHTML="";
+ for(var i=0;i<K;i++){var v=Math.floor(N/K)+(i<N%K?1:0),b=document.createElement("button");b.className="pws";b.textContent="⭐";b.dataset.v=v;
+  b.style.animationDelay=(.6+i*.12).toFixed(2)+"s,"+(1.4+i*.12).toFixed(2)+"s";box.appendChild(b)}
+ box.onclick=function(e){var b=e.target.closest(".pws");if(!b||b.classList.contains("gone"))return;b.classList.add("gone");
+  var r=b.getBoundingClientRect(),t=$("pw-bal").getBoundingClientRect(),f=document.createElement("div");f.className="pwfly";f.textContent="⭐";
+  f.style.left=r.left+"px";f.style.top=r.top+"px";o.appendChild(f);
+  requestAnimationFrame(function(){requestAnimationFrame(function(){f.style.transform="translate("+(t.left+t.width/2-r.left-r.width/2)+"px,"+(t.top+t.height/2-r.top-r.height/2)+"px) scale(.5)";f.style.opacity=".3"})});
+  setTimeout(function(){f.remove();bal+=+b.dataset.v;$("pw-bn").textContent=bal;var c=$("pw-bal");c.classList.remove("bump");void c.offsetWidth;c.classList.add("bump");ding();
+   if(!--left){$("pw-tip").hidden=true;$("pw-go").hidden=false;confetti(o);hubSay("Bravo ! Tu as maintenant "+bal+" étoile"+(bal>1?"s":"")+" !")}},650)};
+ o.hidden=false;confetti(o);updPback();
+ // la voix attend que le jeu ait fini sa dernière phrase (freezeGame réactive « pd-go » quand il se tait)
+ var t0=Date.now();(function w(){if(o.hidden)return;if($("pd-go").disabled&&Date.now()-t0<9000){setTimeout(w,150);return}
+  hubSay("Bravo"+(nm?" "+nm:"")+" ! Tu as terminé ton parcours !"+(N?" Tu as gagné "+N+" étoile"+(N>1?"s":"")+". Touche les étoiles pour les ajouter à ton trésor !":""))})()}
+function ding(){try{var A=window.AudioContext||window.webkitAudioContext;if(!A)return;var a=ding.a||(ding.a=new A()),t=a.currentTime;
+ [988,1319].forEach(function(f,i){var o=a.createOscillator(),g=a.createGain();o.type="sine";o.frequency.value=f;g.gain.setValueAtTime(.0001,t+i*.08);g.gain.exponentialRampToValueAtTime(.25,t+i*.08+.01);g.gain.exponentialRampToValueAtTime(.0001,t+i*.08+.35);o.connect(g);g.connect(a.destination);o.start(t+i*.08);o.stop(t+i*.08+.4)})}catch(e){}}
+$("pw-go").onclick=function(){$("pathwin").hidden=true;updPback();pathHome()};
 function pathNext(nx){var o=$("pathnext"),g=GAMES[nx.g],b=document.querySelector('[data-play="'+nx.g+'"] .ic'),p=prof(),t0=Date.now(),shown=false;
  $("pn-ic").innerHTML=b?b.innerHTML:"🧭";$("pn-h").textContent="Étape "+(pathProg(p).i+1)+" / "+p.path.steps.length;$("pn-t").textContent=g.t;
  o.classList.remove("out");o.hidden=false;
@@ -1751,7 +1798,7 @@ window.addEventListener("message",function(e){
  if(e.data==="hub-back")back();
  else if(e.data&&e.data.type==="eco"){ecoOff=!e.data.on;renderEco()}
  else if(e.data&&e.data.type==="roundEnd"){pathEvt("round");if(dayUp){clearTimeout(dayT);dayT=setTimeout(endDay,2500)}else if(timeUp){clearTimeout(graceT);graceT=setTimeout(endPlay,2500)}}
- else if(e.data&&e.data.type==="answer"){if(GAMES[cur]&&GAMES[cur].luck)return;recordStat(e.data);if(e.data.ok)pathAdd("ok",1);pathEvt("q");onAnswer(e.data)}
+ else if(e.data&&e.data.type==="answer"){if(GAMES[cur]&&GAMES[cur].luck)return;recordStat(e.data);if(e.data.ok)pathAdd("ok",1);PGAIN=pathActive()&&pathIsCur(cur);pathEvt("q");onAnswer(e.data);PGAIN=false}
  else if(e.data&&e.data.type==="finish"){recordStat({ok:true,k:e.data.k});onFinish(e.data)}
  else if(e.data&&e.data.type==="stars")addStars(e.data.n)});
 if(ls("bk_restored")){localStorage.removeItem("bk_restored");setTimeout(function(){var t=document.createElement("div");t.className="toast";t.style.animationDuration="4s";t.textContent="💾 Profils restaurés depuis config.json";document.body.appendChild(t);setTimeout(function(){t.remove()},4200)},400)}
