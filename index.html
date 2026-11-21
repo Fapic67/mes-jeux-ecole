@@ -600,6 +600,10 @@ body.rw-shop #purse{display:none!important}
         <button class="btn" id="p-stset">Définir</button><button class="btn danger" id="p-st0">Remettre à 0</button></div>
       <label class="switch" id="p-flamerow"><input type="checkbox" id="p-flame"><span class="grow">🔥 Multiplicateur de série</span></label>
     </div>
+    <div class="card" id="p-lvlc">
+      <h3>🎚️ Niveaux</h3>
+      <div id="p-lvl" class="pg" style="gap:6px"></div>
+    </div>
     <div class="card" id="p-gainc">
       <h3>⚖️ Gains</h3>
       <div id="p-gain" class="pg" style="gap:6px"></div>
@@ -1233,6 +1237,40 @@ function pathCur(p){p=p||prof();return pathActive(p)&&!pathDone(p)?p.path.steps[
 // Pendant une étape du Parcours, on cache dans le jeu les boutons qui sortent du programme (niveau, mode, réglages, menu)
 var PATHHIDE={calcul:"#gear",telephone:"#gear",francais:"#mn",deutsch:"#mn",code:"#lvlb",robot:"#lvlb",chenille:"#lvlb,#mk",memory:"#setb",courses:"#lvlb",musique:"#gear",glissant:"#lvlb",pizzeria:"#lvlb",tuyaux:"#lvlb",ocean:"#setb",drapeau:"#lvlb",pays:"#lvlb",heure:"#lvlb",bombe:"#lvlb",ecrire:"#lvlb",formes:"#lvlb",position:"#lvlb",corps:"#lvlb"};
 var PATHREN="<script>setInterval(function(){['re','again'].forEach(function(i){var b=document.getElementById(i);if(b&&b.textContent!=='▶ Partie suivante')b.textContent='▶ Partie suivante'})},300)<\/script>";
+/* ---------- 🎚️ Niveaux des exercices (à la demande de l'utilisateur) : réglés par l'administrateur pour tout le monde, plus dans les exercices.
+   Clé lvl_cfg = {id: {v, t}} (synchronisée). Exercice à niveau fixe : la valeur est écrite dans la clé du jeu à chaque lancement.
+   Jeu qui progresse tout seul (prog) : le niveau choisi est écrit une fois par profil (lvl_ap@<profil> garde l'heure appliquée), puis le jeu avance seul. */
+var FDM=[[1,"Facile"],[2,"Moyen"],[3,"Difficile"]];
+function lvlN(n){var a=[];for(var i=1;i<=n;i++)a.push([i,"Niveau "+i]);return a}
+function lvK(k,pid){return k+"_lvl@"+pid}
+function lvKB(k,pid){return k+"_best@"+pid}
+var LVLS=[
+ {id:"calcul",g:"addition",ks:["addition","soustraction","complement"],t:"Additions, soustractions, compléments",o:[[10,"Jusqu'à 10"],[20,"Jusqu'à 20"],[50,"Jusqu'à 50"],[100,"Jusqu'à 100"]],set:function(pid,v){var o={};try{o=JSON.parse(localStorage.getItem("calcul")||"{}")||{}}catch(e){}o.max=v;ls("calcul",JSON.stringify(o))}},
+ {id:"telephone",o:[[30,"Jusqu'à 30"],[60,"Jusqu'à 60"],[99,"Jusqu'à 99"]],set:function(pid,v){ls("tel_max",String(v))}},
+ {id:"heure",o:FDM},{id:"bombe",o:[[1,"10 à 39"],[2,"40 à 69"],[3,"70 à 99"]]},
+ {id:"jours",o:FDM},{id:"femplu",o:FDM},{id:"formes",o:FDM},{id:"position",o:FDM},{id:"corps",o:FDM},{id:"drapeau",o:FDM},
+ {id:"code",o:FDM,set:function(pid,v){ls("code_lvl",String(v))}},
+ {id:"note",o:[["facile","Facile"],["moyen","Moyen"]],set:function(pid,v){ls("mus_niv",v)}},
+ {id:"robot",prog:1,o:lvlN(12)},{id:"boucles",prog:1,o:lvlN(12)},{id:"reparateur",prog:1,o:lvlN(12)},
+ {id:"chenille",prog:1,o:lvlN(8)},
+ {id:"courses",prog:1,o:lvlN(8)},{id:"coursesm",g:"courses",t:"Die Einkaufsliste · mode",o:[["facile","Facile"],["moyen","Moyen"]],set:function(pid,v){ls("courses_mode@"+pid,v)}},
+ {id:"memory",prog:1,o:lvlN(5)},{id:"memorym",g:"memory",t:"Memory · cartes",o:[["img","Images"],["de","Image ↔ mot allemand"]],set:function(pid,v){ls("memory_mode@"+pid,v)}},
+ {id:"glissant",prog:1,o:lvlN(15)},{id:"pizzeria",prog:1,o:lvlN(6),key:"pizza"},{id:"tuyaux",prog:1,o:lvlN(15)},{id:"ocean",prog:1,o:lvlN(6)}];
+var LVRAW=null,LVC={};function lvlCfg(){var r=localStorage.getItem("lvl_cfg")||"{}";if(r!==LVRAW){LVRAW=r;try{LVC=JSON.parse(r)||{}}catch(e){LVC={}}}return LVC}
+function lvlSet(L,pid,v){if(L.set)return L.set(pid,v);var k=L.key||L.id;ls(lvK(k,pid),String(v));if(L.prog){var b=parseInt(localStorage.getItem(lvKB(k,pid)))||1;if(v>b)ls(lvKB(k,pid),String(v))}}
+// avant de charger le jeu k : appliquer les niveaux réglés qui le concernent pour le profil actif
+function applyLevels(k){var C=lvlCfg(),pid=prof().id,ap=lj("lvl_ap@"+pid,{}),ch=false;
+ LVLS.forEach(function(L){if((L.ks||[L.g||L.id]).indexOf(k)<0)return;var c=C[L.id];if(!c||c.v==null)return;
+  if(L.prog){if((ap[L.id]||0)>=c.t)return;ap[L.id]=c.t;ch=true}lvlSet(L,pid,c.v)});
+ if(ch)ls("lvl_ap@"+pid,JSON.stringify(ap))}
+function renderLvl(){var C=lvlCfg();$("p-lvl").innerHTML=LVLS.map(function(L){var g=GAMES[L.g||L.id];if(!g)return"";var c=C[L.id],v=c?String(c.v):"";
+  return '<label class="row" style="gap:6px"><span class="grow">'+(GICON[L.g||L.id]?GICON[L.g||L.id]+" ":"")+esc(L.t||g.t)+'</span><select class="field" data-lv="'+L.id+'" style="width:auto;max-width:190px">'+
+   '<option value="">—</option>'+L.o.map(function(o){return '<option value="'+o[0]+'"'+(String(o[0])===v?" selected":"")+">"+o[1]+"</option>"}).join("")+"</select></label>"}).join("")}
+$("p-lvl").addEventListener("change",function(e){var id=e.target.dataset.lv;if(!id)return;var C=lvlCfg(),v=e.target.value,L=LVLS.filter(function(x){return x.id===id})[0];
+ if(v==="")delete C[id];else C[id]={v:isNaN(+v)?v:+v,t:Date.now()};ls("lvl_cfg",JSON.stringify(C));if(v!==""&&L)applyLevels(L.g||L.id)});
+// les choix de niveau ne se font plus dans les exercices : boutons cachés (le choix de la langue du corps et 🎨 de la chenille restent)
+var LVLHIDE={calcul:"label:has(+#mx),#mx",telephone:"label:has(#mx)",musique:"h3:has(+#nivs),#nivs",code:"#lvlb",robot:"#lvlb",chenille:"#lvlb",memory:"#setb",courses:"#lvlb",glissant:"#lvlb",pizzeria:"#lvlb",tuyaux:"#lvlb",ocean:"#setb",drapeau:"#lvlb",heure:"#lvlb",bombe:"#lvlb",ecrire:"#lvlb",formes:"#lvlb",position:"#lvlb",corps:"#lvlb"};
+function lvlHideCss(g){var s=LVLHIDE[g.app];return s?"<style>"+s+"{display:none!important}</style>":""}
 function pathHideCss(k,g){if(!pathIsCur(k))return"";var c=pathCur(),N=c.t==="games"&&partOfSt(c)[1]==="q"?partSize(c):0;
  return pathHideCss0(g)+PATHREN+(N?"<script>window.PATHN="+N+"<\/script>":"")} // PATHN : le jeu fait des parties de la taille choisie dans le parcours
 function pathHideCss0(g){var sel=PATHHIDE[g.app];if(!sel||(g.app==="francais"&&g.start===5))return"<script>window.PATHMODE=1<\/script>";
@@ -1587,7 +1625,7 @@ function renderProfil(){var p=prof(EDIT);if(p.id!==EDIT)EDIT=p.id;
  var bl=Object.keys(AGEBONUS).filter(function(g){return ageBonus(p,g)>1}).map(function(g){return GAMES[g].t+" ⭐×"+String(ageBonus(p,g)).replace(".",",")});
  $("p-agetxt").textContent=ag==null?"Indique la date de naissance : la classe sert à donner un bonus d'étoiles sur les exercices en avance sur le programme.":ad?ag+" ans · adulte : pas de classe ni de bonus d'étoiles.":ag+" ans · classe "+(classOf(p)||"?")+(p.cls?"":" (d'après l'âge)")+" · "+(bl.length?"bonus d'étoiles : "+bl.join(", "):"pas de bonus d'étoiles à ce niveau")+".";
  $("p-st").textContent=p.stars;$("p-mo").textContent=money(p.money,p);
- $("p-gainc").hidden=!p.admin;if(p.admin&&!$("p-gain").contains(document.activeElement))renderGain();
+ $("p-gainc").hidden=!p.admin;$("p-lvlc").hidden=!p.admin;if(p.admin&&!$("p-lvl").contains(document.activeElement))renderLvl();if(p.admin&&!$("p-gain").contains(document.activeElement))renderGain();
  renderPurse()}
 // bonus d'étoiles sur des exercices choisis par un parent (à la demande de l'utilisateur : pour encourager à faire ces exercices)
 // gain de base de chaque exercice (réglé par un administrateur, commun à tous les profils, clé gain_cfg synchronisée) :
@@ -1788,7 +1826,7 @@ $("s-nopin").onclick=function(){if(confirm("Remettre le code par défaut 0000 ?"
 var cache={},loadTok=0;
 function load(app){return cache[app]||(cache[app]=fetch("jeux/"+app+".html").then(function(r){if(!r.ok)throw new Error(r.status);return r.text()}).catch(function(e){delete cache[app];throw e}))}
 function src(g,h){
- var pre="<script>window.START="+(g.start||0)+";window.PRENOM="+JSON.stringify(prof().name).replace(/</g,"\\u003c")+";window.PROFILE="+JSON.stringify(prof().id)+";window.AGE="+(ageOf(prof())||0)+";if(parent.NATIVE_TTS){try{Object.defineProperty(window,\"speechSynthesis\",{value:parent.NATIVE_TTS.synth,configurable:true,writable:true})}catch(e){}window.SpeechSynthesisUtterance=parent.NATIVE_TTS.Utt}<\/script>"+pathHideCss(cur,g);
+ applyLevels(cur);var pre="<script>window.START="+(g.start||0)+";window.PRENOM="+JSON.stringify(prof().name).replace(/</g,"\\u003c")+";window.PROFILE="+JSON.stringify(prof().id)+";window.AGE="+(ageOf(prof())||0)+";if(parent.NATIVE_TTS){try{Object.defineProperty(window,\"speechSynthesis\",{value:parent.NATIVE_TTS.synth,configurable:true,writable:true})}catch(e){}window.SpeechSynthesisUtterance=parent.NATIVE_TTS.Utt}<\/script>"+lvlHideCss(g)+pathHideCss(cur,g);
  return h.replace("<head>","<head>"+pre)}
 // Un nouvel iframe à chaque fois : modifier src/srcdoc d'un iframe existant ajouterait une entrée d'historique
 function setFrame(html){var old=$("frame"),f=document.createElement("iframe");f.id="frame";f.setAttribute("allow",old.getAttribute("allow"));if(html!=null)f.srcdoc=html;
