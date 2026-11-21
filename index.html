@@ -118,6 +118,18 @@ body.rw-shop #purse{display:none!important}
 #pi-steps .st.done{background:rgba(34,168,97,.45)}#pi-steps .st.done .n{background:#22a861;color:#fff}
 #pi-pot{font:700 26px "Fredoka",sans-serif;color:#8a5a00;background:linear-gradient(#fff4cc,#ffd34d);border:3px solid #fff;border-radius:999px;padding:6px 22px;box-shadow:0 0 18px 4px rgba(255,211,77,.6);animation:piUp .5s both,piPulse 1.6s ease-in-out infinite}
 #pi-pot[hidden]{display:none}
+#award{position:fixed;inset:0;z-index:70;display:flex;align-items:center;justify-content:center;pointer-events:none;background:radial-gradient(circle,rgba(255,214,77,.35),transparent 65%)}
+#award[hidden]{display:none}
+#aw-card{display:flex;align-items:center;gap:10px;background:linear-gradient(#fff8d6,#ffd34d);border:4px solid #fff;border-radius:999px;padding:12px 28px;box-shadow:0 0 30px 8px rgba(255,200,0,.6),0 8px 0 #c98a00;color:#7a4a00;font:700 52px "Fredoka",sans-serif}
+#award.go #aw-card{animation:awIn .5s cubic-bezier(.2,1.5,.4,1) both,awOut .4s ease-in 2.6s forwards}
+#aw-card .aw-s{font-size:56px;animation:stp .8s ease-in-out infinite}
+#aw-c{font-size:30px;background:#7a4a00;color:#fff;border-radius:999px;padding:2px 12px}
+#aw-c[hidden]{display:none}
+@keyframes awIn{from{transform:scale(.2) rotate(-12deg);opacity:0}}
+@keyframes awOut{to{transform:scale(.6);opacity:0}}
+.awfly{position:fixed;z-index:71;font-size:40px;line-height:1;pointer-events:none;transition:transform .7s cubic-bezier(.5,-.3,.7,1),opacity .7s}
+#pstars .pend{font-size:.75em;font-weight:700;color:#8a5a00;background:#fff4cc;border:2px solid #ffd34d;border-radius:999px;padding:0 6px;margin-right:4px}
+#pstars.bump,#purse.bump,#shopbar.bump{animation:bump .4s}
 #pathwin{position:fixed;inset:0;z-index:62;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 30%,#ffb347,#d9541e 75%);color:#fff;overflow:hidden;animation:piIn .4s both}
 #pathwin[hidden]{display:none}
 #pathwin .pi-in{width:100%;max-width:440px;padding:28px 20px;display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center}
@@ -764,6 +776,8 @@ body.rw-shop #purse{display:none!important}
 </div></div>
 <!-- Parcours : passage à l'étape suivante -->
 <div id="pathnext" hidden><div class="pn-in"><div class="pn-ic" id="pn-ic"></div><div class="pn-h" id="pn-h"></div><h2 id="pn-t"></h2></div></div>
+<!-- Versement des étoiles en fin de partie -->
+<div id="award" hidden><div id="aw-card"><div class="aw-s">⭐</div><div id="aw-n">+0</div><div id="aw-c"></div></div></div>
 <!-- Parcours : fin du parcours, étoiles à ranger dans le solde -->
 <div id="pathwin" hidden><div class="pi-in">
   <div id="pw-bal" class="pw-bal">⭐ <span id="pw-bn">0</span></div>
@@ -1017,7 +1031,7 @@ function rollWeek(p){var E=ensureEcon(p),now=monday();if(E.wk===now)return false
 function rollAll(){var ch=false;PR.list.forEach(function(p){if(rollWeek(p))ch=true});if(ch)saveP()}
 function renderPurse(bump){var p=prof(),E=ensureEcon(p),d=today(p),w=weekSum(p,E.wk);
  document.body.classList.toggle("nomoney",true);["none","stars","shop"].forEach(function(m){document.body.classList.toggle("rw-"+m,p.rmode===m)});
- document.querySelectorAll(".nst").forEach(function(e){e.textContent=p.stars});
+ document.querySelectorAll(".nst").forEach(function(e){e.textContent=p.stars-(AWD?AWD.left:0)});
  starTxt();
  $("h-day").textContent=d.st;$("h-goal").textContent=p.goal;$("h-bar").style.width=Math.min(100,d.st/p.goal*100)+"%";
  var carry=Math.max(0,p.stars-w.st);
@@ -1029,12 +1043,13 @@ function renderPurse(bump){var p=prof(),E=ensureEcon(p),d=today(p),w=weekSum(p,E
 var lastDiff=1,lastAct=0;
 function starTxt(){var p=prof(),E=ensureEcon(p),t=p.noFlame||!GAMES[cur]||rndOnly(cur)||GAMES[cur].luck||noStars()?1:tierOf(E.streak),
  c=GAMES[cur]&&!noStars()&&!rndOnly(cur)&&gainV(cur)>0?r2(lastDiff*t*bonusOf(p,cur)):1,e=$("pstars");
- e.innerHTML=(c>1?'<span class="mul">×'+String(c).replace(".",",")+"</span>":"")+'<span class="st">⭐</span> '+p.stars;e.classList.toggle("g2",t===2);e.classList.toggle("g3",t===3)}
+ var pn=GAMES[cur]&&PEND.g===cur?pendStars():0;
+ e.innerHTML=(pn?'<span class="pend">+'+pn+"</span>":"")+(c>1?'<span class="mul">×'+String(c).replace(".",",")+"</span>":"")+'<span class="st">⭐</span> '+(p.stars-(AWD?AWD.left:0));e.classList.toggle("g2",t===2);e.classList.toggle("g3",t===3)}
 function renderEco(){var p=prof(),E=ensureEcon(p),t=tierOf(E.streak),g=!!GAMES[cur]&&gainV(cur)>0;
  $("eco").hidden=!g||noStars();$("pstars").hidden=false;var s=$("pstreak");
  s.hidden=!!(GAMES[cur]&&GAMES[cur].luck)||!!p.noFlame;s.className=E.streak?(t===3?"t3":t===2?"t2":""):"off";
  s.innerHTML=(t===3?"🔥🔥🔥":t===2?"🔥🔥":"🔥")+" "+E.streak+(t>1?'<span class="x">×'+t+"</span>":"");
- starTxt();$("pgauge").firstChild.style.width=Math.min(100,E.gauge/ECON.PTS*100)+"%";
+ starTxt();$("pgauge").firstChild.style.width=Math.min(100,((E.gauge+(PEND.g===cur?PEND.pts:0))%ECON.PTS)/ECON.PTS*100)+"%";
  $("pdiff").textContent=lastDiff>1?"⭐×"+String(r2(lastDiff)).replace(".",","):"";document.body.classList.toggle("ecoon",g)}
 function toast(txt,ms){var t=document.createElement("div");t.className="toast";t.textContent=txt;if(ms)t.style.animationDuration=ms+"ms";document.body.appendChild(t);setTimeout(function(){t.remove()},(ms||1400)+100)}
 // Matière « Jeux » : jamais d'étoiles, quel que soit le jeu
@@ -1043,10 +1058,7 @@ function noStars(){return prof().rmode==="none"||ecoOff}
 function onAnswer(m){if(noStars())return;var p=prof(),E=ensureEcon(p),P=ECON.P[m.game];if(P==null){if(!GAMES[cur]||rndOnly(cur))return;P=1}rollWeek(p);
  var d=today(p),diff=Math.max(1,Math.min(3,(+m.diff||1)*ageBonus(p,cur))),q=m.q==null?1:Math.max(0,Math.min(1,+m.q));lastDiff=diff;if(GAMES[cur]){(p.sd=p.sd||{})[cur]=diff}lastAct=Date.now();d.tot++;
  if(m.ok){E.streak++;d.ok++;d.best=Math.max(d.best,E.streak);E.best=Math.max(E.best||0,E.streak);
-  var t=p.noFlame?1:tierOf(E.streak);E.gauge=r2(E.gauge+P*diff*t*q*bonusOf(p,cur)*gainF(cur));var n=0;while(E.gauge>=ECON.PTS){E.gauge=r2(E.gauge-ECON.PTS);n++}
-  if(p.noFlame){if(n)toast("+"+n+" ⭐")} // multiplicateur de série désactivé dans le profil : ni ×2/×3 ni annonces
-  else if(n)toast("+"+n+" ⭐"); // plus d'annonces de série : c'est l'étoile du solde qui brille (à la demande de l'utilisateur)
-  if(n){p.stars+=n;d.st+=n;if(PGAIN)pathGain(p,n)}saveP();renderPurse(n>0);}
+  var t=p.noFlame?1:tierOf(E.streak);pendAdd(P*diff*t*q*bonusOf(p,cur)*gainF(cur),PGAIN,diff*t*bonusOf(p,cur));saveP();renderEco();}
  else{E.streak=0;saveP();renderEco()}}
 /* ---------- Résultats par exercice et par profil (clé stats@<profil>) ----------
    g[jeu].d[jour] = {ok, tot, sec, k:{catégorie:[ok,tot]}} ; g[jeu].it[question] = [ok, tot, dernier jour] */
@@ -1104,13 +1116,44 @@ function classOf(p){return isAdult(p)?null:(p.cls||classAuto(p))}
 function ageBonus(p,g){var c=classOf(p),t=AGEBONUS[g];return(t&&c&&t[c])||1}
 /* Jeux en partie de hasard (GAMES[x].luck, ex. Memory) : ni série 🔥 ni erreur ; on gagne des étoiles en terminant la partie.
    Le jeu envoie {type:"finish", game, n (taille de la partie, ex. nombre de paires), diff} ; points = P × n × difficulté. */
-function onRound(inPath){if(noStars()||!rndOnly(cur))return;var p=prof(),v=gainV(cur);if(!v)return;var E=ensureEcon(p),d=today(p),n=0;rollWeek(p);lastAct=Date.now();
- E.gauge=r2(E.gauge+v*bonusOf(p,cur)/partOf(cur)[0]*ECON.PTS);while(E.gauge>=ECON.PTS){E.gauge=r2(E.gauge-ECON.PTS);n++}
- if(n){p.stars+=n;d.st+=n;toast("+"+n+" ⭐",2000);if(inPath)pathGain(p,n)}saveP();renderPurse(n>0)}
+/* ---------- Étoiles versées à la FIN de la partie (à la demande de l'utilisateur : plus d'étoiles en cours d'exercice) ----------
+   Pendant la partie, les points (avec série, difficulté, bonus, gain) s'accumulent dans PEND (gardé dans pend@<profil> si l'appli est fermée) ;
+   fin de partie = fin de manche du jeu (roundEnd), ou, pour les jeux sans fin (Calcul, Chenille), N réponses ; aussi en quittant le jeu.
+   Versement : écran « +N ⭐ ×coef », étoiles qui volent vers le solde, solde qui monte. */
+var PEND={g:null,pts:0,q:0,path:false,c:1},NOEND={addition:1,soustraction:1,complement:1,chenille:1,calcul:1};
+function pendKey(){return "pend@"+prof().id}
+function pendSave(){try{localStorage.setItem(pendKey(),JSON.stringify(PEND))}catch(e){}}
+function pendAdd(pts,inPath,c){if(PEND.g!==cur){PEND={g:cur,pts:0,q:0,path:false,c:1}}PEND.pts=PEND.pts+pts;if(inPath)PEND.path=true;if(c)PEND.c=Math.max(PEND.c,r2(c));pendSave();starTxt()}
+function pendStars(){var E=ensureEcon(prof());return Math.floor((E.gauge+PEND.pts)/ECON.PTS+1e-6)}
+// verser la cagnotte : quiet = sans animation (fermeture de l'appli, écran de victoire du parcours qui montre déjà les étoiles)
+function awardPend(quiet){var p=prof(),E=ensureEcon(p),pts=PEND.pts,c=PEND.c,path=PEND.path;PEND={g:cur,pts:0,q:0,path:false,c:1};try{localStorage.removeItem(pendKey())}catch(e){}
+ if(!(pts>0)){starTxt();return 0}rollWeek(p);var d=today(p),tot=E.gauge+pts,n=Math.floor(tot/ECON.PTS+1e-6);E.gauge=Math.max(0,r2(tot-n*ECON.PTS));
+ if(n){p.stars+=n;d.st+=n;if(path)pathGain(p,n)}saveP();renderPurse(false);renderEco();if(n&&!quiet)showAward(n,c,p.stars-n);return n}
+// cagnotte restée d'une séance fermée en pleine partie : versée sans animation au démarrage
+function pendRestore(){try{var o=JSON.parse(localStorage.getItem(pendKey())||"null");if(o&&o.pts>0){PEND=o;awardPend(true)}}catch(e){}}
+var AWD=null; // étoiles encore « en vol » : le solde affiché monte au fur et à mesure
+function showAward(n,c,from){AWD={left:n};starTxt();var o=$("award"),K=Math.min(n,10),tgt=GAMES[cur]?$("pstars"):($("shopbar")&&!$("shopbar").hidden?$("shopbar"):$("purse"));
+ $("aw-n").textContent="+"+n;$("aw-c").textContent=c>1?"×"+String(r2(c)).replace(".",","):"";$("aw-c").hidden=!(c>1);
+ o.hidden=false;o.classList.remove("go");void o.offsetWidth;o.classList.add("go");ding();
+ var cnt=from,step=n/K,box=$("aw-card").getBoundingClientRect(),t=tgt&&tgt.getBoundingClientRect();
+ for(var i=0;i<K;i++)(function(i){setTimeout(function(){var f=document.createElement("div");f.className="awfly";f.textContent="⭐";
+   f.style.left=(box.left+box.width/2-20+(Math.random()*80-40))+"px";f.style.top=(box.top+box.height/2-20)+"px";document.body.appendChild(f);
+   requestAnimationFrame(function(){requestAnimationFrame(function(){if(t){f.style.transform="translate("+(t.left+t.width-30-parseFloat(f.style.left))+"px,"+(t.top+t.height/2-20-parseFloat(f.style.top))+"px) scale(.5)"}f.style.opacity=".2"})});
+   setTimeout(function(){f.remove();cnt=Math.min(from+n,Math.round(from+step*(i+1)));if(AWD){AWD.left=from+n-cnt;starTxt();if(!GAMES[cur])document.querySelectorAll(".nst").forEach(function(e){e.textContent=from+n-AWD.left})}
+    var b=tgt;if(b){b.classList.remove("bump");void b.offsetWidth;b.classList.add("bump")}tone2(i)},700)},900+i*120)})(i);
+ setTimeout(function(){o.hidden=true;AWD=null;starTxt();renderPurse(false)},900+K*120+900)}
+function tone2(i){try{var A=window.AudioContext||window.webkitAudioContext;if(!A)return;var a=ding.a||(ding.a=new A()),t=a.currentTime,o=a.createOscillator(),g=a.createGain();o.type="sine";o.frequency.value=880+i*60;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.18,t+.01);g.gain.exponentialRampToValueAtTime(.0001,t+.2);o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+.25)}catch(e){}}
+// une partie se termine-t-elle ? (après chaque message du jeu)
+function pendCheck(kind){if(!GAMES[cur])return;if(PEND.g!==cur)PEND={g:cur,pts:0,q:0,path:false,c:1};
+ var c=pathCur(),inP=c&&c.g===cur&&c.t==="games";
+ // jeux en manches (robots, morpion, glissant…) : la partie = N manches ; autres jeux : leur fin de partie
+ if(kind==="round"){if(NOEND[cur])return;if(partOf(cur)[1]==="round"){var R=inP?partSize(c):partOf(cur)[0];PEND.r=(PEND.r||0)+1;pendSave();if(PEND.r<R)return}awardPend();return}
+ PEND.q++;pendSave();if(NOEND[cur]){var N=inP&&partOfSt(c)[1]==="q"?partSize(c):partOf(cur)[0];if(PEND.q>=N)awardPend()}}
+function onRound(inPath){if(noStars()||!rndOnly(cur))return;var p=prof(),v=gainV(cur);if(!v)return;rollWeek(p);lastAct=Date.now();
+ pendAdd(v*bonusOf(p,cur)/partOf(cur)[0]*ECON.PTS,inPath,bonusOf(p,cur))}
 function onFinish(m){if(noStars())return;var p=prof(),E=ensureEcon(p),P=ECON.P[m.game];if(P==null)return;rollWeek(p);
  var d=today(p),diff=Math.max(1,Math.min(3,(+m.diff||1)*ageBonus(p,cur))),n=0;lastDiff=diff;lastAct=Date.now();
- if(GAMES[cur]){(p.sp=p.sp||{})[cur]=r2(P*(+m.n||1)*diff)}E.gauge=r2(E.gauge+P*(+m.n||1)*diff*bonusOf(p,cur)*gainF(cur));while(E.gauge>=ECON.PTS){E.gauge=r2(E.gauge-ECON.PTS);n++}
- if(n){p.stars+=n;d.st+=n;toast("+"+n+" ⭐",2000);if(pathActive(p)&&pathIsCur(cur,p))pathGain(p,n)}saveP();renderPurse(n>0)}
+ if(GAMES[cur]){(p.sp=p.sp||{})[cur]=r2(P*(+m.n||1)*diff)}pendAdd(P*(+m.n||1)*diff*bonusOf(p,cur)*gainF(cur),pathActive(p)&&pathIsCur(cur,p),diff*bonusOf(p,cur));awardPend()}
 /* ---------- Type de récompense par profil : p.rmode = "none" (rien), "stars" (compteur d'étoiles), "shop" (boutique) ----------
    Boutique commune (clé « shop ») gérée dans les Paramètres : articles {id, ic, t, price, rep (répétable), game (clé d'un jeu à débloquer), on}.
    Par profil : p.stars = étoiles à dépenser ; p.games = jeux débloqués ; p.shopBought {id: nombre} ; p.shopPend [{id, ic, t, d}] = à remettre ; p.shopLog. */
@@ -1291,7 +1334,7 @@ function pathEvt(kind){var c=pathCur();if(!c||c.g!==cur||c.t!=="games")return;va
  if(pr.q>=N){pr.q=0;pathAdd("games",1)}else renderPathbar()}
 function pathAdd(kind,n){var p=prof(),c=pathCur(p);if(!c||c.g!==cur||c.t!==kind)return;var pr=pathProg(p);pr.c+=n;
  if(pr.c>=pathGoal(c)){pr.i++;pr.c=0;pr.q=0;pathProg(p);saveP();renderPathbar();pathStepDone(p)}}
-function pathStepDone(p){var nx=pathCur(p),P=p.path;if(!nx){freezeGame();setTimeout(function(){pathWin(p)},0);return}$("pd-ic").textContent=nx?"✅":"🎉";$("pd-t").textContent=nx?"Étape réussie !":"Parcours terminé !";
+function pathStepDone(p){var nx=pathCur(p),P=p.path;if(PEND.pts>0)awardPend(!nx);if(!nx){freezeGame();setTimeout(function(){pathWin(p)},0);return}$("pd-ic").textContent=nx?"✅":"🎉";$("pd-t").textContent=nx?"Étape réussie !":"Parcours terminé !";
  $("pd-h").textContent=nx?"Étape "+(P.prog.i+1)+" / "+P.steps.length+" : "+GAMES[nx.g].t:"Tu peux jouer à ce que tu veux.";
  $("pd-go").textContent=nx?"▶ Étape suivante":"🏠 Retour à l'accueil";$("pathdone").hidden=false;updPback();freezeGame()}
 /* étape finie : le jeu s'arrête (plus de question suivante ni de voix derrière la fenêtre) */
@@ -1838,7 +1881,8 @@ function parentOf(h){return GAMES[h]?GAMES[h].subj:h===""||h==="profil"?"profil"
 function depth(){return(history.state&&history.state.d)||0}
 function url(h){return h?"#"+h:location.pathname+location.search}
 function show(h){
- if(h===cur)return;if(GAMES[cur])try{saveP();stSave(prof().id)}catch(e){}cur=h;window.hubListenStop&&window.hubListenStop();
+ if(h===cur)return;if(GAMES[cur]&&PEND.pts>0)setTimeout(function(){awardPend()},350); // la partie quittée en cours : ses étoiles sont versées sur le menu
+ if(GAMES[cur])try{saveP();stSave(prof().id)}catch(e){}cur=h;window.hubListenStop&&window.hubListenStop();
  if(pendingReload&&!GAMES[h]){location.reload();return}
  document.querySelectorAll(".view").forEach(function(v){v.classList.remove("on")});
  renderPurse();
@@ -1874,8 +1918,8 @@ window.addEventListener("message",function(e){
  if(e.source!==$("frame").contentWindow)return;
  if(e.data==="hub-back")back();
  else if(e.data&&e.data.type==="eco"){ecoOff=!e.data.on;renderEco()}
- else if(e.data&&e.data.type==="roundEnd"){var rg=pathActive()&&pathIsCur(cur);pathEvt("round");onRound(rg);if(dayUp){clearTimeout(dayT);dayT=setTimeout(endDay,2500)}else if(timeUp){clearTimeout(graceT);graceT=setTimeout(endPlay,2500)}}
- else if(e.data&&e.data.type==="answer"){if(GAMES[cur]&&GAMES[cur].luck)return;recordStat(e.data);if(e.data.ok)pathAdd("ok",1);PGAIN=pathActive()&&pathIsCur(cur);pathEvt("q");onAnswer(e.data);PGAIN=false}
+ else if(e.data&&e.data.type==="roundEnd"){var rg=pathActive()&&pathIsCur(cur);onRound(rg);pathEvt("round");pendCheck("round");if(dayUp){clearTimeout(dayT);dayT=setTimeout(endDay,2500)}else if(timeUp){clearTimeout(graceT);graceT=setTimeout(endPlay,2500)}}
+ else if(e.data&&e.data.type==="answer"){if(GAMES[cur]&&GAMES[cur].luck)return;recordStat(e.data);if(e.data.ok)pathAdd("ok",1);PGAIN=pathActive()&&pathIsCur(cur);onAnswer(e.data);PGAIN=false;pathEvt("q");pendCheck("q")}
  else if(e.data&&e.data.type==="finish"){recordStat({ok:true,k:e.data.k});onFinish(e.data)}
  else if(e.data&&e.data.type==="stars")addStars(e.data.n)});
 if(ls("bk_restored")){localStorage.removeItem("bk_restored");setTimeout(function(){var t=document.createElement("div");t.className="toast";t.style.animationDuration="4s";t.textContent="💾 Profils restaurés depuis config.json";document.body.appendChild(t);setTimeout(function(){t.remove()},4200)},400)}
@@ -1893,7 +1937,7 @@ if("serviceWorker" in navigator){
 </script>
 <script src="sync.js"></script>
 <script>// après chaque synchronisation : redessiner l'écran affiché (profils ajoutés, étoiles, réglages venus d'un autre téléphone)
-bonusMigrate();if(!(window.SYNC&&SYNC.fam))econX1();
+bonusMigrate();pendRestore();if(!(window.SYNC&&SYNC.fam))econX1();
 if(window.SYNC)SYNC.after=function(ch){if(!SYNC.err&&econX1()){setTimeout(function(){SYNC.now()},500);ch=true}try{var top=PG[PG.length-1]||"menu",open=!$("settings").hidden;if(open&&top==="family")renderFamily();if(!ch)return;
  renderPurse();if(cur==="profil")renderProfilScreen();
  if(open){if(["menu","profils","app"].indexOf(top)>=0)renderPage();else if(top==="profil"&&document.activeElement&&!/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName))renderPage()}}catch(e){}};</script>
