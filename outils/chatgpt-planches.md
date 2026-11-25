@@ -495,3 +495,262 @@ Le bras gauche pend le long du corps, un peu écarté, main ouverte paume vers l
 La jambe gauche est droite. La jambe droite est légèrement pliée, le genou un peu avancé et le pied posé sur la pointe, pour que le genou soit bien visible.
 Le visage est grand et bien lisible : deux yeux, deux sourcils, un nez, une bouche souriante, les deux oreilles bien dégagées (cheveux courts qui ne les cachent pas), le cou et les épaules bien visibles.
 ```
+
+## Remplacement des icônes Microsoft (Fluent Emoji 3D) : mots de « Lerne neue Wörter » (F1-F171, 7 planches)
+
+Même style crayon, détourées. Intégration : `decoupe.py planche.png dossier 5 5` puis `images.py <case> <Mot>` (l'image Fluent est remplacée). Les nombres (planche 7) sont de gros chiffres dessinés, pas des objets à compter.
+
+### Fluent 1 (F1-F25)
+
+Mots : F1 Ärztin · F2 Affe · F3 Ameise · F4 Ananas · F5 Arzt · F6 Auto · F7 Badewanne · F8 Bär · F9 Banane · F10 Bauer · F11 Bein · F12 Bett · F13 Bild · F14 Birne · F15 Blatt · F16 Blitz · F17 Boot · F18 Brille · F19 Brokkoli · F20 Computer · F21 Dinosaurier · F22 Drachen · F23 Dusche · F24 Eichhörnchen · F25 Einhorn
+
+```
+Génère UNE image PNG carrée avec un vrai fond transparent (canal alpha) : 25 illustrations détourées, sans aucun fond, ni blanc, ni couleur, ni damier dessiné. Dispose-les en grille régulière de 5 colonnes et 5 lignes, toutes les cases de la même taille, dans l'ordre de la liste (de gauche à droite, puis ligne suivante). Exactement 25 sujets, pas de doublon, pas de cadre ni de bordure autour des cases, et un espace vide entre les sujets pour qu'ils ne se touchent jamais. Elles servent à une appli d'apprentissage de l'allemand pour une enfant de 6 ans.
+
+Style identique pour toutes : illustration douce aux crayons de couleur, couleurs douces, contours fins, un seul sujet bien centré dans chaque case, découpé proprement sur son contour comme un autocollant, sans ombre portée au sol, aucun texte, aucune lettre, aucun chiffre écrit.
+
+Sujets :
+F1. Une femme médecin souriante en blouse blanche avec un stéthoscope.
+F2. Un singe qui mange une banane.
+F3. Une fourmi.
+F4. Un ananas.
+F5. Un homme médecin souriant en blouse blanche avec un stéthoscope.
+F6. Une petite voiture bleue.
+F7. Une baignoire pleine de mousse avec un canard en plastique.
+F8. Un ours brun.
+F9. Une banane.
+F10. Un fermier en salopette avec une fourche et un chapeau de paille.
+F11. Une jambe d'enfant en short, du genou au pied.
+F12. Un lit avec une couette et un oreiller, sans personne dedans.
+F13. Un tableau encadré accroché au mur, avec un paysage peint.
+F14. Une poire.
+F15. Une feuille d'arbre verte.
+F16. Un éclair jaune qui sort d'un nuage sombre.
+F17. Une petite barque en bois sur l'eau.
+F18. Une paire de lunettes.
+F19. Un brocoli.
+F20. Un ordinateur portable ouvert.
+F21. Un gentil dinosaure vert.
+F22. Un cerf-volant coloré dans le ciel avec sa ficelle.
+F23. Une douche avec de l'eau qui coule du pommeau.
+F24. Un écureuil roux qui tient une noisette.
+F25. Une licorne blanche avec une crinière arc-en-ciel.
+```
+
+### Fluent 2 (F26-F50)
+
+Mots : F26 Eis · F27 Elefant · F28 Ente · F29 Erdbeere · F30 Erde · F31 Eule · F32 Fahrrad · F33 Familie · F34 Fenster · F35 Fernseher · F36 Feuerwehrauto · F37 Feuerwehrmann · F38 Finger · F39 Fisch · F40 Flugzeug · F41 Frosch · F42 Fuchs · F43 Geburtstag · F44 Geschenk · F45 Gespenst · F46 Gurke · F47 Handschuh · F48 Handy · F49 Herz · F50 Honig
+
+```
+Génère UNE image PNG carrée avec un vrai fond transparent (canal alpha) : 25 illustrations détourées, sans aucun fond, ni blanc, ni couleur, ni damier dessiné. Dispose-les en grille régulière de 5 colonnes et 5 lignes, toutes les cases de la même taille, dans l'ordre de la liste (de gauche à droite, puis ligne suivante). Exactement 25 sujets, pas de doublon, pas de cadre ni de bordure autour des cases, et un espace vide entre les sujets pour qu'ils ne se touchent jamais. Elles servent à une appli d'apprentissage de l'allemand pour une enfant de 6 ans.
+
+Style identique pour toutes : illustration douce aux crayons de couleur, couleurs douces, contours fins, un seul sujet bien centré dans chaque case, découpé proprement sur son contour comme un autocollant, sans ombre portée au sol, aucun texte, aucune lettre, aucun chiffre écrit.
+
+Sujets :
+F26. Un cornet de glace à deux boules.
+F27. Un éléphant.
+F28. Un canard.
+F29. Une fraise.
+F30. La planète Terre vue de l'espace.
+F31. Une chouette.
+F32. Un vélo.
+F33. Une famille : papa, maman et deux enfants qui se tiennent la main.
+F34. Une fenêtre ouverte avec des rideaux.
+F35. Une télévision.
+F36. Un camion de pompiers rouge avec son échelle.
+F37. Un pompier avec son casque et sa lance à incendie.
+F38. Une main avec un seul doigt levé, l'index.
+F39. Un poisson.
+F40. Un avion dans le ciel.
+F41. Une grenouille verte.
+F42. Un renard roux assis, vu de face.
+F43. Un enfant avec un chapeau pointu de fête devant un gâteau d'anniversaire avec des bougies.
+F44. Un cadeau emballé avec un gros nœud.
+F45. Un petit fantôme blanc gentil et souriant.
+F46. Un concombre.
+F47. Une paire de gants en laine.
+F48. Un téléphone portable.
+F49. Un cœur rouge.
+F50. Un pot de miel.
+```
+
+### Fluent 3 (F51-F75)
+
+Mots : F51 Hose · F52 Hubschrauber · F53 Huhn · F54 Hund · F55 Hut · F56 Igel · F57 Insel · F58 Känguru · F59 Käse · F60 Kaktus · F61 Kamel · F62 Kartoffel · F63 Kirsche · F64 Kiwi · F65 Kleeblatt · F66 Koch · F67 König · F68 Kokosnuss · F69 Krankenwagen · F70 Krokodil · F71 Krone · F72 Kuchen · F73 Lehrer · F74 Lehrerin · F75 Löffel
+
+```
+Génère UNE image PNG carrée avec un vrai fond transparent (canal alpha) : 25 illustrations détourées, sans aucun fond, ni blanc, ni couleur, ni damier dessiné. Dispose-les en grille régulière de 5 colonnes et 5 lignes, toutes les cases de la même taille, dans l'ordre de la liste (de gauche à droite, puis ligne suivante). Exactement 25 sujets, pas de doublon, pas de cadre ni de bordure autour des cases, et un espace vide entre les sujets pour qu'ils ne se touchent jamais. Elles servent à une appli d'apprentissage de l'allemand pour une enfant de 6 ans.
+
+Style identique pour toutes : illustration douce aux crayons de couleur, couleurs douces, contours fins, un seul sujet bien centré dans chaque case, découpé proprement sur son contour comme un autocollant, sans ombre portée au sol, aucun texte, aucune lettre, aucun chiffre écrit.
+
+Sujets :
+F51. Un pantalon.
+F52. Un hélicoptère.
+F53. Une poule.
+F54. Un chien.
+F55. Un chapeau.
+F56. Un hérisson.
+F57. Une petite île de sable avec un palmier au milieu de la mer.
+F58. Un kangourou avec son petit dans la poche.
+F59. Un morceau de fromage à trous.
+F60. Un cactus dans un pot.
+F61. Un chameau à deux bosses.
+F62. Des pommes de terre.
+F63. Deux cerises.
+F64. Un kiwi coupé en deux.
+F65. Un trèfle à quatre feuilles.
+F66. Un cuisinier qui remue une grande marmite.
+F67. Un roi avec sa couronne et sa cape rouge.
+F68. Une noix de coco ouverte.
+F69. Une ambulance.
+F70. Un crocodile.
+F71. Une couronne dorée, seule.
+F72. Une part de gâteau au chocolat sur une assiette.
+F73. Un maître d'école devant un tableau.
+F74. Une maîtresse d'école devant un tableau.
+F75. Une cuillère.
+```
+
+### Fluent 4 (F76-F100)
+
+Mots : F76 Löwe · F77 Luftballon · F78 Mais · F79 Mama · F80 Marienkäfer · F81 Meer · F82 Melone · F83 Messer · F84 Motorrad · F85 Mütze · F86 Mund · F87 Nudeln · F88 Oma · F89 Opa · F90 Panda · F91 Papa · F92 Papagei · F93 Pfannkuchen · F94 Pilz · F95 Pizza · F96 Polizeiauto · F97 Polizist · F98 Pommes · F99 Prinzessin · F100 Puzzle
+
+```
+Génère UNE image PNG carrée avec un vrai fond transparent (canal alpha) : 25 illustrations détourées, sans aucun fond, ni blanc, ni couleur, ni damier dessiné. Dispose-les en grille régulière de 5 colonnes et 5 lignes, toutes les cases de la même taille, dans l'ordre de la liste (de gauche à droite, puis ligne suivante). Exactement 25 sujets, pas de doublon, pas de cadre ni de bordure autour des cases, et un espace vide entre les sujets pour qu'ils ne se touchent jamais. Elles servent à une appli d'apprentissage de l'allemand pour une enfant de 6 ans.
+
+Style identique pour toutes : illustration douce aux crayons de couleur, couleurs douces, contours fins, un seul sujet bien centré dans chaque case, découpé proprement sur son contour comme un autocollant, sans ombre portée au sol, aucun texte, aucune lettre, aucun chiffre écrit.
+
+Sujets :
+F76. Un lion.
+F77. Des ballons de baudruche colorés.
+F78. Un épi de maïs.
+F79. Une maman souriante.
+F80. Une coccinelle.
+F81. La mer avec des vagues.
+F82. Un melon coupé.
+F83. Un couteau de table.
+F84. Une moto.
+F85. Une casquette.
+F86. Une bouche souriante.
+F87. Une assiette de spaghettis.
+F88. Une mamie souriante.
+F89. Un papi souriant.
+F90. Un panda qui mange du bambou.
+F91. Un papa souriant.
+F92. Un perroquet coloré.
+F93. Une crêpe pliée sur une assiette.
+F94. Un champignon.
+F95. Une pizza.
+F96. Une voiture de police avec son gyrophare.
+F97. Un policier.
+F98. Un cornet de frites.
+F99. Une princesse.
+F100. Des pièces de puzzle.
+```
+
+### Fluent 5 (F101-F125)
+
+Mots : F101 Rakete · F102 Ring · F103 Roboter · F104 Roller · F105 Rose · F106 Salat · F107 Salz · F108 Schaf · F109 Schal · F110 Schiff · F111 Schlange · F112 Schlüssel · F113 Schmetterling · F114 Schnecke · F115 Schokolade · F116 Schuh · F117 Schwein · F118 Socke · F119 Sofa · F120 Sonne · F121 Sonnenblume · F122 Spiegel · F123 Stein · F124 Stern · F125 Stiefel
+
+```
+Génère UNE image PNG carrée avec un vrai fond transparent (canal alpha) : 25 illustrations détourées, sans aucun fond, ni blanc, ni couleur, ni damier dessiné. Dispose-les en grille régulière de 5 colonnes et 5 lignes, toutes les cases de la même taille, dans l'ordre de la liste (de gauche à droite, puis ligne suivante). Exactement 25 sujets, pas de doublon, pas de cadre ni de bordure autour des cases, et un espace vide entre les sujets pour qu'ils ne se touchent jamais. Elles servent à une appli d'apprentissage de l'allemand pour une enfant de 6 ans.
+
+Style identique pour toutes : illustration douce aux crayons de couleur, couleurs douces, contours fins, un seul sujet bien centré dans chaque case, découpé proprement sur son contour comme un autocollant, sans ombre portée au sol, aucun texte, aucune lettre, aucun chiffre écrit.
+
+Sujets :
+F101. Une fusée.
+F102. Une bague.
+F103. Un robot jouet.
+F104. Une trottinette.
+F105. Une rose rouge, seule, sans main.
+F106. Une salade verte (laitue).
+F107. Une salière.
+F108. Un mouton.
+F109. Une écharpe.
+F110. Un grand navire sur la mer.
+F111. Un serpent.
+F112. Une clé.
+F113. Un papillon.
+F114. Un escargot.
+F115. Une tablette de chocolat entière.
+F116. Une chaussure.
+F117. Un cochon.
+F118. Une chaussette.
+F119. Un canapé.
+F120. Un soleil souriant, seul, sans nuage.
+F121. Un tournesol.
+F122. Un miroir.
+F123. Un caillou.
+F124. Une étoile jaune.
+F125. Une paire de bottes de pluie.
+```
+
+### Fluent 6 (F126-F150)
+
+Mots : F126 Stuhl · F127 Suppe · F128 T-Shirt · F129 Taxi · F130 Tee · F131 Telefon · F132 Tiger · F133 Toilette · F134 Tomate · F135 Traktor · F136 Tür · F137 Tulpe · F138 Vulkan · F139 Wasser · F140 Wecker · F141 Weihnachtsmann · F142 Wolf · F143 Würfel · F144 Zahn · F145 Zahnbürste · F146 Zebra · F147 Zitrone · F148 Zug · F149 Zwiebel · F150 essen
+
+```
+Génère UNE image PNG carrée avec un vrai fond transparent (canal alpha) : 25 illustrations détourées, sans aucun fond, ni blanc, ni couleur, ni damier dessiné. Dispose-les en grille régulière de 5 colonnes et 5 lignes, toutes les cases de la même taille, dans l'ordre de la liste (de gauche à droite, puis ligne suivante). Exactement 25 sujets, pas de doublon, pas de cadre ni de bordure autour des cases, et un espace vide entre les sujets pour qu'ils ne se touchent jamais. Elles servent à une appli d'apprentissage de l'allemand pour une enfant de 6 ans.
+
+Style identique pour toutes : illustration douce aux crayons de couleur, couleurs douces, contours fins, un seul sujet bien centré dans chaque case, découpé proprement sur son contour comme un autocollant, sans ombre portée au sol, aucun texte, aucune lettre, aucun chiffre écrit.
+
+Sujets :
+F126. Une chaise.
+F127. Un bol de soupe.
+F128. Un tee-shirt.
+F129. Un taxi jaune.
+F130. Une tasse de thé avec son sachet.
+F131. Un téléphone fixe à l'ancienne.
+F132. Un tigre.
+F133. Des toilettes.
+F134. Une tomate.
+F135. Un tracteur.
+F136. Une porte fermée.
+F137. Une tulipe.
+F138. Un volcan qui fume.
+F139. Un verre d'eau.
+F140. Un réveil qui sonne.
+F141. Le père Noël avec sa hotte.
+F142. Un loup.
+F143. Un dé à jouer.
+F144. Une dent blanche.
+F145. Une brosse à dents avec du dentifrice.
+F146. Un zèbre.
+F147. Un citron.
+F148. Un train.
+F149. Un oignon.
+F150. Un enfant qui mange avec une fourchette.
+```
+
+### Fluent 7 (F151-F171)
+
+Mots : F151 grün · F152 orange · F153 heiß · F154 kaufen · F155 klettern · F156 krank · F157 müde · F158 schlafen · F159 schreiben · F160 sehen · F161 traurig · F162 weinen · F163 umarmen · F164 winken · F165 null · F166 eins · F167 drei · F168 vier · F169 fünf · F170 acht · F171 zehn
+
+```
+Génère UNE image PNG carrée avec un vrai fond transparent (canal alpha) : 21 illustrations détourées, sans aucun fond, ni blanc, ni couleur, ni damier dessiné. Dispose-les en grille régulière de 5 colonnes et 5 lignes, toutes les cases de la même taille, dans l'ordre de la liste (de gauche à droite, puis ligne suivante), les dernières cases restent vides. Exactement 21 sujets, pas de doublon, pas de cadre ni de bordure autour des cases, et un espace vide entre les sujets pour qu'ils ne se touchent jamais. Elles servent à une appli d'apprentissage de l'allemand pour une enfant de 6 ans.
+
+Style identique pour toutes : illustration douce aux crayons de couleur, couleurs douces, contours fins, un seul sujet bien centré dans chaque case, découpé proprement sur son contour comme un autocollant, sans ombre portée au sol, aucun texte, aucune lettre ; seuls les sujets F165 à F171 sont des chiffres dessinés en gros, aucun autre chiffre écrit.
+
+Sujets :
+F151. Une tache de peinture verte.
+F152. Une tache de peinture orange.
+F153. Un enfant qui souffle sur une cuillère de soupe brûlante qui fume.
+F154. Un enfant qui paie à la caisse d'un magasin.
+F155. Un enfant qui grimpe à un arbre.
+F156. Un enfant malade au lit avec un thermomètre dans la bouche.
+F157. Un enfant fatigué qui bâille en se frottant les yeux.
+F158. Un enfant qui dort dans son lit.
+F159. Une main qui écrit au stylo sur une feuille.
+F160. Un enfant qui regarde au loin, la main en visière au-dessus des yeux.
+F161. Un enfant triste, la tête baissée, sans larmes.
+F162. Un enfant qui pleure à chaudes larmes.
+F163. Deux enfants qui se font un câlin.
+F164. Un enfant qui fait au revoir de la main à un bus qui s'en va.
+F165. Le chiffre 0 dessiné en gros, coloré.
+F166. Le chiffre 1 dessiné en gros, coloré.
+F167. Le chiffre 3 dessiné en gros, coloré.
+F168. Le chiffre 4 dessiné en gros, coloré.
+F169. Le chiffre 5 dessiné en gros, coloré.
+F170. Le chiffre 8 dessiné en gros, coloré.
+F171. Le nombre 10 dessiné en gros, coloré.
+```
