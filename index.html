@@ -1127,7 +1127,9 @@ function pendAdd(pts,inPath,c){if(PEND.g!==cur){PEND={g:cur,pts:0,q:0,path:false
 function pendStars(){var E=ensureEcon(prof());return Math.floor((E.gauge+PEND.pts)/ECON.PTS+1e-6)}
 // verser la cagnotte : quiet = sans animation (fermeture de l'appli, écran de victoire du parcours qui montre déjà les étoiles)
 function awardPend(quiet){var p=prof(),E=ensureEcon(p),pts=PEND.pts,c=PEND.c,path=PEND.path;PEND={g:cur,pts:0,q:0,path:false,c:1};try{localStorage.removeItem(pendKey())}catch(e){}
- if(!(pts>0)){starTxt();return 0}rollWeek(p);var d=today(p),tot=E.gauge+pts,n=Math.floor(tot/ECON.PTS+1e-6);E.gauge=Math.max(0,r2(tot-n*ECON.PTS));
+ // la série (×2, ×3) repart de zéro à chaque nouvelle partie (à la demande de l'utilisateur)
+ E.streak=0;
+ if(!(pts>0)){saveP();starTxt();return 0}rollWeek(p);var d=today(p),tot=E.gauge+pts,n=Math.floor(tot/ECON.PTS+1e-6);E.gauge=Math.max(0,r2(tot-n*ECON.PTS));
  if(n){p.stars+=n;d.st+=n;if(path)pathGain(p,n)}saveP();renderPurse(false);renderEco();if(n&&!quiet)showAward(n,c,p.stars-n);return n}
 // cagnotte restée d'une séance fermée en pleine partie : versée sans animation au démarrage
 function pendRestore(){try{var o=JSON.parse(localStorage.getItem(pendKey())||"null");if(o&&o.pts>0){PEND=o;awardPend(true)}}catch(e){}}
