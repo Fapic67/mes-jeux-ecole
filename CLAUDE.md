@@ -117,7 +117,7 @@ Cibles >= 56px, bordures 3px, textes secondaires >= 16px, menus centrés vertica
    Toutes les 6 à 8 étoiles, un personnage traverse l'écran en riant (15 personnages SVG, trajets variés).
 2. **Le téléphone magique** : une voix française dicte un numéro de 5 nombres de 10 à 99, un nombre à la fois. L'enfant compose chaque nombre ; le nombre suivant n'est dicté que quand elle a juste. En cas d'erreur, l'appli dit « Recommence ».
    **Pas de bouton « Jouer »** (à la demande de l'utilisateur) : le premier numéro est dicté dès l'ouverture, le suivant 2,5 s après l'appel (pas si les réglages ou le verrou sont ouverts) ; le bouton du haut sert seulement à « 🔁 Répéter » pendant la dictée.
-   Quand le numéro est complet, la voix dit « Appuie sur téléphoner ». Bon numéro : ça sonne, puis « Allô ? Bravo » ; mauvais numéro : tonalité occupé.
+   Chaque nombre est dit « Le 12. » (un nombre court dit seul était avalé : « dou » pour douze, signalé par l'utilisateur), et une nouvelle phrase attend 180 ms après l'arrêt de la précédente (jeton `stok`). Quand le numéro est complet, la voix dit « Appuie sur téléphoner ». Bon numéro : ça sonne, puis « Allô ? Bravo » ; mauvais numéro : tonalité occupé.
    La cagnotte gagne 10 € par victoire, et un ticket coûte 100 €. Toutes les 10 victoires, l'appli dit « Bravo + prénom ».
    Réglages : nombre maximum, plage favorisée avec un pourcentage, utilisation des tickets. Ils sont protégés par le verrou du téléphone (WebAuthn), ou à défaut par un PIN parent.
 
